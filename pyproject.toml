@@ -13,7 +13,6 @@ testpaths = [
 
 [tool.mypy]
 disallow_untyped_defs = true
-disallow_any_unimported = true
 disallow_any_generics = true
 check_untyped_defs = true
 strict_equality = true
@@ -26,6 +25,13 @@ warn_unreachable = true
 warn_unused_configs = true
 show_error_codes = true
 
+[[tool.mypy.overrides]]
+module = "datasets.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "flair.*"
+ignore_missing_imports = true
 
 [tool.black]
 line-length = 120
