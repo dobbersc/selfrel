@@ -1,9 +1,9 @@
 import argparse
 import contextlib
 import json
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Iterator
 from pathlib import Path
-from typing import Any, Iterator, Optional, TextIO, TypeVar, Union
+from typing import Any, Optional, TextIO, TypeVar, Union
 
 import conllu
 import datasets
@@ -13,7 +13,7 @@ from flair.data import Label, Sentence
 from flair.models import SequenceTagger
 from flair.splitter import SegtokSentenceSplitter
 from flair.tokenization import SegtokTokenizer
-from ray.actor import ActorHandle, ActorClass
+from ray.actor import ActorHandle
 from ray.util import ActorPool
 from tqdm import tqdm
 
