@@ -4,6 +4,7 @@ data_text = files('selfrel.resources').joinpath('description.txt').read_text()
 
 
 def main() -> None:
+    print(data_text)
     print("Hello World")
 
 
