@@ -13,7 +13,7 @@ from flair.data import Label, Sentence
 from flair.models import SequenceTagger
 from flair.splitter import SegtokSentenceSplitter
 from flair.tokenization import SegtokTokenizer
-from ray.actor import ActorHandle
+from ray.actor import ActorHandle, ActorClass
 from ray.util import ActorPool
 from tqdm import tqdm
 
@@ -240,7 +240,7 @@ def main() -> None:
 
     # Initialize pipeline actor pool
     pipeline_actors: list[ActorHandle] = [
-        Pipeline.options(num_cpus=num_cpus, num_gpus=num_gpus).remote(
+        Pipeline.options(num_cpus=num_cpus, num_gpus=num_gpus).remote(  # type: ignore[attr-defined]
             model_path, label_type="ner", batch_size=batch_size
         )
         for _ in range(num_actors)
@@ -248,7 +248,8 @@ def main() -> None:
     pipeline_pool: ActorPool = ActorPool(pipeline_actors)
 
     def remote_pipeline(pipeline_actor: ActorHandle, article: dict[str, Any]) -> tuple[str, ...]:
-        return pipeline_actor.process.remote(article_id=article["article_id"], text=article["text"])
+        result: tuple[str, ...] = pipeline_actor.process.remote(article_id=article["article_id"], text=article["text"])
+        return result
 
     # Load dataset and process
     cc_news: datasets.Dataset = get_cc_news(dataset_slice)
