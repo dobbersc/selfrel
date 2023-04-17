@@ -1,0 +1,29 @@
+This script annotates the CC-News dataset with named entities and exports each article with its annotations in the CoNLL-U Plus format.
+
+We use a restricted version of Huggingface of the original CC-News dataset.
+It contains 708241 English news articles published between January 2017 and December 2019.
+
+Each processed article is assigned an article ID, starting at 1, based on the (deterministic) index in the dataset and written to 'cc-news.conllup'.
+
+The following metadata is included in each sentence:
+    - article_id (The article ID of the sentence's origin article.)
+    - sentence_id (The sentence ID in the current article, starting at 1.)
+    - text (The original text of the sentence.)
+
+Note that article ID and sentence ID combined serve as a unique identifier for each sentence.
+
+The following columns are included in each sentence:
+    - ID
+    - FORM
+    - NER:FLAIR
+    - NER_SCORE:FLAIR
+    - MISC
+
+
+References:
+    [1] Original Commoncrawl CC-News Dataset:
+        https://commoncrawl.org/2016/10/news-dataset-available/
+    [2] Huggingface CC-News Dataset:
+        https://huggingface.co/datasets/cc_news
+    [3] Universal Dependencies CoNLL-U Plus format:
+        https://universaldependencies.org/ext-format.html
