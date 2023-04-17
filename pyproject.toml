@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=56.0", "setuptools_scm[toml]>=6.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "src/selfrel/_version.py"
+
+[tool.pytest.ini_options]
+addopts = "--cov=selfrel"
+testpaths = [
+    "tests",
+]
+
+[tool.mypy]
+disallow_untyped_defs = true
+disallow_any_unimported = true
+disallow_any_generics = true
+check_untyped_defs = true
+strict_equality = true
+no_implicit_optional = true
+no_implicit_reexport = true
+warn_return_any = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+warn_unused_configs = true
+show_error_codes = true
+
+
+[tool.black]
+line-length = 120
+target-version = ['py39', 'py310']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
