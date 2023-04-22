@@ -66,11 +66,13 @@ def main() -> None:
     )
     export.add_argument(
         "--num-processes",
+        type=int,
         default=1,
         help="The number of processes for multiprocessing.",
     )
     export.add_argument(
         "--chunk-size",
+        type=int,
         default=1,
         help="The chunk size for multiprocessing.",
     )
