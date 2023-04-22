@@ -43,12 +43,11 @@ def segment(document: str) -> Iterator[Iterator[list[segmenter.Token]]]:
     """
     Segments a document into paragraphs, sentences, and tokens.
 
-    Note that hyphenated words at linebreaks are joined and
-    negation contractions ("don't") are replaced with "do" and "not".
+    Note that hyphenated words at linebreaks are joined.
 
     :param document: The document to process
     :return: An iterator over paragraphs and sentences as lists of tokens
     """
-    tokenizer = segmenter.Tokenizer(emit_hyphen_or_underscore_sep=True)
+    tokenizer = segmenter.Tokenizer(emit_hyphen_or_underscore_sep=True, replace_not_contraction=False)
     for paragraph in segmenter.preprocess(document):
         yield segmenter.segment(tokenizer.tokenize(paragraph))
