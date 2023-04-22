@@ -120,15 +120,7 @@ def export_cc_news(
     num_processes: int = 1,
     chunk_size: int = 1,
 ) -> None:
-    """
-    TODO: Add docstring
-    :param out_dir:
-    :param export_metadata:
-    :param dataset_slice:
-    :param num_processes:
-    :param chunk_size:
-    :return:
-    """
+    """See `selfrel export --help`."""
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
