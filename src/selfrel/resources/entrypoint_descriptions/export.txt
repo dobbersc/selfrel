@@ -1,0 +1,28 @@
+This script exports the CC-News dataset segmented into paragraphs, sentences and tokens for each article in the CoNLL-U Plus format.
+
+We use a restricted version of the original CC-News dataset from Huggingface.
+It contains 708241 English news articles published between January 2017 and December 2019.
+
+Each processed article is assigned an article ID, based on the (deterministic) index in the dataset.
+The segmented sentences are then written to '<OUT>/cc-news.conllup'.
+
+The following metadata is included in each sentence:
+	- global_sentence_id (A globally unique identifier for each sentence.)
+    - article_id (The article ID of the sentence's origin article, starting at 1.)
+    - paragraph_id (The paragraph ID of the sentence in the current article, starting at 1.)
+    - sentence_id (The sentence ID in the current article, starting at 1.)
+    - text (The original text of the sentence.)
+
+The following columns are included in each sentence from the standard CoNLL-U specifications:
+    - ID
+    - FORM
+    - MISC
+
+
+References:
+    [1] Original Commoncrawl CC-News Dataset:
+        https://commoncrawl.org/2016/10/news-dataset-available/
+    [2] Huggingface CC-News Dataset:
+        https://huggingface.co/datasets/cc_news
+    [3] Universal Dependencies CoNLL-U Plus format:
+        https://universaldependencies.org/ext-format.html
