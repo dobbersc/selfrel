@@ -14,7 +14,7 @@ def call_export(args: argparse.Namespace) -> None:
         out_dir=args.out,
         export_metadata=args.export_metadata,
         dataset_slice=args.slice,
-        num_processes=args.num_processes,
+        processes=args.processes,
         chunk_size=args.chunk_size,
     )
 
@@ -65,7 +65,7 @@ def main() -> None:
         ),
     )
     export.add_argument(
-        "--num-processes",
+        "--processes",
         type=int,
         default=1,
         help="The number of processes for multiprocessing.",

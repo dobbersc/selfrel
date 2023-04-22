@@ -99,12 +99,12 @@ def __parallel_article_to_conllu(x: tuple[str, int]) -> tuple[str, ...]:
     return _article_to_conllu(article=x[0], article_id=x[1])
 
 
-def _cc_news_to_conllu(cc_news: datasets.Dataset, num_processes: int, chunk_size: int) -> Iterator[str]:
+def _cc_news_to_conllu(cc_news: datasets.Dataset, processes: int, chunk_size: int) -> Iterator[str]:
     """Yields CoNLL-U serialized sentences from the CC-News dataset."""
     article_to_conllu_input: Iterator[tuple[str, int]] = (
         (article["text"], article["article_id"]) for article in tqdm(cc_news, desc="Submitting Articles", leave=False)
     )
-    with Pool(processes=num_processes) as pool:
+    with Pool(processes=processes) as pool:
         for conllu_sentences in tqdm(
             pool.imap(__parallel_article_to_conllu, article_to_conllu_input, chunksize=chunk_size),
             desc="Processing Articles",
@@ -117,7 +117,7 @@ def export_cc_news(
     out_dir: Union[str, Path],
     export_metadata: bool = True,
     dataset_slice: Optional[str] = None,
-    num_processes: int = 1,
+    processes: int = 1,
     chunk_size: int = 1,
 ) -> None:
     """See `selfrel export --help`."""
@@ -130,7 +130,7 @@ def export_cc_news(
     with (out_dir / "cc-news.conllup").open("w", encoding="utf-8") as output_file:
         output_file.write("# global.columns = ID FORM MISC\n")  # Write CoNLL-U Plus header
 
-        for sentence_index, sentence in enumerate(_cc_news_to_conllu(cc_news, num_processes, chunk_size), start=1):
+        for sentence_index, sentence in enumerate(_cc_news_to_conllu(cc_news, processes, chunk_size), start=1):
             output_file.write(f"# global_sentence_id = {sentence_index}\n")  # Minor hack for the global sentence ID
             output_file.write(sentence)
 
