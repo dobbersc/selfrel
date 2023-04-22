@@ -101,16 +101,14 @@ def __parallel_article_to_conllu(x: tuple[str, int]) -> tuple[str, ...]:
 
 def _cc_news_to_conllu(cc_news: datasets.Dataset, num_processes: int, chunk_size: int) -> Iterator[str]:
     """Yields CoNLL-U serialized sentences from the CC-News dataset."""
+    article_to_conllu_input: Iterator[tuple[str, int]] = (
+        (article["text"], article["article_id"]) for article in tqdm(cc_news, desc="Submitting Articles", leave=False)
+    )
     with Pool(processes=num_processes) as pool:
         for conllu_sentences in tqdm(
-            pool.imap(
-                __parallel_article_to_conllu,
-                ((article["text"], article["article_id"]) for article in tqdm(cc_news, desc="Submitting Articles")),
-                chunksize=chunk_size,
-            ),
+            pool.imap(__parallel_article_to_conllu, article_to_conllu_input, chunksize=chunk_size),
             desc="Processing Articles",
             total=len(cc_news),
-            leave=False,
         ):
             yield from conllu_sentences
 
