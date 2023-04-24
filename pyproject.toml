@@ -30,7 +30,11 @@ module = "datasets.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = "flair.*"
+module = "syntok.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "joblib.*"
 ignore_missing_imports = true
 
 [tool.black]
