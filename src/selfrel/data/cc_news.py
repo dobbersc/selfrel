@@ -104,6 +104,7 @@ def _cc_news_to_conllu(cc_news: datasets.Dataset, processes: int, chunk_size: in
     article_to_conllu_input: Iterator[tuple[str, int]] = (
         (article["text"], article["article_id"]) for article in tqdm(cc_news, desc="Submitting Articles", leave=False)
     )
+    # TODO: Use joblib generator instead of multiprocessing pool
     with Pool(processes=processes) as pool:
         for conllu_sentences in tqdm(
             pool.imap(__parallel_article_to_conllu, article_to_conllu_input, chunksize=chunk_size),
