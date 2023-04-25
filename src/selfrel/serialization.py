@@ -145,3 +145,86 @@ def to_conllu(sentence: Sentence, include_global_columns: bool = True) -> str:
         if include_global_columns
         else conllu_sentence.serialize()
     )
+
+
+def _infer_whitespace_after(token: conllu.Token) -> int:
+    misc: Optional[dict[str, str]] = token.get("misc")
+    if misc is not None:
+        return 0 if misc.get("SpaceAfter") == "No" else 1
+    return 1
+
+
+def _score_as_float(score: str) -> float:
+    try:
+        return float(score)
+    except ValueError:
+        return 1.0
+
+
+def from_conllu(serialized: str) -> Sentence:
+    raw_global_columns: str = serialized.split("\n", 1)[0]
+    if not raw_global_columns.startswith("# global.columns = "):
+        raise ValueError("Missing CoNLL-U Plus required 'global.columns'")
+
+    # Parse global columns and gather annotated label types
+    global_columns: list[str] = raw_global_columns[19:].split()
+    label_types: _LabelTypes = _LabelTypes.from_global_columns(global_columns)
+
+    # Parse serialized sentence
+    conllu_sentences: conllu.SentenceList = conllu.parse(serialized)
+    if len(conllu_sentences) != 1:
+        raise ValueError("Received multiple sentences but expected single serialized CoNLL-U Plus sentence")
+    conllu_sentence: conllu.TokenList = conllu_sentences[0]
+
+    # Initialize Flair sentence
+    flair_tokens: list[Token] = [
+        Token(
+            text=conllu_token["form"],
+            whitespace_after=_infer_whitespace_after(conllu_token),
+        )
+        for conllu_token in conllu_sentence
+    ]
+    flair_sentence: Sentence = Sentence(flair_tokens)
+
+    # Add token labels
+    for token_label_type in label_types.token_level:
+        for flair_token, conllu_token in zip(flair_sentence.tokens, conllu_sentence):
+            label: str = conllu_token[f"{token_label_type}:token"]
+            score: float = _score_as_float(conllu_token[f"{token_label_type}:token_score"])
+            if label not in ["O", "_"]:
+                flair_token.add_label(token_label_type, value=label, score=score)
+
+    # Add span labels
+    for span_label_type in label_types.span_level:
+        bioes_tags: list[str] = []
+        bioes_scores: list[float] = []
+        for token in conllu_sentence:
+            bioes_tags.append(token[f"{span_label_type}:span"])
+            bioes_scores.append(_score_as_float(token[f"{span_label_type}:span_score"]))
+
+        for span, score, label in get_spans_from_bio(bioes_tags=bioes_tags, bioes_scores=bioes_scores):
+            flair_sentence[span[0] : span[-1] + 1].add_label(span_label_type, value=label, score=score)
+
+    # Add relation labels
+    if "relations" in conllu_sentence.metadata:
+        for relation in conllu_sentence.metadata["relations"].split("|"):
+            sections: list[str] = relation.split(";")
+            head_start: int = int(sections[0])
+            head_end: int = int(sections[1])
+            tail_start: int = int(sections[2])
+            tail_end: int = int(sections[3])
+            label: str = sections[4]
+            score: float = float(sections[5])
+
+            relation = Relation(
+                first=flair_sentence[head_start - 1 : head_end], second=flair_sentence[tail_start - 1 : tail_end]
+            )
+            relation.add_label("relation", value=label, score=score)
+
+    # Add metadata as sentence label
+    for key, value in conllu_sentence.metadata.items():
+        if key in ["global.columns", "text", "relations"]:
+            continue
+        flair_sentence.add_label(key, value)
+
+    return flair_sentence
