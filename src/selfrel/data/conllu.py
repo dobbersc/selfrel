@@ -1,13 +1,14 @@
 import os
 from collections.abc import Iterator, Sized
 from pathlib import Path
-from typing import Any, Optional, TextIO, Union, cast, overload
+from typing import Any, TextIO, Union, cast, overload
 
-import conllu
-from flair.data import Sentence, Token
+from flair.data import Sentence
 from joblib import Parallel, delayed
 from torch.utils.data.dataset import Dataset
 from tqdm import tqdm
+
+from selfrel.serialization import from_conllu
 
 __all__ = ["CoNLLUPlusDataset"]
 
@@ -35,37 +36,6 @@ def _serialized_conllu_plus_sentence_iter(fp: TextIO, disable_progress_bar: bool
                 sentence_lines = []
 
 
-def _infer_whitespace_after(token: conllu.Token) -> int:
-    misc: Optional[dict[str, str]] = token.get("misc")
-    if misc is not None:
-        return 0 if misc.get("SpaceAfter") == "No" else 1
-    return 1
-
-
-def _parse_serialized_conllu_plus_sentence(serialized_conllu_sentence: str) -> Sentence:
-    conllu_sentences: conllu.SentenceList = conllu.parse(serialized_conllu_sentence)
-    assert len(conllu_sentences) == 1
-    conllu_sentence: conllu.TokenList = conllu_sentences[0]
-
-    flair_tokens: list[Token] = [
-        Token(
-            text=conllu_token["form"],
-            whitespace_after=_infer_whitespace_after(conllu_token),
-        )
-        for conllu_token in conllu_sentence
-    ]
-
-    flair_sentence: Sentence = Sentence(flair_tokens)
-
-    # Add metadata as sentence label
-    for key, value in conllu_sentence.metadata.items():
-        if key == "global.columns":
-            continue
-        flair_sentence.add_label(key, value)
-
-    return flair_sentence
-
-
 def _parse_conllu_plus(
     fp: TextIO, processes: int, disable_progress_bar: bool = False, **kwargs: Any
 ) -> Iterator[Sentence]:
@@ -74,7 +44,7 @@ def _parse_conllu_plus(
 
     parallel = Parallel(processes, return_generator=True, **kwargs)
     sentences: Iterator[Sentence] = parallel(
-        delayed(_parse_serialized_conllu_plus_sentence)(sentence)
+        delayed(from_conllu)(sentence)
         for sentence in _serialized_conllu_plus_sentence_iter(fp, disable_progress_bar=disable_progress_bar)
     )
     return sentences
@@ -142,9 +112,9 @@ class CoNLLUPlusDataset(Dataset[Sentence], Sized):
         assert isinstance(self._sentences[0], str)
         sentences: tuple[str, ...] = cast(tuple[str, ...], self._sentences)
         return (
-            _parse_serialized_conllu_plus_sentence(sentences[item])
+            from_conllu(sentences[item])
             if isinstance(item, int)
-            else tuple(_parse_serialized_conllu_plus_sentence(sentence) for sentence in sentences[item])
+            else tuple(from_conllu(sentence) for sentence in sentences[item])
         )
 
     def __iter__(self) -> Iterator[Sentence]:
