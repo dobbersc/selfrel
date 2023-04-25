@@ -19,7 +19,7 @@ def _add_token_label(token: conllu.Token, label_type: str, label: str, score: fl
 
 def _add_span_label(span: list[conllu.Token], label_type: str, label: str, score: float) -> None:
     for token, bioes_label in zip(span, _get_bioes_representation(label, len(span))):
-        token[f"{label_type}:span"] = label
+        token[f"{label_type}:span"] = bioes_label
         token[f"{label_type}:span_score"] = score
 
 
