@@ -133,6 +133,8 @@ def to_conllu(sentence: Sentence, include_global_columns: bool = True) -> str:
 
             elif isinstance(data_point, Sentence):
                 # TODO: Currently, the score is not serialized for sentence-level labels
+                if label_type in ["global.columns", "text", "relations"]:
+                    raise ValueError(f"Unsupported sentence annotation of label type {label_type!r}")
                 conllu_sentence.metadata[label_type] = label.value
 
     # Add relation metadata
