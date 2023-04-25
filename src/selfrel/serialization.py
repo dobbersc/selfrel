@@ -49,7 +49,7 @@ class _LabelTypes(NamedTuple):
     @classmethod
     def from_flair_sentence(cls, sentence: Sentence) -> Self:
         """Returns the label types from the given Flair sentence sorted alphabetically."""
-        label_types: _LabelTypes = cls(token_level=[], span_level=[])
+        label_types: Self = cls(token_level=[], span_level=[])
 
         label_type: str
         labels: list[Label]
@@ -221,8 +221,8 @@ def from_conllu(serialized: str, **kwargs: Any) -> Sentence:
             head_end: int = int(sections[1])
             tail_start: int = int(sections[2])
             tail_end: int = int(sections[3])
-            label: str = sections[4]
-            score: float = float(sections[5])
+            label = sections[4]
+            score = float(sections[5])
 
             relation = Relation(
                 first=flair_sentence[head_start - 1 : head_end], second=flair_sentence[tail_start - 1 : tail_end]
