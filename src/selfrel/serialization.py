@@ -1,4 +1,4 @@
-from typing import NamedTuple, Optional
+from typing import NamedTuple, Optional, Any
 
 import conllu
 from flair.data import (
@@ -78,10 +78,10 @@ def _get_bioes_representation(label: str, span_length: int) -> tuple[str, ...]:
 
 def to_conllu(sentence: Sentence, include_global_columns: bool = True) -> str:
     """
-
-    :param sentence:
-    :param include_global_columns:
-    :return:
+    Serializes a Flair sentence to CoNLL-U (Plus).
+    :param sentence: The sentence to serialize
+    :param include_global_columns: If True, the CoNLL-U Plus global.columns header is included in the serialization.
+    :return: The serialized sentence
     """
     # TODO: Serialize sentence start position
 
@@ -161,7 +161,13 @@ def _score_as_float(score: str) -> float:
         return 1.0
 
 
-def from_conllu(serialized: str) -> Sentence:
+def from_conllu(serialized: str, **kwargs: Any) -> Sentence:
+    """
+    Creates a Flair sentence from a CoNLL-U (Plus) serialized sentence.
+    :param serialized: The CoNLL-U (Plus) serialized sentence.
+    :param kwargs: Keywords arguments are passed to `conllu.parse`
+    :return: The deserialized Flair sentence
+    """
     raw_global_columns: str = serialized.split("\n", 1)[0]
     if not raw_global_columns.startswith("# global.columns = "):
         raise ValueError("Missing CoNLL-U Plus required 'global.columns'")
@@ -171,7 +177,7 @@ def from_conllu(serialized: str) -> Sentence:
     label_types: _LabelTypes = _LabelTypes.from_global_columns(global_columns)
 
     # Parse serialized sentence
-    conllu_sentences: conllu.SentenceList = conllu.parse(serialized)
+    conllu_sentences: conllu.SentenceList = conllu.parse(serialized, **kwargs)
     if len(conllu_sentences) != 1:
         raise ValueError("Received multiple sentences but expected single serialized CoNLL-U Plus sentence")
     conllu_sentence: conllu.TokenList = conllu_sentences[0]
