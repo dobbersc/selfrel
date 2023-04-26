@@ -94,11 +94,11 @@ def test_deserialize_empty_string() -> None:
 def test_deserialize_sentence_with_missing_global_columns() -> None:
     with pytest.raises(ValueError, match=r"Missing CoNLL-U Plus required 'global.columns'"):
         from_conllu(
-            "# text = This is a Sentence.\n"
+            "# text = This is a sentence.\n"
             "1\tThis\t_\n"
             "2\tis\t_\n"
             "3\ta\t_\n"
-            "4\tSentence\tSpaceAfter=No\n"
+            "4\tsentence\tSpaceAfter=No\n"
             "5\t.\tSpaceAfter=No\n\n"
         )
 
@@ -109,11 +109,11 @@ def test_deserialize_multiple_sentences() -> None:
     ):
         from_conllu(
             "# global.columns = ID FORM MISC\n"
-            "# text = This is a Sentence.\n"
+            "# text = This is a sentence.\n"
             "1\tThis\t_\n"
             "2\tis\t_\n"
             "3\ta\t_\n"
-            "4\tSentence\tSpaceAfter=No\n"
+            "4\tsentence\tSpaceAfter=No\n"
             "5\t.\tSpaceAfter=No\n\n"
             "# text = This is another sentence.\n"
             "1\tThis\t_\n"
