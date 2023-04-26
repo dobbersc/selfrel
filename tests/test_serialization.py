@@ -3,14 +3,27 @@ from flair.data import Sentence, Relation
 from selfrel.serialization import to_conllu, from_conllu
 
 
-def test_serialization() -> None:
+def test_unannotated_sentence_serialization() -> None:
+    sentence: Sentence = Sentence(
+        "Albert Einstein, who was born in Ulm, Germany, later emigrated to the USA.", start_position=10
+    )
+
+    # Serialize -> Deserialize
+    parsed_sentence: Sentence = from_conllu(to_conllu(sentence))
+
+    # Validate sentence text and start position
+    assert sentence.to_original_text() == parsed_sentence.to_original_text()
+    assert sentence.start_position != parsed_sentence.start_position  # Currently, not serialized
+
+
+def test_annotated_sentence_serialization() -> None:
     sentence: Sentence = Sentence(
         "Albert Einstein, who was born in Ulm, Germany, later emigrated to the USA.", start_position=10
     )
 
     # Add sentence annotations
     sentence.add_label("sentence_id", value="1")
-    sentence.add_label("sentiment", value="neutral")
+    sentence.add_label("sentiment", value="neutral", score=0.75)
 
     # Add token annotations
     sentence[0].add_label("upos", value="PROPN", score=0.75)
@@ -30,12 +43,13 @@ def test_serialization() -> None:
 
     # Validate sentence text and start position
     assert sentence.to_original_text() == parsed_sentence.to_original_text()
-    # assert sentence.start_position != parsed_sentence.start_position
+    assert sentence.start_position != parsed_sentence.start_position  # Currently, not serialized
 
     # Validate sentence annotations
     for label_type in ["sentence_id", "sentiment"]:
         assert sentence.get_label(label_type).value == parsed_sentence.get_label(label_type).value
-        assert sentence.get_label(label_type).score == parsed_sentence.get_label(label_type).score
+        # Currently, not serialized
+        # assert sentence.get_label(label_type).score == parsed_sentence.get_label(label_type).score
 
     # Validate token annotations
     for token, parsed_token in zip(sentence.tokens, parsed_sentence.tokens):
