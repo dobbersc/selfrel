@@ -1,5 +1,5 @@
 import selfrel
 
 
-def test_selfrel() -> None:
+def test_version() -> None:
     assert selfrel.__version__
