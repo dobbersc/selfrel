@@ -72,6 +72,34 @@ def test_serialize_deserialize_annotated_sentence() -> None:
         assert relation.get_label("relation").score == parsed_relation.get_label("relation").score
 
 
+def test_serialize_sentence_with_default_token_fields() -> None:
+    sentence: Sentence = Sentence("This is a sentence.")
+    serialized: str = to_conllu(sentence, default_token_fields={"pos"})
+    assert serialized == (
+        "# global.columns = ID FORM POS:TOKEN POS:TOKEN_SCORE MISC\n"
+        "# text = This is a sentence.\n"
+        "1\tThis\tO\t_\t_\n"
+        "2\tis\tO\t_\t_\n"
+        "3\ta\tO\t_\t_\n"
+        "4\tsentence\tO\t_\tSpaceAfter=No\n"
+        "5\t.\tO\t_\tSpaceAfter=No\n\n"
+    )
+
+
+def test_serialize_sentence_with_default_span_fields() -> None:
+    sentence: Sentence = Sentence("This is a sentence.")
+    serialized: str = to_conllu(sentence, default_span_fields={"ner"})
+    assert serialized == (
+        "# global.columns = ID FORM NER:SPAN NER:SPAN_SCORE MISC\n"
+        "# text = This is a sentence.\n"
+        "1\tThis\tO\t_\t_\n"
+        "2\tis\tO\t_\t_\n"
+        "3\ta\tO\t_\t_\n"
+        "4\tsentence\tO\t_\tSpaceAfter=No\n"
+        "5\t.\tO\t_\tSpaceAfter=No\n\n"
+    )
+
+
 def test_serialize_empty_sentence() -> None:
     sentence: Sentence = Sentence("")
     with pytest.raises(ValueError, match=r"Can't serialize the empty sentence"):

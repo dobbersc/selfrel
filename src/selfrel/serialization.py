@@ -1,4 +1,6 @@
-from typing import NamedTuple, Optional, Any
+import bisect
+from collections.abc import Set
+from typing import Any, NamedTuple, Optional
 
 import conllu
 from flair.data import (
@@ -11,7 +13,6 @@ from flair.data import (
     get_spans_from_bio,
 )
 from typing_extensions import Self
-
 
 __all__ = ["to_conllu", "from_conllu"]
 
@@ -74,6 +75,28 @@ class _LabelTypes(NamedTuple):
         return label_types
 
 
+def _add_default_token_fields(label_types: _LabelTypes, default_token_fields: Set[str]) -> None:
+    """
+    Includes the default token fields (label-types) that are not annotated in the sentence
+    i.e. not present in the given `label_types`. The label-types remain alphabetically sorted.
+    """
+    token_fields: set[str] = set(label_types.token_level)
+    for default_token_field in default_token_fields:
+        if default_token_field not in token_fields:
+            bisect.insort(label_types.token_level, default_token_field)
+
+
+def _add_default_span_fields(label_types: _LabelTypes, default_span_fields: Set[str]) -> None:
+    """
+    Includes the default span fields (label-types) that are not annotated in the sentence
+    i.e. not present in the given `label_types`. The label-types remain alphabetically sorted.
+    """
+    span_fields: set[str] = set(label_types.span_level)
+    for default_span_field in default_span_fields:
+        if default_span_field not in span_fields:
+            bisect.insort(label_types.span_level, default_span_field)
+
+
 # noinspection PyRedundantParentheses
 def _get_bioes_representation(label: str, span_length: int) -> tuple[str, ...]:
     assert label != "O"
@@ -84,7 +107,12 @@ def _get_bioes_representation(label: str, span_length: int) -> tuple[str, ...]:
     return (f"B-{label}",) + tuple(f"I-{label}" for _ in range(span_length - 2)) + (f"E-{label}",)
 
 
-def to_conllu(sentence: Sentence, include_global_columns: bool = True) -> str:
+def to_conllu(
+    sentence: Sentence,
+    include_global_columns: bool = True,
+    default_token_fields: Set[str] = frozenset(),
+    default_span_fields: Set[str] = frozenset(),
+) -> str:
     """
     Serializes a Flair sentence to CoNLL-U (Plus).
 
@@ -92,16 +120,24 @@ def to_conllu(sentence: Sentence, include_global_columns: bool = True) -> str:
     #   - the sentence start position.
     #   - the sentence's label scores.
     #   - variable relation label-types. Relations are hardcoded as "relations".
+    #   - label-type is not case-preserved
 
     :param sentence: The sentence to serialize
     :param include_global_columns: If True, the CoNLL-U Plus global.columns header is included in the serialization.
+    :param default_token_fields: An optional set of token-level label-type strings to include in the serialization
+                                 regardless if they are annotated in the input sentence.
+    :param default_span_fields: An optional set of span-level label-type strings to include in the serialization
+                                regardless if they are annotated in the input sentence.
     :return: The serialized sentence as CoNLL-U (Plus) string
     """
-
     if not len(sentence):
         raise ValueError("Can't serialize the empty sentence")
 
     label_types: _LabelTypes = _LabelTypes.from_flair_sentence(sentence)
+    if default_token_fields:
+        _add_default_token_fields(label_types, default_token_fields)
+    if default_span_fields:
+        _add_default_span_fields(label_types, default_span_fields)
 
     conllu_sentence: conllu.TokenList = conllu.TokenList(
         [
