@@ -87,7 +87,7 @@ def to_conllu(sentence: Sentence, include_global_columns: bool = True) -> str:
 
     :param sentence: The sentence to serialize
     :param include_global_columns: If True, the CoNLL-U Plus global.columns header is included in the serialization.
-    :return: The serialized sentence
+    :return: The serialized sentence as CoNLL-U (Plus) string
     """
 
     if not len(sentence):
