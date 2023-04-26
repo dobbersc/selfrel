@@ -1,9 +1,10 @@
-from flair.data import Sentence, Relation
+import pytest
+from flair.data import Relation, Sentence
 
-from selfrel.serialization import to_conllu, from_conllu
+from selfrel.serialization import from_conllu, to_conllu
 
 
-def test_unannotated_sentence_serialization() -> None:
+def test_serialize_deserialize_unannotated_sentence() -> None:
     sentence: Sentence = Sentence(
         "Albert Einstein, who was born in Ulm, Germany, later emigrated to the USA.", start_position=10
     )
@@ -16,7 +17,7 @@ def test_unannotated_sentence_serialization() -> None:
     assert sentence.start_position != parsed_sentence.start_position  # Currently, not serialized
 
 
-def test_annotated_sentence_serialization() -> None:
+def test_serialize_deserialize_annotated_sentence() -> None:
     sentence: Sentence = Sentence(
         "Albert Einstein, who was born in Ulm, Germany, later emigrated to the United States of America.",
         start_position=10,
@@ -69,3 +70,55 @@ def test_annotated_sentence_serialization() -> None:
         assert relation.text == parsed_relation.text
         assert relation.get_label("relation").value == parsed_relation.get_label("relation").value
         assert relation.get_label("relation").score == parsed_relation.get_label("relation").score
+
+
+def test_serialize_empty_sentence() -> None:
+    sentence: Sentence = Sentence("")
+    with pytest.raises(ValueError, match=r"Can't serialize the empty sentence"):
+        to_conllu(sentence)
+
+
+@pytest.mark.parametrize("reserved_label_type", ["global.columns", "text", "relations"])
+def test_serialize_sentence_with_reserved_annotations(reserved_label_type: str) -> None:
+    sentence: Sentence = Sentence("This is a sentence.")
+    sentence.add_label(reserved_label_type, value="test")
+    with pytest.raises(ValueError, match=rf"Unsupported sentence annotation of label type {reserved_label_type!r}"):
+        to_conllu(sentence)
+
+
+def test_deserialize_empty_string() -> None:
+    with pytest.raises(ValueError, match=r"Missing CoNLL-U Plus required 'global.columns'"):
+        from_conllu("")
+
+
+def test_deserialize_sentence_with_missing_global_columns() -> None:
+    with pytest.raises(ValueError, match=r"Missing CoNLL-U Plus required 'global.columns'"):
+        from_conllu(
+            "# text = This is a Sentence.\n"
+            "1\tThis\t_\n"
+            "2\tis\t_\n"
+            "3\ta\t_\n"
+            "4\tSentence\tSpaceAfter=No\n"
+            "5\t.\tSpaceAfter=No\n\n"
+        )
+
+
+def test_deserialize_multiple_sentences() -> None:
+    with pytest.raises(
+        ValueError, match=r"Received multiple sentences but expected single serialized CoNLL-U Plus sentence"
+    ):
+        from_conllu(
+            "# global.columns = ID FORM MISC\n"
+            "# text = This is a Sentence.\n"
+            "1\tThis\t_\n"
+            "2\tis\t_\n"
+            "3\ta\t_\n"
+            "4\tSentence\tSpaceAfter=No\n"
+            "5\t.\tSpaceAfter=No\n\n"
+            "# text = This is another sentence.\n"
+            "1\tThis\t_\n"
+            "2\tis\t_\n"
+            "3\tanother\t_\n"
+            "4\tsentence\tSpaceAfter=No\n"
+            "5\t.\tSpaceAfter=No\n\n"
+        )
