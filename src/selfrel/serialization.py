@@ -13,6 +13,9 @@ from flair.data import (
 from typing_extensions import Self
 
 
+__all__ = ["to_conllu", "from_conllu"]
+
+
 # The reserved metadata specifies CoNLL-U metadata keys reserved for special cases.
 # They are not valid for custom sentence-level label annotations.
 __RESERVED_METADATA: set[str] = {"global.columns", "text", "relations"}
