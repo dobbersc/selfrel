@@ -79,11 +79,16 @@ def _get_bioes_representation(label: str, span_length: int) -> tuple[str, ...]:
 def to_conllu(sentence: Sentence, include_global_columns: bool = True) -> str:
     """
     Serializes a Flair sentence to CoNLL-U (Plus).
+
+    # TODO: to_conllu does not serialize
+    #   - the sentence start position.
+    #   - the sentence's label scores.
+    #   - variable relation label types. Relations are hardcoded as "relations".
+
     :param sentence: The sentence to serialize
     :param include_global_columns: If True, the CoNLL-U Plus global.columns header is included in the serialization.
     :return: The serialized sentence
     """
-    # TODO: Serialize sentence start position
 
     if not len(sentence):
         raise ValueError("Can't serialize the empty sentence")
@@ -132,13 +137,11 @@ def to_conllu(sentence: Sentence, include_global_columns: bool = True) -> str:
                 relations.append(f"{head};{tail};{label.value};{label.score}")
 
             elif isinstance(data_point, Sentence):
-                # TODO: Currently, the score is not serialized for sentence-level labels
                 if label_type in ["global.columns", "text", "relations"]:
                     raise ValueError(f"Unsupported sentence annotation of label type {label_type!r}")
                 conllu_sentence.metadata[label_type] = label.value
 
     # Add relation metadata
-    # TODO: Relations are hardcoded for now. Support variable relation label types.
     if relations:
         conllu_sentence.metadata["relations"] = "|".join(relations)
 
