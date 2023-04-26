@@ -119,7 +119,7 @@ class CoNLLUPlusDataset(Dataset[Sentence], Sized):
 
     def __iter__(self) -> Iterator[Sentence]:
         if self.is_persistent:
-            return iter(self._sentences)
+            yield from self._sentences
         with self._dataset_path.open("r", encoding="utf-8") as dataset_file:
             yield from _parse_conllu_plus(
                 dataset_file, self._processes, disable_progress_bar=True, return_generator=True, **self._kwargs
