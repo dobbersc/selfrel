@@ -18,7 +18,8 @@ def test_unannotated_sentence_serialization() -> None:
 
 def test_annotated_sentence_serialization() -> None:
     sentence: Sentence = Sentence(
-        "Albert Einstein, who was born in Ulm, Germany, later emigrated to the USA.", start_position=10
+        "Albert Einstein, who was born in Ulm, Germany, later emigrated to the United States of America.",
+        start_position=10,
     )
 
     # Add sentence annotations
@@ -33,10 +34,13 @@ def test_annotated_sentence_serialization() -> None:
     # Add span annotations
     sentence[:2].add_label("ner", value="PER", score=0.75)
     sentence[7:8].add_label("ner", value="LOC", score=0.75)
+    sentence[15:19].add_label("ner", value="LOC", score=0.75)
 
     # Add relation annotations
     Relation(first=sentence[:2], second=sentence[7:8]).add_label("relation", value="born_in")
     Relation(first=sentence[7:8], second=sentence[9:10]).add_label("relation", value="located_in")
+
+    print(sentence)
 
     # Serialize -> Deserialize
     parsed_sentence: Sentence = from_conllu(to_conllu(sentence))
