@@ -40,8 +40,6 @@ def test_annotated_sentence_serialization() -> None:
     Relation(first=sentence[:2], second=sentence[7:8]).add_label("relation", value="born_in")
     Relation(first=sentence[7:8], second=sentence[9:10]).add_label("relation", value="located_in")
 
-    print(sentence)
-
     # Serialize -> Deserialize
     parsed_sentence: Sentence = from_conllu(to_conllu(sentence))
 
