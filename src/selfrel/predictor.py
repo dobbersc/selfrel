@@ -1,18 +1,21 @@
 from pathlib import Path
-from typing import Union, Any
+from typing import Any, Optional, Union
 
 import ray
 from flair.data import Sentence
 from flair.nn import Classifier
 
-from selfrel.serialization import to_conllu, from_conllu
+from selfrel.serialization import from_conllu, to_conllu
 
 
-def _register_sentence_serializer() -> None:
+__all__ = ["register_sentence_serializer", "Predictor"]
+
+
+def register_sentence_serializer() -> None:
     ray.util.register_serializer(Sentence, serializer=to_conllu, deserializer=from_conllu)
 
 
-_register_sentence_serializer()
+register_sentence_serializer()
 
 
 @ray.remote
