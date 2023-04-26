@@ -82,7 +82,7 @@ def test_serialize_empty_sentence() -> None:
 def test_serialize_sentence_with_reserved_annotations(reserved_label_type: str) -> None:
     sentence: Sentence = Sentence("This is a sentence.")
     sentence.add_label(reserved_label_type, value="test")
-    with pytest.raises(ValueError, match=rf"Unsupported sentence annotation of label type {reserved_label_type!r}"):
+    with pytest.raises(ValueError, match=rf"Unsupported sentence annotation of label-type {reserved_label_type!r}"):
         to_conllu(sentence)
 
 

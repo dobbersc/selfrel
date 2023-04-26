@@ -48,7 +48,7 @@ class _LabelTypes(NamedTuple):
 
     @classmethod
     def from_global_columns(cls, global_columns: list[str]) -> Self:
-        """Returns the Flair label types from the given CoNLL-U Plus global.columns."""
+        """Returns the Flair label-types from the given CoNLL-U Plus global.columns."""
         return cls(
             token_level=[column[:-6].lower() for column in global_columns if column.endswith(":TOKEN")],
             span_level=[column[:-5].lower() for column in global_columns if column.endswith(":SPAN")],
@@ -56,7 +56,7 @@ class _LabelTypes(NamedTuple):
 
     @classmethod
     def from_flair_sentence(cls, sentence: Sentence) -> Self:
-        """Returns the label types from the given Flair sentence sorted alphabetically."""
+        """Returns the label-types from the given Flair sentence sorted alphabetically."""
         label_types: Self = cls(token_level=[], span_level=[])
 
         label_type: str
@@ -91,7 +91,7 @@ def to_conllu(sentence: Sentence, include_global_columns: bool = True) -> str:
     # TODO: to_conllu does not serialize
     #   - the sentence start position.
     #   - the sentence's label scores.
-    #   - variable relation label types. Relations are hardcoded as "relations".
+    #   - variable relation label-types. Relations are hardcoded as "relations".
 
     :param sentence: The sentence to serialize
     :param include_global_columns: If True, the CoNLL-U Plus global.columns header is included in the serialization.
@@ -146,7 +146,7 @@ def to_conllu(sentence: Sentence, include_global_columns: bool = True) -> str:
 
             elif isinstance(data_point, Sentence):
                 if label_type in __RESERVED_METADATA:
-                    raise ValueError(f"Unsupported sentence annotation of label type {label_type!r}")
+                    raise ValueError(f"Unsupported sentence annotation of label-type {label_type!r}")
                 conllu_sentence.metadata[label_type] = label.value
 
     # Add relation metadata
@@ -185,7 +185,7 @@ def from_conllu(serialized: str, **kwargs: Any) -> Sentence:
     if not raw_global_columns.startswith("# global.columns = "):
         raise ValueError("Missing CoNLL-U Plus required 'global.columns'")
 
-    # Parse global columns and gather annotated label types
+    # Parse global columns and gather annotated label-types
     global_columns: list[str] = raw_global_columns[19:].split()
     label_types: _LabelTypes = _LabelTypes.from_global_columns(global_columns)
 
