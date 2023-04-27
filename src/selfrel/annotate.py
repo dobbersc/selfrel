@@ -19,7 +19,7 @@ __all__ = ["annotate_entities"]
 
 def annotate_entities(
     dataset_path: Union[str, Path],
-    out_path: Union[str, Path],
+    out_path: Union[str, Path] = None,
     model_path: str = "flair/ner-english-large",
     label_type: str = "ner",
     abstraction_level: Literal["token", "span", "relation", "sentence"] = "span",
@@ -30,9 +30,14 @@ def annotate_entities(
     buffer_size: Optional[int] = None,
 ) -> None:
     """See `selfrel annotate --help`."""
+    dataset_path = Path(dataset_path)
+
+    # Set default output path
+    if out_path is None:
+        out_path = dataset_path.parent / f"{dataset_path.stem}-{label_type}{dataset_path.suffix}"
+    out_path = Path(out_path)
 
     # Create output directory
-    out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Set default buffer size
