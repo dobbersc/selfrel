@@ -1,6 +1,5 @@
 import json
 from collections.abc import Iterable, Iterator
-from multiprocessing import Pool
 from pathlib import Path
 from typing import Any, Optional, TextIO, Union
 
@@ -8,6 +7,7 @@ import conllu
 import datasets
 import more_itertools
 import syntok.segmenter as segmenter
+from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from selfrel.preprocessing import preprocess, segment
@@ -82,46 +82,58 @@ def _sentence_to_conllu_token_list(
     )
 
 
-def _article_to_conllu(article: str, article_id: int) -> tuple[str, ...]:
-    """Preprocesses the article and returns its sentences in CoNLL-U format."""
+def _article_to_conllu(article: str, article_id: int) -> tuple[tuple[str, ...], int]:
+    """
+    Preprocesses the article and returns its sentences as token lists in the CoNLL-U format.
+    It also returns the length of the longest sentence in the article.
+    """
     article = preprocess(article, normalization="NFKC")
-    return tuple(
-        _sentence_to_conllu_token_list(
-            sentence, article_id=article_id, paragraph_id=paragraph_index, sentence_id=sentence_index
-        ).serialize()
-        for paragraph_index, paragraph in enumerate(segment(article), start=1)
-        for sentence_index, sentence in enumerate(paragraph, start=1)
-    )
+
+    sentence_lengths: list[int] = []
+    serialized_sentences: list[str] = []
+    for paragraph_index, paragraph in enumerate(segment(article), start=1):
+        for sentence_index, sentence in enumerate(paragraph, start=1):
+            conllu_sentence: conllu.TokenList = _sentence_to_conllu_token_list(
+                sentence, article_id=article_id, paragraph_id=paragraph_index, sentence_id=sentence_index
+            )
+            sentence_lengths.append(len(conllu_sentence))
+            serialized_sentences.append(conllu_sentence.serialize())
+
+    return tuple(serialized_sentences), max(sentence_lengths)
 
 
-def __parallel_article_to_conllu(x: tuple[str, int]) -> tuple[str, ...]:
-    """Helper function for multiprocessing."""
-    return _article_to_conllu(article=x[0], article_id=x[1])
-
-
-def _cc_news_to_conllu(cc_news: datasets.Dataset, processes: int, chunk_size: int) -> Iterator[str]:
+def _cc_news_to_conllu(
+    cc_news: datasets.Dataset,
+    max_sentence_length: Optional[int],
+    processes: int,
+    **kwargs: Any,
+) -> Iterator[str]:
     """Yields CoNLL-U serialized sentences from the CC-News dataset."""
-    article_to_conllu_input: Iterator[tuple[str, int]] = (
-        (article["text"], article["article_id"]) for article in tqdm(cc_news, desc="Submitting Articles", leave=False)
+    kwargs.pop("n_jobs", None)
+    kwargs.pop("return_generator", None)
+
+    parallel = Parallel(processes, return_generator=True, **kwargs)
+    articles: Iterator[tuple[tuple[str, ...], int]] = parallel(
+        delayed(_article_to_conllu)(article["text"], article["article_id"])
+        for article in tqdm(cc_news, desc="Submitting Articles", position=0)
     )
-    # TODO: Use joblib generator instead of multiprocessing pool
-    with Pool(processes=processes) as pool:
-        for conllu_sentences in tqdm(
-            pool.imap(__parallel_article_to_conllu, article_to_conllu_input, chunksize=chunk_size),
-            desc="Processing Articles",
-            total=len(cc_news),
-        ):
-            yield from conllu_sentences
+
+    for sentences, longest_sentence_length in tqdm(
+        articles, desc="Processing Articles", total=len(cc_news), position=1
+    ):
+        if max_sentence_length is None or longest_sentence_length <= max_sentence_length:
+            yield from sentences
 
 
 def export_cc_news(
     out_dir: Union[str, Path],
     export_metadata: bool = True,
     dataset_slice: Optional[str] = None,
+    max_sentence_length: Optional[int] = None,
     processes: int = 1,
-    chunk_size: int = 1,
+    **kwargs: Any,
 ) -> None:
-    """See `selfrel export --help`."""
+    """See `selfrel export --help`. (Keyword arguments are passed to joblib Parallel.)"""
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -131,7 +143,10 @@ def export_cc_news(
     with (out_dir / "cc-news.conllup").open("w", encoding="utf-8") as output_file:
         output_file.write("# global.columns = ID FORM MISC\n")  # Write CoNLL-U Plus header
 
-        for sentence_index, sentence in enumerate(_cc_news_to_conllu(cc_news, processes, chunk_size), start=1):
+        for sentence_index, sentence in enumerate(
+            _cc_news_to_conllu(cc_news, max_sentence_length=max_sentence_length, processes=processes, **kwargs),
+            start=1,
+        ):
             output_file.write(f"# global_sentence_id = {sentence_index}\n")  # Minor hack for the global sentence ID
             output_file.write(sentence)
 

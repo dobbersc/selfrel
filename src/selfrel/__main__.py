@@ -14,8 +14,8 @@ def call_export(args: argparse.Namespace) -> None:
         out_dir=args.out,
         export_metadata=args.export_metadata,
         dataset_slice=args.slice,
+        max_sentence_length=args.max_sentence_length,
         processes=args.processes,
-        chunk_size=args.chunk_size,
     )
 
 
@@ -26,7 +26,7 @@ def main() -> None:
 
     entrypoint_descriptions: Traversable = importlib_resources.files("selfrel.resources.entrypoint_descriptions")
 
-    # Define "Export" command arguments
+    # Define "export" command arguments
     export = subparsers.add_parser(
         "export",
         help=(
@@ -65,16 +65,16 @@ def main() -> None:
         ),
     )
     export.add_argument(
+        "--max-sentence-length",
+        type=int,
+        default=None,
+        help="Only export articles where all its sentences do not exceed the maximum sentence length.",
+    )
+    export.add_argument(
         "--processes",
         type=int,
         default=1,
         help="The number of processes for multiprocessing.",
-    )
-    export.add_argument(
-        "--chunk-size",
-        type=int,
-        default=1,
-        help="The chunk size for multiprocessing.",
     )
 
     # Parse the args and call the dedicated function
