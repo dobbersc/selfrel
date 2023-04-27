@@ -21,21 +21,42 @@ def build_dataframe(cc_news: CoNLLUPlusDataset) -> pd.DataFrame:
 
 
 def plot_sentence_distribution(dataframe: pd.DataFrame, out: Path) -> None:
+    plt.rc("text", usetex=True)
+    plt.rc("text.latex", preamble=r"\usepackage{amsmath, siunitx}")
+
     sns.set_theme(style="whitegrid")
+
     dist: sns.FacetGrid = sns.displot(
         dataframe,
         x="sentence_length",
         kind="hist",
         stat="percent",
-        kde=True,
-        binwidth=5,
+        binwidth=1,
         aspect=2,
     )
     dist.set(xlabel="Sentence Length", ylabel="Percentage of Dataset")
-    dist.axes[0][0].yaxis.set_major_formatter(mtick.PercentFormatter(decimals=0))
+    dist.ax.yaxis.set_major_formatter(mtick.PercentFormatter(decimals=1))
     plt.xlim(0)
 
-    plt.savefig(out / "cc_news_sentence_distribution.pdf", dpi=300)
+    text: str = (
+        r"\begin{alignat*}{2}"
+        r"&\#\text{Articles:}\, &&\num{" + str(dataframe["article_id"].nunique()) + r"} \\"
+        r"&\#\text{Sentences:}\, &&\num{" + str(len(dataframe.index)) + r"}"
+        r"\end{alignat*}"
+    )
+    dist.ax.text(
+        90,
+        2.5,
+        text,
+        ha="center",
+        va="center",
+        bbox=dict(boxstyle="square, pad=1", fc="white", ec="black"),
+    )
+
+    out_figure: Path = out / "cc_news_sentence_distribution.pdf"
+    plt.savefig(out_figure, dpi=300)
+    print(f"Exported Plot to {out_figure}")
+
     plt.show()
 
 
@@ -53,6 +74,7 @@ def main() -> None:
 
     dataframe: pd.DataFrame
     if args.dataset_or_dataframe.suffix == ".json":
+        print("Loading Dataframe")
         dataframe = pd.read_json(args.dataset_or_dataframe)
     else:
         cc_news: CoNLLUPlusDataset = CoNLLUPlusDataset(args.dataset_or_dataframe, persist=False)
