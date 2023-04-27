@@ -26,7 +26,7 @@ def annotate_entities(
     batch_size: int = 32,
     num_actors: int = 1,
     num_cpus: Optional[float] = None,
-    num_gpus: Optional[float] = None,
+    num_gpus: Optional[float] = 1,
     buffer_size: Optional[int] = None,
 ) -> None:
     """See `selfrel annotate --help`."""
