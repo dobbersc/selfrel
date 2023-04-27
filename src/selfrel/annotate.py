@@ -61,7 +61,7 @@ def annotate_entities(
     # Load dataset
     dataset: CoNLLUPlusDataset = CoNLLUPlusDataset(dataset_path, persist=False)
     sentence_batches: Iterator[list[Sentence]] = more_itertools.batched(
-        tqdm(dataset, desc="Submitting to Actor Pool", position=1),
+        tqdm(dataset, desc="Submitting to Actor Pool", position=0),
         n=batch_size,
     )
 
@@ -82,7 +82,7 @@ def annotate_entities(
     with out_path.open("w", encoding="utf-8") as output_file:
         output_file.write(f"{global_columns}\n")
 
-        with tqdm(desc="Processing Sentences", total=len(dataset), position=0) as progress_bar:
+        with tqdm(desc="Processing Sentences", total=len(dataset), position=1) as progress_bar:
             for processed_sentences in buffered_map(
                 predictor_pool, fn=remote_predict, values=sentence_batches, buffer_size=buffer_size
             ):
