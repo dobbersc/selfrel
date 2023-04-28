@@ -31,6 +31,7 @@ def plot_sentence_distribution(dataframe: pd.DataFrame, out: Path) -> None:
         x="sentence_length",
         kind="hist",
         stat="percent",
+        discrete=True,
         binwidth=1,
         aspect=2,
     )
