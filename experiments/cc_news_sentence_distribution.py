@@ -11,6 +11,7 @@ from selfrel.data.conllu import CoNLLUPlusDataset
 
 
 def build_dataframe(cc_news: CoNLLUPlusDataset) -> pd.DataFrame:
+    """article_id | sentence_id | sentence_length"""
     dataframe_dictionary: dict[str, list[int]] = {"article_id": [], "sentence_id": [], "sentence_length": []}
     for sentence in tqdm(cc_news, desc="Building Dataframe"):
         dataframe_dictionary["article_id"].append(int(sentence.get_label("article_id").value))
