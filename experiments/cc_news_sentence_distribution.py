@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import pandas as pd
 import seaborn as sns
+from flair.data import Sentence
 from tqdm import tqdm
 
 from selfrel.data.conllu import CoNLLUPlusDataset
@@ -13,6 +14,8 @@ from selfrel.data.conllu import CoNLLUPlusDataset
 def build_dataframe(cc_news: CoNLLUPlusDataset) -> pd.DataFrame:
     """article_id | sentence_id | sentence_length"""
     dataframe_dictionary: dict[str, list[int]] = {"article_id": [], "sentence_id": [], "sentence_length": []}
+
+    sentence: Sentence
     for sentence in tqdm(cc_news, desc="Building Dataframe"):
         dataframe_dictionary["article_id"].append(int(sentence.get_label("article_id").value))
         dataframe_dictionary["sentence_id"].append(int(sentence.get_label("sentence_id").value))
