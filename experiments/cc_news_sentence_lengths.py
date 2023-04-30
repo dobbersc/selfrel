@@ -13,7 +13,11 @@ from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
 
 
 def build_sentence_lengths_dataframe(cc_news: CoNLLUPlusDataset) -> pd.DataFrame:
-    """article_id | sentence_id | sentence_length"""
+    """
+    Returns a dataframe containing all sentences with their token-level sentence length.
+
+    Dataframe columns: article_id | sentence_id | sentence_length
+    """
     dataframe_dictionary: dict[str, list[int]] = {"article_id": [], "sentence_id": [], "sentence_length": []}
 
     sentence: Sentence
