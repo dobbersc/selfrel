@@ -9,9 +9,10 @@ from flair.data import Sentence
 from tqdm import tqdm
 
 from selfrel.data.conllu import CoNLLUPlusDataset
+from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
 
 
-def build_dataframe(cc_news: CoNLLUPlusDataset) -> pd.DataFrame:
+def build_sentence_lengths_dataframe(cc_news: CoNLLUPlusDataset) -> pd.DataFrame:
     """article_id | sentence_id | sentence_length"""
     dataframe_dictionary: dict[str, list[int]] = {"article_id": [], "sentence_id": [], "sentence_length": []}
 
@@ -24,7 +25,7 @@ def build_dataframe(cc_news: CoNLLUPlusDataset) -> pd.DataFrame:
     return pd.DataFrame.from_dict(dataframe_dictionary)
 
 
-def plot_sentence_distribution(dataframe: pd.DataFrame, out: Path) -> None:
+def plot_sentence_length_distribution(dataframe: pd.DataFrame, out: Path) -> None:
     plt.rc("text", usetex=True)
     plt.rc("text.latex", preamble=r"\usepackage{amsmath, siunitx}")
 
@@ -66,27 +67,36 @@ def plot_sentence_distribution(dataframe: pd.DataFrame, out: Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=RawTextArgumentDefaultsHelpFormatter)
     parser.add_argument(
         "dataset_or_dataframe",
         type=Path,
-        help="The path to the CC-News CoNLL-U Plus dataset or to a previously generated dataframe.",
+        help=(
+            "Option 1: The path to the CC-News CoNLL-U Plus dataset (cc-news.conllup).\n"
+            "Option 2: The path to a previously generated dataframe (cc_news_sentence_lengths.json)."
+        ),
     )
-    parser.add_argument("--out", type=Path, default=Path("."), help="The output directory.")
+    parser.add_argument(
+        "--out", type=Path, default=None, help="The output directory. Per default, not output files are generated."
+    )
     args: argparse.Namespace = parser.parse_args()
 
-    args.out.mkdir(parents=True, exist_ok=True)
+    if args.out is not None:
+        args.out.mkdir(parents=True, exist_ok=True)
 
-    dataframe: pd.DataFrame
+    sentence_lengths: pd.DataFrame
     if args.dataset_or_dataframe.suffix == ".json":
         print("Loading Dataframe")
-        dataframe = pd.read_json(args.dataset_or_dataframe)
+        sentence_lengths = pd.read_json(args.dataset_or_dataframe)
     else:
         cc_news: CoNLLUPlusDataset = CoNLLUPlusDataset(args.dataset_or_dataframe, persist=False)
-        dataframe = build_dataframe(cc_news)
-        dataframe.to_json(args.out / "cc_news_sentence_distribution.json")
+        sentence_lengths = build_sentence_lengths_dataframe(cc_news)
 
-    plot_sentence_distribution(dataframe, args.out)
+        if args.out is not None:
+            print(f"Exporting Dataframe to {args.out}")
+            sentence_lengths.to_json(args.out / "cc_news_sentence_lengths.json")
+
+    plot_sentence_length_distribution(sentence_lengths, args.out)
 
 
 if __name__ == "__main__":
