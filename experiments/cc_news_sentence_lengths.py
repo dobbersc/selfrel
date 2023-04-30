@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
@@ -29,7 +30,7 @@ def build_sentence_lengths_dataframe(cc_news: CoNLLUPlusDataset) -> pd.DataFrame
     return pd.DataFrame.from_dict(dataframe_dictionary)
 
 
-def plot_sentence_length_distribution(dataframe: pd.DataFrame, out: Path) -> None:
+def plot_sentence_length_distribution(dataframe: pd.DataFrame, out: Optional[Path]) -> None:
     plt.rc("text", usetex=True)
     plt.rc("text.latex", preamble=r"\usepackage{amsmath, siunitx}")
 
@@ -63,9 +64,10 @@ def plot_sentence_length_distribution(dataframe: pd.DataFrame, out: Path) -> Non
         bbox=dict(boxstyle="square, pad=1", fc="white", ec="black"),
     )
 
-    out_figure: Path = out / "cc_news_sentence_distribution.pdf"
-    plt.savefig(out_figure, dpi=300)
-    print(f"Exported Plot to {out_figure}")
+    if out is not None:
+        out_figure: Path = out / "cc_news_sentence_distribution.pdf"
+        print(f"Exporting Plot to {out_figure}")
+        plt.savefig(out_figure, dpi=300)
 
     plt.show()
 
