@@ -4,6 +4,8 @@ from pathlib import Path
 import importlib_resources
 from importlib_resources.abc import Traversable
 
+from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
+
 
 def call_export(args: argparse.Namespace) -> None:
     assert args.dataset == "cc-news"
@@ -21,7 +23,7 @@ def call_export(args: argparse.Namespace) -> None:
 
 def main() -> None:
     """The main entry-point."""
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=RawTextArgumentDefaultsHelpFormatter)
     subparsers = parser.add_subparsers(required=True)
 
     entrypoint_descriptions: Traversable = importlib_resources.files("selfrel.resources.entrypoint_descriptions")
@@ -34,7 +36,7 @@ def main() -> None:
             "Currently, only CC-News is supported."
         ),
         description=(entrypoint_descriptions / "export.txt").read_text(encoding="utf-8"),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=RawTextArgumentDefaultsHelpFormatter,
     )
     export.set_defaults(func=call_export)
     export.add_argument(
