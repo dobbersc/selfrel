@@ -100,16 +100,16 @@ def main() -> None:
         args.out.mkdir(parents=True, exist_ok=True)
 
     sentence_lengths: pd.DataFrame
-    if args.dataset_or_dataframe.suffix == ".json":
-        print("Loading Dataframe")
-        sentence_lengths = pd.read_json(args.dataset_or_dataframe)
+    if args.dataset_or_dataframe.suffix == ".parquet":
+        print(f"Loading Dataframe from {args.dataset_or_dataframe}")
+        sentence_lengths = pd.read_parquet(args.dataset_or_dataframe)
     else:
         cc_news: CoNLLUPlusDataset = CoNLLUPlusDataset(args.dataset_or_dataframe, persist=False)
         sentence_lengths = build_sentence_lengths_dataframe(cc_news)
 
         if args.out is not None:
             print(f"Exporting Dataframe to {args.out}")
-            sentence_lengths.to_json(args.out / "cc_news_sentence_lengths.json")
+            sentence_lengths.to_parquet(args.out / "cc_news_sentence_lengths.parquet")
 
     plot_sentence_length_distribution(sentence_lengths, args.out)
 
