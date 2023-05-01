@@ -7,6 +7,7 @@ import matplotlib.ticker as mtick
 import pandas as pd
 import seaborn as sns
 from flair.data import Sentence
+from matplotlib.figure import figaspect
 from tqdm import tqdm
 
 from selfrel.data.conllu import CoNLLUPlusDataset
@@ -36,17 +37,25 @@ def plot_sentence_length_distribution(dataframe: pd.DataFrame, out: Optional[Pat
 
     sns.set_theme(style="whitegrid")
 
-    dist: sns.FacetGrid = sns.displot(
+    # noinspection PyTypeChecker
+    fig, (ax_box, ax_hist) = plt.subplots(2, sharex=True, figsize=figaspect(0.5), height_ratios=(0.15, 0.85))
+
+    sns.boxplot(dataframe, x="sentence_length", ax=ax_box)
+    ax_box.set(xlabel="")
+    sns.despine(ax=ax_box)
+
+    sns.histplot(
         dataframe,
         x="sentence_length",
-        kind="hist",
         stat="percent",
         discrete=True,
         binwidth=1,
-        aspect=2,
+        ax=ax_hist,
     )
-    dist.set(xlabel="Sentence Length", ylabel="Percentage of Dataset")
-    dist.ax.yaxis.set_major_formatter(mtick.PercentFormatter(decimals=1))
+    ax_hist.set(xlabel="Sentence Length", ylabel="Percentage of Dataset")
+    ax_hist.yaxis.set_major_formatter(mtick.PercentFormatter(decimals=1))
+    sns.despine(ax=ax_hist)
+
     plt.xlim(0)
 
     text: str = (
@@ -55,7 +64,7 @@ def plot_sentence_length_distribution(dataframe: pd.DataFrame, out: Optional[Pat
         r"&\#\text{Sentences:}\, &&\num{" + str(len(dataframe.index)) + r"}"
         r"\end{alignat*}"
     )
-    dist.ax.text(
+    ax_hist.text(
         90,
         2.5,
         text,
