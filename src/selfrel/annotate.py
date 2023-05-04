@@ -14,10 +14,10 @@ from selfrel.data.conllu import CoNLLUPlusDataset
 from selfrel.predictor import buffered_map, initialize_predictor_pool
 from selfrel.serialization import to_conllu
 
-__all__ = ["annotate_entities"]
+__all__ = ["annotate"]
 
 
-def annotate_entities(
+def annotate(
     dataset_path: Union[str, Path],
     out_path: Union[str, Path] = None,
     model_path: str = "flair/ner-english-large",
