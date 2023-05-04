@@ -88,7 +88,7 @@ def main() -> None:
         type=Path,
         help=(
             "Option 1: The path to the CC-News CoNLL-U Plus dataset (cc-news.conllup).\n"
-            "Option 2: The path to a previously generated dataframe (cc_news_sentence_lengths.json)."
+            "Option 2: The path to a previously generated dataframe (cc_news_sentence_lengths.parquet)."
         ),
     )
     parser.add_argument(
