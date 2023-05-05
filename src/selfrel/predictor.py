@@ -53,8 +53,10 @@ def register_classifier_serializers() -> None:
         return file_name
 
     def deserializer(model_path: str) -> Classifier:
-        classifier: Classifier = Classifier.load(model_path)
-        Path(model_path).unlink()
+        try:
+            classifier: Classifier = Classifier.load(model_path)
+        finally:
+            Path(model_path).unlink()
         return classifier
 
     for classifier_subclass in _get_classifier_subclasses():
