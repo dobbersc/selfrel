@@ -55,9 +55,10 @@ def initialize_predictor_pool(
 ) -> ActorPool:
     """
     Initializes a `ray.util.ActorPool` with :class:`Predictor` actors.
-    :param num_actors: The number of Ray actors in the predictor pool
-    :param actor_options: An optional dictionary of options passed to the actor
-    :param predictor_kwargs: Keyword arguments are passed to the :class:`Predictor` init
+    :param num_actors: The number of Ray actors in the predictor pool.
+    :param actor_options: An optional dictionary of options passed to the actor.
+    :param predictor_kwargs: Keyword arguments are passed to the :class:`Predictor` init.
+                             The index is set automatically.
     :return: An actor pool of :class:`Predictor` actors.
     """
     predictor_kwargs.pop("index", None)
