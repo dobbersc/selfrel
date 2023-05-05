@@ -1,0 +1,475 @@
+# global.columns = ID FORM MISC
+# global_sentence_id = 1
+# article_id = 2
+# paragraph_id = 1
+# sentence_id = 1
+# text = The New York City Ballet Board of Directors announced on Saturday the interim team that has been appointed to run the artistic side of the company during ballet master in chief Peter Martins' leave of absence.
+1	The	_
+2	New	_
+3	York	_
+4	City	_
+5	Ballet	_
+6	Board	_
+7	of	_
+8	Directors	_
+9	announced	_
+10	on	_
+11	Saturday	_
+12	the	_
+13	interim	_
+14	team	_
+15	that	_
+16	has	_
+17	been	_
+18	appointed	_
+19	to	_
+20	run	_
+21	the	_
+22	artistic	_
+23	side	_
+24	of	_
+25	the	_
+26	company	_
+27	during	_
+28	ballet	_
+29	master	_
+30	in	_
+31	chief	_
+32	Peter	_
+33	Martins	SpaceAfter=No
+34	'	_
+35	leave	_
+36	of	_
+37	absence	SpaceAfter=No
+38	.	SpaceAfter=No
+
+# global_sentence_id = 2
+# article_id = 2
+# paragraph_id = 1
+# sentence_id = 2
+# text = Martins requested a temporary leave from both NYCB and the School of American Ballet last Thursday while the company undergoes an internal investigation into the sexual harassment accusations aimed at him.
+1	Martins	_
+2	requested	_
+3	a	_
+4	temporary	_
+5	leave	_
+6	from	_
+7	both	_
+8	NYCB	_
+9	and	_
+10	the	_
+11	School	_
+12	of	_
+13	American	_
+14	Ballet	_
+15	last	_
+16	Thursday	_
+17	while	_
+18	the	_
+19	company	_
+20	undergoes	_
+21	an	_
+22	internal	_
+23	investigation	_
+24	into	_
+25	the	_
+26	sexual	_
+27	harassment	_
+28	accusations	_
+29	aimed	_
+30	at	_
+31	him	SpaceAfter=No
+32	.	SpaceAfter=No
+
+# global_sentence_id = 3
+# article_id = 2
+# paragraph_id = 1
+# sentence_id = 3
+# text = The four-person group is made up of members of the company's current artistic staff, led by ballet master and former principal dancer Jonathan Stafford.
+1	The	_
+2	four	SpaceAfter=No
+3	-	SpaceAfter=No
+4	person	_
+5	group	_
+6	is	_
+7	made	_
+8	up	_
+9	of	_
+10	members	_
+11	of	_
+12	the	_
+13	company	SpaceAfter=No
+14	's	_
+15	current	_
+16	artistic	_
+17	staff	SpaceAfter=No
+18	,	_
+19	led	_
+20	by	_
+21	ballet	_
+22	master	_
+23	and	_
+24	former	_
+25	principal	_
+26	dancer	_
+27	Jonathan	_
+28	Stafford	SpaceAfter=No
+29	.	SpaceAfter=No
+
+# global_sentence_id = 4
+# article_id = 2
+# paragraph_id = 1
+# sentence_id = 4
+# text = Joining Stafford are NYCB resident choreographer and soloist Justin Peck and ballet masters Craig Hall and Rebecca Krohn, both former dancers with the company.
+1	Joining	_
+2	Stafford	_
+3	are	_
+4	NYCB	_
+5	resident	_
+6	choreographer	_
+7	and	_
+8	soloist	_
+9	Justin	_
+10	Peck	_
+11	and	_
+12	ballet	_
+13	masters	_
+14	Craig	_
+15	Hall	_
+16	and	_
+17	Rebecca	_
+18	Krohn	SpaceAfter=No
+19	,	_
+20	both	_
+21	former	_
+22	dancers	_
+23	with	_
+24	the	_
+25	company	SpaceAfter=No
+26	.	SpaceAfter=No
+
+# global_sentence_id = 5
+# article_id = 2
+# paragraph_id = 1
+# sentence_id = 5
+# text = While the members of this group haven't had much leadership experience, their close familiarity with the company (Krohn left the stage for her new role just two months ago) should help to ease the dancers' transition.
+1	While	_
+2	the	_
+3	members	_
+4	of	_
+5	this	_
+6	group	_
+7	have	SpaceAfter=No
+8	n't	_
+9	had	_
+10	much	_
+11	leadership	_
+12	experience	SpaceAfter=No
+13	,	_
+14	their	_
+15	close	_
+16	familiarity	_
+17	with	_
+18	the	_
+19	company	_
+20	(	SpaceAfter=No
+21	Krohn	_
+22	left	_
+23	the	_
+24	stage	_
+25	for	_
+26	her	_
+27	new	_
+28	role	_
+29	just	_
+30	two	_
+31	months	_
+32	ago	SpaceAfter=No
+33	)	_
+34	should	_
+35	help	_
+36	to	_
+37	ease	_
+38	the	_
+39	dancers	SpaceAfter=No
+40	'	_
+41	transition	SpaceAfter=No
+42	.	SpaceAfter=No
+
+# global_sentence_id = 6
+# article_id = 2
+# paragraph_id = 1
+# sentence_id = 6
+# text = The team will be responsible for the day-to-day artistic needs of the company including scheduling, casting and conducting rehearsals.
+1	The	_
+2	team	_
+3	will	_
+4	be	_
+5	responsible	_
+6	for	_
+7	the	_
+8	day	SpaceAfter=No
+9	-	SpaceAfter=No
+10	to	SpaceAfter=No
+11	-	SpaceAfter=No
+12	day	_
+13	artistic	_
+14	needs	_
+15	of	_
+16	the	_
+17	company	_
+18	including	_
+19	scheduling	SpaceAfter=No
+20	,	_
+21	casting	_
+22	and	_
+23	conducting	_
+24	rehearsals	SpaceAfter=No
+25	.	SpaceAfter=No
+
+# global_sentence_id = 7
+# article_id = 2
+# paragraph_id = 1
+# sentence_id = 7
+# text = While there's no word yet on the length of their tenure, we'll continue to keep you updated as the story surrounding Martins unfolds.
+1	While	_
+2	there	SpaceAfter=No
+3	's	_
+4	no	_
+5	word	_
+6	yet	_
+7	on	_
+8	the	_
+9	length	_
+10	of	_
+11	their	_
+12	tenure	SpaceAfter=No
+13	,	_
+14	we	SpaceAfter=No
+15	'll	_
+16	continue	_
+17	to	_
+18	keep	_
+19	you	_
+20	updated	_
+21	as	_
+22	the	_
+23	story	_
+24	surrounding	_
+25	Martins	_
+26	unfolds	SpaceAfter=No
+27	.	SpaceAfter=No
+
+# global_sentence_id = 8
+# article_id = 3
+# paragraph_id = 1
+# sentence_id = 1
+# text = The Philadelphia Eagles and the New England Patriots aren't the only teams bringing Super Bowl entertainment this week.
+1	The	_
+2	Philadelphia	_
+3	Eagles	_
+4	and	_
+5	the	_
+6	New	_
+7	England	_
+8	Patriots	_
+9	are	SpaceAfter=No
+10	n't	_
+11	the	_
+12	only	_
+13	teams	_
+14	bringing	_
+15	Super	_
+16	Bowl	_
+17	entertainment	_
+18	this	_
+19	week	SpaceAfter=No
+20	.	SpaceAfter=No
+
+# global_sentence_id = 9
+# article_id = 3
+# paragraph_id = 1
+# sentence_id = 2
+# text = To celebrate game day (and cheer on their region's respective teams), the dancers of Pennsylvania Ballet and Boston Ballet took a break from their usual rehearsals to perform some Super Bowl-themed choreography.
+1	To	_
+2	celebrate	_
+3	game	_
+4	day	_
+5	(	SpaceAfter=No
+6	and	_
+7	cheer	_
+8	on	_
+9	their	_
+10	region	SpaceAfter=No
+11	's	_
+12	respective	_
+13	teams	SpaceAfter=No
+14	)	SpaceAfter=No
+15	,	_
+16	the	_
+17	dancers	_
+18	of	_
+19	Pennsylvania	_
+20	Ballet	_
+21	and	_
+22	Boston	_
+23	Ballet	_
+24	took	_
+25	a	_
+26	break	_
+27	from	_
+28	their	_
+29	usual	_
+30	rehearsals	_
+31	to	_
+32	perform	_
+33	some	_
+34	Super	_
+35	Bowl	SpaceAfter=No
+36	-	SpaceAfter=No
+37	themed	_
+38	choreography	SpaceAfter=No
+39	.	SpaceAfter=No
+
+# global_sentence_id = 10
+# article_id = 3
+# paragraph_id = 1
+# sentence_id = 3
+# text = Dressed in their Eagles green, the PAB dancers performed a fast-paced routine full of fouetté turns, sky-high jumps and some swan arms (because they're known as the birds, get it?).
+1	Dressed	_
+2	in	_
+3	their	_
+4	Eagles	_
+5	green	SpaceAfter=No
+6	,	_
+7	the	_
+8	PAB	_
+9	dancers	_
+10	performed	_
+11	a	_
+12	fast	SpaceAfter=No
+13	-	SpaceAfter=No
+14	paced	_
+15	routine	_
+16	full	_
+17	of	_
+18	fouetté	_
+19	turns	SpaceAfter=No
+20	,	_
+21	sky	SpaceAfter=No
+22	-	SpaceAfter=No
+23	high	_
+24	jumps	_
+25	and	_
+26	some	_
+27	swan	_
+28	arms	_
+29	(	SpaceAfter=No
+30	because	_
+31	they	SpaceAfter=No
+32	're	_
+33	known	_
+34	as	_
+35	the	_
+36	birds	SpaceAfter=No
+37	,	_
+38	get	_
+39	it	SpaceAfter=No
+40	?	SpaceAfter=No
+41	)	SpaceAfter=No
+42	.	SpaceAfter=No
+
+# global_sentence_id = 11
+# article_id = 3
+# paragraph_id = 1
+# sentence_id = 4
+# text = But Boston Ballet also decided to get in on the fun—with five Super Bowl wins, they're used to seeing their team in the big game.
+1	But	_
+2	Boston	_
+3	Ballet	_
+4	also	_
+5	decided	_
+6	to	_
+7	get	_
+8	in	_
+9	on	_
+10	the	_
+11	fun—with	_
+12	five	_
+13	Super	_
+14	Bowl	_
+15	wins	SpaceAfter=No
+16	,	_
+17	they	SpaceAfter=No
+18	're	_
+19	used	_
+20	to	_
+21	seeing	_
+22	their	_
+23	team	_
+24	in	_
+25	the	_
+26	big	_
+27	game	SpaceAfter=No
+28	.	SpaceAfter=No
+
+# global_sentence_id = 12
+# article_id = 3
+# paragraph_id = 1
+# sentence_id = 5
+# text = Sharing their own video on Facebook, which stars principal Paul Craig and soloist Derek Dunn, Boston Ballet threw in a few Balanchine tricks thanks to some props from Prodigal Son.
+1	Sharing	_
+2	their	_
+3	own	_
+4	video	_
+5	on	_
+6	Facebook	SpaceAfter=No
+7	,	_
+8	which	_
+9	stars	_
+10	principal	_
+11	Paul	_
+12	Craig	_
+13	and	_
+14	soloist	_
+15	Derek	_
+16	Dunn	SpaceAfter=No
+17	,	_
+18	Boston	_
+19	Ballet	_
+20	threw	_
+21	in	_
+22	a	_
+23	few	_
+24	Balanchine	_
+25	tricks	_
+26	thanks	_
+27	to	_
+28	some	_
+29	props	_
+30	from	_
+31	Prodigal	_
+32	Son	SpaceAfter=No
+33	.	SpaceAfter=No
+
+# global_sentence_id = 13
+# article_id = 3
+# paragraph_id = 1
+# sentence_id = 6
+# text = This is officially our new favorite way to get in on the football fun.
+1	This	_
+2	is	_
+3	officially	_
+4	our	_
+5	new	_
+6	favorite	_
+7	way	_
+8	to	_
+9	get	_
+10	in	_
+11	on	_
+12	the	_
+13	football	_
+14	fun	SpaceAfter=No
+15	.	SpaceAfter=No
+
