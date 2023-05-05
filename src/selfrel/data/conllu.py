@@ -8,7 +8,7 @@ from joblib import Parallel, delayed
 from torch.utils.data.dataset import Dataset
 from tqdm import tqdm
 
-from selfrel.serialization import from_conllu
+from selfrel.data.serialization import from_conllu
 
 __all__ = ["CoNLLUPlusDataset"]
 

@@ -10,9 +10,9 @@ from ray.actor import ActorHandle
 from ray.util import ActorPool
 from tqdm import tqdm
 
-from selfrel.conllu import CoNLLUPlusDataset
+from selfrel.data.conllu import CoNLLUPlusDataset
 from selfrel.predictor import buffered_map, initialize_predictor_pool
-from selfrel.serialization import to_conllu
+from selfrel.data.serialization import to_conllu
 
 __all__ = ["annotate"]
 
