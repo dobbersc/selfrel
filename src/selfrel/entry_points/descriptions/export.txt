@@ -4,7 +4,7 @@ We use a restricted version of the original CC-News dataset from Huggingface.
 It contains 708241 English news articles published between January 2017 and December 2019.
 
 Each processed article is assigned an article ID, based on the (deterministic) index in the dataset.
-The segmented sentences are then written to '<OUT>/cc-news.conllup'.
+The segmented sentences are then written to 'OUT/cc-news.conllup'.
 
 The following metadata is included in each sentence:
 	- global_sentence_id (A globally unique identifier for each sentence.)
