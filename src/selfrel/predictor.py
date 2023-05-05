@@ -9,7 +9,7 @@ from flair.nn import Classifier
 from ray.actor import ActorHandle
 from ray.util import ActorPool
 
-from selfrel.data.serialization import from_conllu, to_conllu
+from selfrel.data import from_conllu, to_conllu
 
 __all__ = ["register_sentence_serializer", "Predictor", "initialize_predictor_pool", "buffered_map"]
 

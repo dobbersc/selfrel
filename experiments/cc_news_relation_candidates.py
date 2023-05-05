@@ -11,7 +11,7 @@ import seaborn as sns
 from flair.data import Label, Sentence, Span
 from tqdm import tqdm
 
-from selfrel.data.conllu import CoNLLUPlusDataset
+from selfrel.data import CoNLLUPlusDataset
 from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
 
 

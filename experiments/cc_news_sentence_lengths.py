@@ -10,7 +10,7 @@ from flair.data import Sentence
 from matplotlib.figure import figaspect
 from tqdm import tqdm
 
-from selfrel.data.conllu import CoNLLUPlusDataset
+from selfrel.data import CoNLLUPlusDataset
 from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
 
 
