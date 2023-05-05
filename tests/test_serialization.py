@@ -1,7 +1,7 @@
 import pytest
 from flair.data import Relation, Sentence
 
-from selfrel.serialization import from_conllu, to_conllu
+from selfrel.data.serialization import from_conllu, to_conllu
 
 
 def test_serialize_deserialize_unannotated_sentence() -> None:
