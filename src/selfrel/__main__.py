@@ -10,7 +10,7 @@ from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
 def call_export(args: argparse.Namespace) -> None:
     assert args.dataset == "cc-news"
 
-    from selfrel.data.cc_news import export_cc_news
+    from selfrel.entry_points.export import export_cc_news
 
     export_cc_news(
         out_dir=args.out,
