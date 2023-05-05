@@ -61,7 +61,8 @@ def annotate(
     buffer_size = num_actors if buffer_size is None else 2 * buffer_size
 
     # Initialize ray cluster
-    ray.init()
+    if not ray.is_initialized():
+        ray.init()
 
     # Load Flair classifier
     classifier: Classifier = Classifier.load(model_path)
