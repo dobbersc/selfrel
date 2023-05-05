@@ -42,12 +42,12 @@ class Predictor:
         """
         register_sentence_serializer()
 
-        self._model = self._model if isinstance(model, Classifier) else Classifier.load(model)
+        self._model = model if isinstance(model, Classifier) else Classifier.load(model)
         self._index = index
         self._kwargs = kwargs
 
         model_message: str = "from instance" if isinstance(model, Classifier) else f"from {model!r}"
-        index_message: str = "" if index is None else f"at index {self._index!r} "
+        index_message: str = "" if index is None else f" at index {self._index!r} "
         print(
             f"Loaded Flair model {model_message} as {type(self._model).__name__!r} "
             f"predicting labels of label type {self._model.label_type!r}{index_message}"
