@@ -1,7 +1,7 @@
 from pathlib import Path
 
 # noinspection PyUnresolvedReferences
-import pytest
+import pytest  # noqa: F401
 
 
 def path_to_plugin(path: Path) -> str:
