@@ -21,6 +21,23 @@ def call_export(args: argparse.Namespace) -> None:
     )
 
 
+def call_annotate(args: argparse.Namespace) -> None:
+    from selfrel.entry_points.annotate import annotate
+
+    annotate(
+        dataset_path=args.dataset,
+        out_path=args.out,
+        model_path=args.model,
+        label_type=args.label_type,
+        abstraction_level=args.abstraction_level,
+        batch_size=args.batch_size,
+        num_actors=args.num_actors,
+        num_cpus=args.num_cpus,
+        num_gpus=args.num_gpus,
+        buffer_size=args.buffer_size,
+    )
+
+
 def main() -> None:
     """The main entry-point."""
     parser = argparse.ArgumentParser(formatter_class=RawTextArgumentDefaultsHelpFormatter)
@@ -70,13 +87,83 @@ def main() -> None:
         "--max-sentence-length",
         type=int,
         default=None,
-        help="Only export articles where all its sentences do not exceed the maximum sentence length.",
+        help=(
+            "Only export articles where all its sentences do not exceed the maximum sentence length. "
+            "The original article IDs are preserved."
+        ),
     )
     export.add_argument(
         "--processes",
         type=int,
         default=1,
         help="The number of processes for multiprocessing.",
+    )
+
+    # Define "annotate" command arguments
+    annotate = subparsers.add_parser(
+        "annotate",
+        help="Annotates a CoNLL-U Plus dataset with token, span, relation or sentence labels.",
+        description=(entrypoint_descriptions / "annotate.txt").read_text(encoding="utf-8"),
+        formatter_class=RawTextArgumentDefaultsHelpFormatter,
+    )
+    annotate.set_defaults(func=call_annotate)
+    annotate.add_argument("dataset", help="The path to the CoNLL-U Plus dataset to annotate.")
+    annotate.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help=(
+            "The output path of the annotated dataset. "
+            "Per default, the dataset is exported to the same directory as the input dataset "
+            "with the original name suffixed with the provided label type, e.g. 'cc-news-ner.conllup'."
+        ),
+    )
+    annotate.add_argument(
+        "--model",
+        default="flair/ner-english-large",
+        help="A model path or identifier for a Flair classifier that annotates the provided dataset.",
+    )
+    annotate.add_argument(
+        "--label-type",
+        default=None,
+        help="Overwrites the model's label type. Per default, the model's default label type is used.",
+    )
+    annotate.add_argument(
+        "--abstraction-level",
+        choices=["token", "span", "relation", "sentence"],
+        default=None,
+        help=(
+            "Overwrites the model's abstraction level type. "
+            "Per default, the abstraction level is inferred from the model."
+        ),
+    )
+    annotate.add_argument("--batch-size", type=int, default=32, help="The model prediction batch size.")
+    annotate.add_argument(
+        "--num-actors",
+        type=int,
+        default=1,
+        help="The number of Ray actors to start.",
+    )
+    annotate.add_argument(
+        "--num-cpus",
+        type=float,
+        default=None,
+        help="The number of CPUs required for each Ray actor.",
+    )
+    annotate.add_argument(
+        "--num-gpus",
+        type=float,
+        default=1,
+        help="The number of GPUs required for each Ray actor.",
+    )
+    annotate.add_argument(
+        "--buffer-size",
+        type=int,
+        default=None,
+        help=(
+            "The buffer size of how many sentences are loaded in memory for each actor. "
+            "Per default, the buffer size is BATCH_SIZE*2"
+        ),
     )
 
     # Parse the args and call the dedicated function
