@@ -26,7 +26,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(formatter_class=RawTextArgumentDefaultsHelpFormatter)
     subparsers = parser.add_subparsers(required=True)
 
-    entrypoint_descriptions: Traversable = importlib_resources.files("selfrel.resources.entrypoint_descriptions")
+    entrypoint_descriptions: Traversable = importlib_resources.files("selfrel.entry_points.descriptions")
 
     # Define "export" command arguments
     export = subparsers.add_parser(
