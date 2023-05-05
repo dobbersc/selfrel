@@ -56,7 +56,7 @@ def main() -> None:
         "--export-metadata",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="If set, the article's metadata will be exported to '<OUT>/metadata.json'.",
+        help="If set, the article's metadata will be exported to 'OUT/metadata.json'.",
     )
     export.add_argument(
         "--slice",
