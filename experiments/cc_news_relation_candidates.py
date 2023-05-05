@@ -163,7 +163,8 @@ def main() -> None:
         "dataset_or_dataframe",
         type=Path,
         help=(
-            "Option 1: The path to the CC-News CoNLL-U Plus dataset including named entity annotations (cc-news-ner.conllup).\n"
+            "Option 1: The path to the CC-News CoNLL-U Plus dataset "
+            "including named entity annotations (cc-news-ner.conllup).\n"
             "Option 2: The path to a previously generated dataframe (cc_news_relation_candidates.parquet)."
         ),
     )
