@@ -5,6 +5,7 @@ It contains 708241 English news articles published between January 2017 and Dece
 
 Each processed article is assigned an article ID, based on the (deterministic) index in the dataset.
 The segmented sentences are then written to 'OUT/cc-news.conllup'.
+Additional metadata, e.g. the URL, about the processed articles are exported to `OUT/metadata.json`.
 
 The following metadata is included in each sentence:
 	- global_sentence_id (A globally unique identifier for each sentence.)
