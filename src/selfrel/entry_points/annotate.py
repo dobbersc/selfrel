@@ -21,7 +21,7 @@ __all__ = ["annotate"]
 AbstractionLevel = Literal["token", "span", "relation", "sentence"]
 
 
-def _infer_abstraction_level(classifier: Classifier) -> AbstractionLevel:
+def _infer_abstraction_level(classifier: Classifier[Sentence]) -> AbstractionLevel:
     if isinstance(classifier, SequenceTagger):
         # noinspection PyTypeChecker
         return "span" if classifier.predict_spans else "token"
@@ -46,7 +46,7 @@ def _get_sentence_serializer(abstraction_level: AbstractionLevel, label_type: st
 
 def annotate(
     dataset_path: Union[str, Path],
-    out_path: Union[str, Path] = None,
+    out_path: Optional[Union[str, Path]] = None,
     model_path: str = "flair/ner-english-large",
     label_type: Optional[str] = None,
     abstraction_level: Optional[AbstractionLevel] = None,
@@ -65,8 +65,8 @@ def annotate(
         ray.init()
 
     # Load Flair classifier
-    classifier: Classifier = Classifier.load(model_path)
-    classifier_ref: ray.ObjectRef = ray.put(classifier)
+    classifier: Classifier[Sentence] = Classifier.load(model_path)
+    classifier_ref = ray.put(classifier)
 
     label_type = classifier.label_type if label_type is None else label_type
 

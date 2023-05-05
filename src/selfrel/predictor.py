@@ -1,7 +1,7 @@
 import tempfile
 from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import Any, Iterator, Optional, TypeVar, Union, overload
+from typing import Any, Generic, Iterator, Optional, TypeVar, Union, overload
 
 import more_itertools
 import ray
@@ -31,8 +31,8 @@ def register_sentence_serializer() -> None:
     ray.util.register_serializer(Sentence, serializer=to_conllu, deserializer=from_conllu)
 
 
-def _get_classifier_subclasses(cls: type[Classifier] = Classifier) -> list[type[Classifier]]:
-    subclasses: list[type[Classifier]] = []
+def _get_classifier_subclasses(cls: type[Classifier[Sentence]] = Classifier) -> list[type[Classifier[Sentence]]]:
+    subclasses: list[type[Classifier[Sentence]]] = []
     for subclass in cls.__subclasses__():
         subclasses.extend(_get_classifier_subclasses(subclass))
         subclasses.append(subclass)
@@ -43,18 +43,19 @@ def _get_classifier_subclasses(cls: type[Classifier] = Classifier) -> list[type[
 #  Ray does the serialization and deserialization correctly.
 #  For some reason, loading "flair/ner-english-large" throws no errors, but the predictions are completely incorrect.
 
+
 def register_classifier_serializers() -> None:
     """Registers Ray serializers for all subclasses of Flair's Classifier model."""
 
-    def serializer(classifier: Classifier) -> str:
+    def serializer(classifier: Classifier[Sentence]) -> str:
         with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as file:
             file_name: str = file.name
             classifier.save(file_name)
         return file_name
 
-    def deserializer(model_path: str) -> Classifier:
+    def deserializer(model_path: str) -> Classifier[Sentence]:
         try:
-            classifier: Classifier = Classifier.load(model_path)
+            classifier: Classifier[Sentence] = Classifier.load(model_path)
         finally:
             Path(model_path).unlink()
         return classifier
@@ -68,10 +69,12 @@ register_classifier_serializers()
 
 
 @ray.remote
-class Predictor:
+class Predictor(Generic[SentenceT]):
     """A Ray actor that wraps the predict function of Flair's Classifier model."""
 
-    def __init__(self, model: Union[str, Path, Classifier], index: Optional[int] = None, **kwargs: Any) -> None:
+    def __init__(
+        self, model: Union[str, Path, Classifier[SentenceT]], index: Optional[int] = None, **kwargs: Any
+    ) -> None:
         """
         Initializes a :class:`Predictor` as Ray actor from a Flair classifier.
         :param model: A model path or identifier for a Flair classifier.
@@ -98,7 +101,7 @@ class Predictor:
         ...
 
     @overload
-    def predict(self, sentences: SentenceT) -> list[SentenceT]:
+    def predict(self, sentences: list[SentenceT]) -> list[SentenceT]:
         ...
 
     def predict(self, sentences: Union[SentenceT, list[SentenceT]]) -> Union[SentenceT, list[SentenceT]]:
