@@ -45,9 +45,7 @@ class Predictor:
         return sentences
 
     def __repr__(self) -> str:
-        if self._index is None:
-            return f"{type(self).__name__}(model={self._model_path!r})"
-        return f"{type(self).__name__}(index={self._index!r}, model={self._model_path!r})"
+        return f"{type(self).__name__}(index={self._index!r})"
 
 
 def initialize_predictor_pool(
