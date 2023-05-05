@@ -1,3 +1,4 @@
+import tempfile
 from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import Any, Iterator, Optional, TypeVar, Union, overload
@@ -11,7 +12,13 @@ from ray.util import ActorPool
 
 from selfrel.data import from_conllu, to_conllu
 
-__all__ = ["register_sentence_serializer", "Predictor", "initialize_predictor_pool", "buffered_map"]
+__all__ = [
+    "register_sentence_serializer",
+    "register_classifier_serializers",
+    "Predictor",
+    "initialize_predictor_pool",
+    "buffered_map",
+]
 
 
 T = TypeVar("T")
@@ -24,7 +31,38 @@ def register_sentence_serializer() -> None:
     ray.util.register_serializer(Sentence, serializer=to_conllu, deserializer=from_conllu)
 
 
+def _get_classifier_subclasses(cls: type[Classifier] = Classifier) -> list[type[Classifier]]:
+    subclasses: list[type[Classifier]] = []
+    for subclass in cls.__subclasses__():
+        subclasses.extend(_get_classifier_subclasses(subclass))
+        subclasses.append(subclass)
+    return subclasses
+
+
+# TODO: For most Flair models, e.g. "flair/ner-english-fast" or "flair/ner-english",
+#  Ray does the serialization and deserialization correctly.
+#  For some reason, loading "flair/ner-english-large" throws no errors, but the predictions are completely incorrect.
+
+def register_classifier_serializers() -> None:
+    """Registers Ray serializers for all subclasses of Flair's Classifier model."""
+
+    def serializer(classifier: Classifier) -> str:
+        with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as file:
+            file_name: str = file.name
+            classifier.save(file_name)
+        return file_name
+
+    def deserializer(model_path: str) -> Classifier:
+        classifier: Classifier = Classifier.load(model_path)
+        Path(model_path).unlink()
+        return classifier
+
+    for classifier_subclass in _get_classifier_subclasses():
+        ray.util.register_serializer(classifier_subclass, serializer=serializer, deserializer=deserializer)
+
+
 register_sentence_serializer()
+register_classifier_serializers()
 
 
 @ray.remote
