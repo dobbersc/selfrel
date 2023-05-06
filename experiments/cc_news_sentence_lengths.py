@@ -1,17 +1,19 @@
 import argparse
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import pandas as pd
 import seaborn as sns
-from flair.data import Sentence
 from matplotlib.figure import figaspect
 from tqdm import tqdm
 
 from selfrel.data import CoNLLUPlusDataset
 from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
+
+if TYPE_CHECKING:
+    from flair.data import Sentence
 
 
 def build_sentence_lengths_dataframe(cc_news: CoNLLUPlusDataset) -> pd.DataFrame:

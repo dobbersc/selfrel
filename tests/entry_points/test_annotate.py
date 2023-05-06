@@ -1,10 +1,13 @@
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
-from flair.data import Sentence
 
 from selfrel.data import CoNLLUPlusDataset
 from selfrel.entry_points.annotate import annotate
+
+if TYPE_CHECKING:
+    from flair.data import Sentence
 
 # TODO: Add test for "relation" and "sentence" abstraction level
 

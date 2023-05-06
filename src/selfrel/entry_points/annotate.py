@@ -1,7 +1,6 @@
 import functools
-from collections.abc import Iterator
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import TYPE_CHECKING, Literal, Optional, Union
 
 import more_itertools
 import ray
@@ -9,12 +8,16 @@ from flair.data import Sentence
 from flair.models import RelationClassifier, SequenceTagger, TextClassifier
 from flair.nn import Classifier
 from ray.actor import ActorHandle
-from ray.util import ActorPool
 from tqdm import tqdm
 
 from selfrel.data import CoNLLUPlusDataset
 from selfrel.data.serialization import to_conllu
 from selfrel.predictor import buffered_map, initialize_predictor_pool
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from ray.util import ActorPool
 
 __all__ = ["annotate"]
 

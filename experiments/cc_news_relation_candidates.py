@@ -1,18 +1,20 @@
 import argparse
 import itertools
 from pathlib import Path
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from flair.data import Label, Sentence, Span
 from tqdm import tqdm
 
 from selfrel.data import CoNLLUPlusDataset
 from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
+
+if TYPE_CHECKING:
+    from flair.data import Label, Sentence, Span
 
 
 def build_relation_candidates_dataframe(cc_news: CoNLLUPlusDataset) -> pd.DataFrame:

@@ -1,10 +1,13 @@
 import argparse
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import importlib_resources
-from importlib_resources.abc import Traversable
 
 from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
+
+if TYPE_CHECKING:
+    from importlib_resources.abc import Traversable
 
 
 def call_export(args: argparse.Namespace) -> None:
