@@ -131,7 +131,8 @@ def to_conllu(
     :return: The serialized sentence as CoNLL-U (Plus) string
     """
     if not len(sentence):
-        raise ValueError("Can't serialize the empty sentence")
+        msg = "Can't serialize the empty sentence"
+        raise ValueError(msg)
 
     label_types: _LabelTypes = _LabelTypes.from_flair_sentence(sentence)
     if default_token_fields:
@@ -182,7 +183,8 @@ def to_conllu(
 
             elif isinstance(data_point, Sentence):
                 if label_type in __RESERVED_METADATA:
-                    raise ValueError(f"Unsupported sentence annotation of label-type {label_type!r}")
+                    msg = f"Unsupported sentence annotation of label-type {label_type!r}"
+                    raise ValueError(msg)
                 conllu_sentence.metadata[label_type] = label.value
 
     # Add relation metadata
@@ -219,7 +221,8 @@ def from_conllu(serialized: str, **kwargs: Any) -> Sentence:
     """
     raw_global_columns: str = serialized.split("\n", 1)[0]
     if not raw_global_columns.startswith("# global.columns = "):
-        raise ValueError("Missing CoNLL-U Plus required 'global.columns'")
+        msg = "Missing CoNLL-U Plus required 'global.columns'"
+        raise ValueError(msg)
 
     # Parse global columns and gather annotated label-types
     global_columns: list[str] = raw_global_columns[19:].split()
@@ -228,7 +231,8 @@ def from_conllu(serialized: str, **kwargs: Any) -> Sentence:
     # Parse serialized sentence
     conllu_sentences: conllu.SentenceList = conllu.parse(serialized, **kwargs)
     if len(conllu_sentences) != 1:
-        raise ValueError("Received multiple sentences but expected single serialized CoNLL-U Plus sentence")
+        msg = "Received multiple sentences but expected single serialized CoNLL-U Plus sentence"
+        raise ValueError(msg)
     conllu_sentence: conllu.TokenList = conllu_sentences[0]
 
     # Initialize Flair sentence

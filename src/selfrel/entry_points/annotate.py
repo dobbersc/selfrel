@@ -32,7 +32,8 @@ def _infer_abstraction_level(classifier: Classifier[Sentence]) -> AbstractionLev
     if isinstance(classifier, TextClassifier):
         return "sentence"
 
-    raise ValueError(f"Received unsupported classifier of type {type(classifier).__name__}")
+    msg = f"Received unsupported classifier of type {type(classifier).__name__}"
+    raise ValueError(msg)
 
 
 def _get_sentence_serializer(abstraction_level: AbstractionLevel, label_type: str) -> functools.partial[str]:

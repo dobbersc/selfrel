@@ -24,7 +24,8 @@ def _serialized_conllu_plus_sentence_iter(fp: TextIO, disable_progress_bar: bool
     ) as progress_bar:
         global_columns: str = fp.readline()
         if not global_columns.startswith("# global.columns"):
-            raise ValueError("Missing CoNLL-U Plus required 'global.columns'")
+            msg = "Missing CoNLL-U Plus required 'global.columns'"
+            raise ValueError(msg)
 
         sentence_lines: list[str] = []
         while line := fp.readline():
@@ -93,7 +94,8 @@ class CoNLLUPlusDataset(Dataset[Sentence], Sized):
                 self._sentences = tuple(_serialized_conllu_plus_sentence_iter(dataset_file))
 
         if not self._sentences:
-            raise ValueError("Empty datasets are not supported")
+            msg = "Empty datasets are not supported"
+            raise ValueError(msg)
 
     @property
     def dataset_path(self) -> Path:
