@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 from flair.data import Sentence
 
 from selfrel.data import CoNLLUPlusDataset
@@ -8,7 +9,8 @@ from selfrel.entry_points.annotate import annotate
 # TODO: Add test for "relation" and "sentence" abstraction level
 
 
-def test_annotate_tokens(tmp_path: Path, resources_dir: Path, _init_ray: None) -> None:
+@pytest.mark.usefixtures("_init_ray")
+def test_annotate_tokens(tmp_path: Path, resources_dir: Path) -> None:
     annotate(
         resources_dir / "cc-news.conllup",
         out_path=tmp_path / "cc-news-pos.conllup",
@@ -24,7 +26,8 @@ def test_annotate_tokens(tmp_path: Path, resources_dir: Path, _init_ray: None) -
             assert token.get_label("pos").value
 
 
-def test_annotate_span(tmp_path: Path, resources_dir: Path, _init_ray: None) -> None:
+@pytest.mark.usefixtures("_init_ray")
+def test_annotate_span(tmp_path: Path, resources_dir: Path) -> None:
     annotate(
         resources_dir / "cc-news.conllup",
         out_path=tmp_path / "cc-news-ner.conllup",
