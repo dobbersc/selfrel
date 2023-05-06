@@ -16,7 +16,11 @@ __all__ = ["CoNLLUPlusDataset"]
 def _serialized_conllu_plus_sentence_iter(fp: TextIO, disable_progress_bar: bool = False) -> Iterator[str]:
     dataset_size: int = os.fstat(fp.fileno()).st_size
     with tqdm(
-        total=dataset_size, unit="B", unit_scale=True, desc="Loading Dataset", disable=disable_progress_bar
+        total=dataset_size,
+        unit="B",
+        unit_scale=True,
+        desc="Loading Dataset",
+        disable=disable_progress_bar,
     ) as progress_bar:
         global_columns: str = fp.readline()
         if not global_columns.startswith("# global.columns"):
@@ -37,7 +41,10 @@ def _serialized_conllu_plus_sentence_iter(fp: TextIO, disable_progress_bar: bool
 
 
 def _parse_conllu_plus(
-    fp: TextIO, processes: int, disable_progress_bar: bool = False, **kwargs: Any
+    fp: TextIO,
+    processes: int,
+    disable_progress_bar: bool = False,
+    **kwargs: Any,
 ) -> Iterator[Sentence]:
     kwargs.pop("n_jobs", None)
     kwargs.pop("return_generator", None)
@@ -123,7 +130,11 @@ class CoNLLUPlusDataset(Dataset[Sentence], Sized):
             yield from cast(tuple[Sentence, ...], self._sentences)
         with self._dataset_path.open("r", encoding="utf-8") as dataset_file:
             yield from _parse_conllu_plus(
-                dataset_file, self._processes, disable_progress_bar=True, return_generator=True, **self._kwargs
+                dataset_file,
+                self._processes,
+                disable_progress_bar=True,
+                return_generator=True,
+                **self._kwargs,
             )
 
     def __len__(self) -> int:

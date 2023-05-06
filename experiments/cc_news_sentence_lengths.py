@@ -92,7 +92,10 @@ def main() -> None:
         ),
     )
     parser.add_argument(
-        "--out", type=Path, default=None, help="The output directory. Per default, not output files are generated."
+        "--out",
+        type=Path,
+        default=None,
+        help="The output directory. Per default, not output files are generated.",
     )
     args: argparse.Namespace = parser.parse_args()
 

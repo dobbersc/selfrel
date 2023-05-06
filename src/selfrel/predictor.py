@@ -73,7 +73,10 @@ class Predictor(Generic[SentenceT]):
     """A Ray actor that wraps the predict function of Flair's Classifier model."""
 
     def __init__(
-        self, model: Union[str, Path, Classifier[SentenceT]], index: Optional[int] = None, **kwargs: Any
+        self,
+        model: Union[str, Path, Classifier[SentenceT]],
+        index: Optional[int] = None,
+        **kwargs: Any,
     ) -> None:
         """
         Initializes a :class:`Predictor` as Ray actor from a Flair classifier.
@@ -93,7 +96,7 @@ class Predictor(Generic[SentenceT]):
         index_message: str = "" if index is None else f" at index {self._index!r} "
         print(
             f"Loaded Flair model {model_message} as {type(self._model).__name__!r} "
-            f"predicting labels of label type {self._model.label_type!r}{index_message}"
+            f"predicting labels of label type {self._model.label_type!r}{index_message}",
         )
 
     @overload
@@ -113,7 +116,9 @@ class Predictor(Generic[SentenceT]):
 
 
 def initialize_predictor_pool(
-    num_actors: int, actor_options: Optional[dict[str, Any]] = None, **predictor_kwargs: Any
+    num_actors: int,
+    actor_options: Optional[dict[str, Any]] = None,
+    **predictor_kwargs: Any,
 ) -> ActorPool:
     """
     Initializes a `ray.util.ActorPool` with :class:`Predictor` actors.
@@ -134,7 +139,10 @@ def initialize_predictor_pool(
 
 
 def buffered_map(
-    actor_pool: ActorPool, fn: Callable[[ActorHandle, V], T], values: Iterable[V], buffer_size: int
+    actor_pool: ActorPool,
+    fn: Callable[[ActorHandle, V], T],
+    values: Iterable[V],
+    buffer_size: int,
 ) -> Iterator[T]:
     """Buffered version of `ray.util.ActorPool`'s `map` function."""
     value_buffer: Iterator[list[V]] = more_itertools.batched(values, n=buffer_size)

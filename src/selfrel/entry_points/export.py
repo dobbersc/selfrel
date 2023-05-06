@@ -18,7 +18,8 @@ __all__ = ["get_cc_news", "export_metadata_to_json", "export_cc_news"]
 def get_cc_news(dataset_slice: Optional[str] = None) -> datasets.Dataset:
     """Returns the original CC-News dataset from https://huggingface.co/datasets/cc_news with an added ID column."""
     dataset: datasets.Dataset = datasets.load_dataset(
-        "cc_news", split="train" if dataset_slice is None else f"train[{dataset_slice}]"
+        "cc_news",
+        split="train" if dataset_slice is None else f"train[{dataset_slice}]",
     )
     dataset = dataset.add_column("article_id", range(1, len(dataset) + 1))
     return dataset
@@ -48,7 +49,10 @@ def export_metadata_to_json(articles: Iterable[dict[str, Any]], fp: TextIO, **kw
 
 
 def _sentence_to_conllu_token_list(
-    sentence: list[segmenter.Token], article_id: int, paragraph_id: int, sentence_id: int
+    sentence: list[segmenter.Token],
+    article_id: int,
+    paragraph_id: int,
+    sentence_id: int,
 ) -> conllu.TokenList:
     """Converts a list of Syntok Tokens to a CoNLL-U TokenList, including metadata information."""
 
@@ -94,7 +98,10 @@ def _article_to_conllu(article: str, article_id: int) -> tuple[tuple[str, ...], 
     for paragraph_index, paragraph in enumerate(segment(article), start=1):
         for sentence_index, sentence in enumerate(paragraph, start=1):
             conllu_sentence: conllu.TokenList = _sentence_to_conllu_token_list(
-                sentence, article_id=article_id, paragraph_id=paragraph_index, sentence_id=sentence_index
+                sentence,
+                article_id=article_id,
+                paragraph_id=paragraph_index,
+                sentence_id=sentence_index,
             )
             sentence_lengths.append(len(conllu_sentence))
             serialized_sentences.append(conllu_sentence.serialize())
@@ -119,7 +126,10 @@ def _cc_news_to_conllu(
     )
 
     for sentences, longest_sentence_length in tqdm(
-        articles, desc="Processing Articles", total=len(cc_news), position=1
+        articles,
+        desc="Processing Articles",
+        total=len(cc_news),
+        position=1,
     ):
         if max_sentence_length is None or longest_sentence_length <= max_sentence_length:
             yield from sentences

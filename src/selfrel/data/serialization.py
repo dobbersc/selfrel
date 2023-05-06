@@ -272,7 +272,8 @@ def from_conllu(serialized: str, **kwargs: Any) -> Sentence:
             score = float(sections[5])
 
             relation = Relation(
-                first=flair_sentence[head_start - 1 : head_end], second=flair_sentence[tail_start - 1 : tail_end]
+                first=flair_sentence[head_start - 1 : head_end],
+                second=flair_sentence[tail_start - 1 : tail_end],
             )
             relation.add_label("relation", value=label, score=score)
 

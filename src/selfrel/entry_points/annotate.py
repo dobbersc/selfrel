@@ -111,7 +111,10 @@ def annotate(
 
         with tqdm(desc="Processing Sentences", total=len(dataset), position=1) as progress_bar:
             for processed_sentences in buffered_map(
-                predictor_pool, fn=remote_predict, values=sentence_batches, buffer_size=buffer_size
+                predictor_pool,
+                fn=remote_predict,
+                values=sentence_batches,
+                buffer_size=buffer_size,
             ):
                 output_file.writelines(
                     sentence_to_conllu(processed_sentence, include_global_columns=False)

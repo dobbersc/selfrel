@@ -97,7 +97,9 @@ def select_conll04_relation_candidates(relation_candidates: pd.DataFrame) -> pd.
 
 
 def plot_conll04_relation_candidates_distribution(
-    conllu04_relation_candidates: pd.DataFrame, entity_threshold: float = 0.8, out: Optional[Path] = None
+    conllu04_relation_candidates: pd.DataFrame,
+    entity_threshold: float = 0.8,
+    out: Optional[Path] = None,
 ) -> None:
     conllu04_relation_candidates = conllu04_relation_candidates[
         (conllu04_relation_candidates["head_score"] >= entity_threshold)
@@ -106,7 +108,7 @@ def plot_conll04_relation_candidates_distribution(
 
     relation_occurrences = (
         conllu04_relation_candidates.groupby(
-            ["head_entity", "head_category", "tail_entity", "tail_category", "relation"]
+            ["head_entity", "head_category", "tail_entity", "tail_category", "relation"],
         )
         .size()
         .reset_index(name="count")
@@ -169,7 +171,10 @@ def main() -> None:
         ),
     )
     parser.add_argument(
-        "--out", type=Path, default=None, help="The output directory. Per default, not output files are generated."
+        "--out",
+        type=Path,
+        default=None,
+        help="The output directory. Per default, not output files are generated.",
     )
     args: argparse.Namespace = parser.parse_args()
 

@@ -12,7 +12,8 @@ __CONTROL_CHARACTERS_EXCEPT_TAB_CR_LF: Final[str] = "[^\\P{C}\t\r\n]"
 __VS16_CHARACTER: Final[str] = "\ufe0f"
 
 __PROBLEM_CHARACTERS_PATTERN: Final[regex.Pattern[str]] = regex.compile(
-    f"{__CONTROL_CHARACTERS_EXCEPT_TAB_CR_LF}|{__VS16_CHARACTER}", flags=regex.UNICODE
+    f"{__CONTROL_CHARACTERS_EXCEPT_TAB_CR_LF}|{__VS16_CHARACTER}",
+    flags=regex.UNICODE,
 )
 
 
