@@ -6,7 +6,8 @@ from selfrel.data import from_conllu, to_conllu
 
 def test_serialize_deserialize_unannotated_sentence() -> None:
     sentence: Sentence = Sentence(
-        "Albert Einstein, who was born in Ulm, Germany, later emigrated to the USA.", start_position=10
+        "Albert Einstein, who was born in Ulm, Germany, later emigrated to the USA.",
+        start_position=10,
     )
 
     # Serialize -> Deserialize
@@ -127,13 +128,14 @@ def test_deserialize_sentence_with_missing_global_columns() -> None:
             "2\tis\t_\n"
             "3\ta\t_\n"
             "4\tsentence\tSpaceAfter=No\n"
-            "5\t.\tSpaceAfter=No\n\n"
+            "5\t.\tSpaceAfter=No\n\n",
         )
 
 
 def test_deserialize_multiple_sentences() -> None:
     with pytest.raises(
-        ValueError, match=r"Received multiple sentences but expected single serialized CoNLL-U Plus sentence"
+        ValueError,
+        match=r"Received multiple sentences but expected single serialized CoNLL-U Plus sentence",
     ):
         from_conllu(
             "# global.columns = ID FORM MISC\n"
@@ -148,5 +150,5 @@ def test_deserialize_multiple_sentences() -> None:
             "2\tis\t_\n"
             "3\tanother\t_\n"
             "4\tsentence\tSpaceAfter=No\n"
-            "5\t.\tSpaceAfter=No\n\n"
+            "5\t.\tSpaceAfter=No\n\n",
         )
