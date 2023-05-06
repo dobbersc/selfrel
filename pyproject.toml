@@ -33,11 +33,23 @@ module = "datasets.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = "syntok.*"
+module = "joblib.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = "joblib.*"
+module = "matplotlib.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pandas.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "seaborn.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "syntok.*"
 ignore_missing_imports = true
 
 
