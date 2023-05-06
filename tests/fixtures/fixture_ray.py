@@ -4,7 +4,7 @@ import pytest
 
 
 @pytest.fixture(scope="session")
-def init_ray() -> Iterator[None]:
+def _init_ray() -> Iterator[None]:
     import ray
 
     ray.init()

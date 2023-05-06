@@ -14,7 +14,7 @@ from selfrel.predictor import Predictor
     [lambda: "flair/ner-english-fast", lambda: Classifier.load("flair/ner-english-fast")],
     ids=["from_path", "from_instance"],
 )
-def test_predictor(model_factory: Callable[[], Union[str, Classifier[Sentence]]], init_ray: None) -> None:
+def test_predictor(model_factory: Callable[[], Union[str, Classifier[Sentence]]], _init_ray: None) -> None:
     sentence = Sentence("Berlin is the capital of Germany.")
 
     model_ref = ray.put(model_factory())
