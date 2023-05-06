@@ -6,8 +6,8 @@ from typing import Any, Optional, TextIO, Union
 import conllu
 import datasets
 import more_itertools
-import syntok.segmenter as segmenter
 from joblib import Parallel, delayed
+from syntok import segmenter
 from tqdm import tqdm
 
 from selfrel.preprocessing import preprocess, segment
