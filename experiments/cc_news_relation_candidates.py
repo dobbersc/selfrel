@@ -1,7 +1,7 @@
 import argparse
 import itertools
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
@@ -15,7 +15,7 @@ from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
 
 if TYPE_CHECKING:
     from flair.data import Label, Sentence, Span
-
+    from numpy.typing import NDArray
 
 def build_relation_candidates_dataframe(cc_news: CoNLLUPlusDataset) -> pd.DataFrame:
     """
@@ -86,10 +86,10 @@ def select_conll04_relation_candidates(relation_candidates: pd.DataFrame) -> pd.
     live_in = (relation_candidates["head_category"] == "PER") & (relation_candidates["tail_category"] == "LOC")
     located_in = (relation_candidates["head_category"] == "LOC") & (relation_candidates["tail_category"] == "LOC")
 
-    conll04_relations: np.ndarray = np.select(
+    conll04_relations: NDArray[Any] = np.select(
         [work_for, kill, org_based_in, live_in, located_in],
         ["WorkFor", "Kill", "OrgBasedIn", "LiveIn", "LocatedIn"],
-        default=None,
+        default=None,  # type: ignore[arg-type]
     )
 
     conll04_relation_candidates = relation_candidates.assign(relation=pd.Series(conll04_relations, copy=False))
