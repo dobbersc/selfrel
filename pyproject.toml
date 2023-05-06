@@ -45,6 +45,71 @@ ignore_missing_imports = true
 line-length = 120
 target-version = "py39"
 
+extend-exclude = ["_version.py"]
+
+select = [
+    "F",
+    "E",
+    "W",
+    # "C90",
+    "I",
+    "N",
+    # "D",
+    "UP",
+    "YTT",
+    # "ANN",
+    "S",
+    "BLE",
+    # "FBT",
+    "B",
+    "A",
+    # "COM",
+    "C4",
+    "DTZ",
+    "T10",
+    # "DJ",
+    "EM",
+    # "EXE",
+    "ISC",
+    "ICN",
+    "G",
+    "INP",
+    "PIE",
+    # "T20",
+    "PYI",
+    "PT",
+    "Q",
+    "RSE",
+    "RET",
+    "SLF",
+    "SIM",
+    "TID",
+    "TCH",
+    "INT",
+    "ARG",
+    "PTH",
+    # "ERA",
+    "PD",
+    "PGH",
+    "PL",
+    "PLC",
+    "PLE",
+    "PLR",
+    "PLW",
+    "TRY",
+    "NPY",
+    "RUF",
+]
+
+ignore = [
+    "S101", # https://beta.ruff.rs/docs/rules/assert/
+    "PLR2004", #  Magic value used in comparison
+    "PLR0913", #  Too many arguments to function call
+]
+
+[tool.ruff.isort]
+forced-separate = ["selfrel", "tests"]
+
 
 [tool.black]
 line-length = 120
