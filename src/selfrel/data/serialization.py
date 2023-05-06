@@ -275,11 +275,11 @@ def from_conllu(serialized: str, **kwargs: Any) -> Sentence:
             label = sections[4]
             score = float(sections[5])
 
-            relation = Relation(
+            flair_relation = Relation(
                 first=flair_sentence[head_start - 1 : head_end],
                 second=flair_sentence[tail_start - 1 : tail_end],
             )
-            relation.add_label("relation", value=label, score=score)
+            flair_relation.add_label("relation", value=label, score=score)
 
     # Add metadata as sentence label
     for key, value in conllu_sentence.metadata.items():
