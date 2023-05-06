@@ -128,8 +128,8 @@ def plot_conll04_relation_candidates_distribution(
         y="relation",
         x="count",
         showfliers=False,
-        boxprops=dict(facecolor="none"),
-        medianprops=dict(color="orange"),
+        boxprops={"facecolor": "none"},
+        medianprops={"color": "orange"},
         ax=ax,
     )
 

@@ -70,7 +70,7 @@ def plot_sentence_length_distribution(dataframe: pd.DataFrame, out: Optional[Pat
         text,
         ha="center",
         va="center",
-        bbox=dict(boxstyle="square, pad=1", fc="white", ec="black"),
+        bbox={"boxstyle": "square, pad=1", "fc": "white", "ec": "black"},
     )
 
     if out is not None:
