@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from flair.data import Label, Sentence, Span
     from numpy.typing import NDArray
 
+
 def build_relation_candidates_dataframe(cc_news: CoNLLUPlusDataset) -> pd.DataFrame:
     """
     Returns a dataframe containing all valid entity pair permutations (relation candidates) per sentence.
