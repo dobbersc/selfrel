@@ -1,7 +1,7 @@
 import tempfile
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Iterator
 from pathlib import Path
-from typing import Any, Generic, Iterator, Optional, TypeVar, Union, overload
+from typing import Any, Generic, Optional, TypeVar, Union, overload
 
 import more_itertools
 import ray

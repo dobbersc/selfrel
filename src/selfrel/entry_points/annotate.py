@@ -6,15 +6,15 @@ from typing import Literal, Optional, Union
 import more_itertools
 import ray
 from flair.data import Sentence
-from flair.models import SequenceTagger, TextClassifier, RelationClassifier
+from flair.models import RelationClassifier, SequenceTagger, TextClassifier
 from flair.nn import Classifier
 from ray.actor import ActorHandle
 from ray.util import ActorPool
 from tqdm import tqdm
 
 from selfrel.data import CoNLLUPlusDataset
-from selfrel.predictor import buffered_map, initialize_predictor_pool
 from selfrel.data.serialization import to_conllu
+from selfrel.predictor import buffered_map, initialize_predictor_pool
 
 __all__ = ["annotate"]
 
