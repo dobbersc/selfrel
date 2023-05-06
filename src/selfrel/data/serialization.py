@@ -3,15 +3,7 @@ from collections.abc import Set
 from typing import Any, NamedTuple, Optional
 
 import conllu
-from flair.data import (
-    DataPoint,
-    Label,
-    Relation,
-    Sentence,
-    Span,
-    Token,
-    get_spans_from_bio,
-)
+from flair.data import DataPoint, Label, Relation, Sentence, Span, Token, get_spans_from_bio
 from typing_extensions import Self
 
 __all__ = ["to_conllu", "from_conllu"]
@@ -104,7 +96,7 @@ def _get_bioes_representation(label: str, span_length: int) -> tuple[str, ...]:
         return (f"S-{label}",)
     if span_length == 2:
         return (f"B-{label}", f"E-{label}")
-    return (f"B-{label}",) + tuple(f"I-{label}" for _ in range(span_length - 2)) + (f"E-{label}",)
+    return (f"B-{label}", *tuple(f"I-{label}" for _ in range(span_length - 2)), f"E-{label}")
 
 
 def to_conllu(
