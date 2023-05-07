@@ -110,7 +110,7 @@ def main() -> None:
         formatter_class=RawTextArgumentDefaultsHelpFormatter,
     )
     annotate.set_defaults(func=call_annotate)
-    annotate.add_argument("dataset", help="The path to the CoNLL-U Plus dataset to annotate.")
+    annotate.add_argument("dataset", type=Path, help="The path to the CoNLL-U Plus dataset to annotate.")
     annotate.add_argument(
         "--out",
         type=Path,
