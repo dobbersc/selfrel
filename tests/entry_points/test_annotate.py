@@ -17,7 +17,7 @@ def test_annotate_tokens(tmp_path: Path, resources_dir: Path) -> None:
     annotate(
         resources_dir / "cc-news.conllup",
         out_path=tmp_path / "cc-news-pos.conllup",
-        model_path="flair/pos-english-fast",
+        model_path="flair/upos-english-fast",
         num_gpus=0,
     )
 
