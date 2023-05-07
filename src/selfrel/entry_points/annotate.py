@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Literal, Optional, Union
 
 import more_itertools
 import ray
+import torch.cuda
 from flair.data import Sentence
 from flair.models import RelationClassifier, SequenceTagger, TextClassifier
 from flair.nn import Classifier
@@ -74,6 +75,16 @@ def annotate(
 
     label_type = classifier.label_type if label_type is None else label_type
 
+    # Set serialization function based on abstraction level
+    abstraction_level = _infer_abstraction_level(classifier) if abstraction_level is None else abstraction_level
+    sentence_to_conllu: functools.partial[str] = _get_sentence_serializer(abstraction_level, label_type)
+
+    # The classifier is no longer needed in the main process
+    classifier_is_on_gpu: bool = next(classifier.parameters()).is_cuda
+    del classifier
+    if classifier_is_on_gpu:
+        torch.cuda.empty_cache()
+
     # Initialize predictor actor pool
     predictor_pool: ActorPool = initialize_predictor_pool(
         num_actors,
@@ -101,10 +112,6 @@ def annotate(
         tqdm(dataset, desc="Submitting to Actor Pool", position=0),
         n=batch_size,
     )
-
-    # Set serialization function based on abstraction level
-    abstraction_level = _infer_abstraction_level(classifier) if abstraction_level is None else abstraction_level
-    sentence_to_conllu: functools.partial[str] = _get_sentence_serializer(abstraction_level, label_type)
 
     # Get global.columns including the new label type
     global_columns: str = sentence_to_conllu(dataset[0]).split("\n", 1)[0]
