@@ -47,17 +47,28 @@ def _get_classifier_subclasses(cls: type[Classifier[Sentence]] = Classifier) -> 
 def register_classifier_serializers() -> None:
     """Registers Ray serializers for all subclasses of Flair's Classifier model."""
 
-    def serializer(classifier: Classifier[Sentence]) -> str:
+    def serializer(classifier: Classifier[Sentence]) -> bytes:
         with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as file:
-            file_name: str = file.name
-            classifier.save(file_name)
-        return file_name
+            model_path: Path = Path(file.name)
 
-    def deserializer(model_path: str) -> Classifier[Sentence]:
         try:
+            classifier.save(model_path)
+            serialized: bytes = model_path.read_bytes()
+        finally:
+            model_path.unlink()
+
+        return serialized
+
+    def deserializer(model_binary: bytes) -> Classifier[Sentence]:
+        with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as file:
+            model_path: Path = Path(file.name)
+
+        try:
+            model_path.write_bytes(model_binary)
             classifier: Classifier[Sentence] = Classifier.load(model_path)
         finally:
-            Path(model_path).unlink()
+            model_path.unlink()
+
         return classifier
 
     for classifier_subclass in _get_classifier_subclasses():
