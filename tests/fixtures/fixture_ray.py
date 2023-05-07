@@ -7,6 +7,6 @@ import pytest
 def _init_ray() -> Iterator[None]:
     import ray
 
-    ray.init()
+    ray.init(log_to_driver=False)
     yield
     ray.shutdown()
