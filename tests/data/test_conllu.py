@@ -28,5 +28,6 @@ def test_conllu_plus_dataset(persist: bool, resources_dir: Path) -> None:
     assert dataset[2].to_original_text() == original_texts[2]
 
     # Test __iter__
+    assert len(dataset) == len(list(iter(dataset)))
     for sentence, original_text in zip(dataset, original_texts):
         assert sentence.to_original_text() == original_text
