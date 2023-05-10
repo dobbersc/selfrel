@@ -44,9 +44,10 @@ def _serialized_conllu_plus_sentence_iter(
                 yield f"{global_columns}{sentence}"
                 sentence_lines = []
 
-        sentence = "".join(sentence_lines)
-        progress_bar.update(len(sentence.encode("utf-8")))
-        yield f"{global_columns}{sentence}"
+        if sentence_lines:
+            sentence = "".join(sentence_lines)
+            progress_bar.update(len(sentence.encode("utf-8")))
+            yield f"{global_columns}{sentence}"
 
 
 def _parse_conllu_plus(
