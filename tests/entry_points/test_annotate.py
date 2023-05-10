@@ -50,3 +50,21 @@ def test_annotate_span(tmp_path: Path, resources_dir: Path) -> None:
 
     sentence_without_entities: Sentence = result[5]
     assert not sentence_without_entities.get_spans("ner")
+
+
+@pytest.mark.usefixtures("_init_ray")
+def test_annotate_on_annotated_dataset(tmp_path: Path, resources_dir: Path) -> None:
+    dataset: CoNLLUPlusDataset = CoNLLUPlusDataset(resources_dir / "cc-news-short.conllup")
+    dataset[1][:1].add_label("test", value="test_value")
+
+    annotate(
+        dataset,
+        out=tmp_path / "cc-news-annotated.conllup",
+        model="flair/ner-english-fast",
+        num_gpus=0,
+    )
+
+    result: CoNLLUPlusDataset = CoNLLUPlusDataset(tmp_path / "cc-news-annotated.conllup")
+    assert result
+
+    assert result[1].get_label("test").value == "test_value"

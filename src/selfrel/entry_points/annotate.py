@@ -12,7 +12,7 @@ from ray.actor import ActorHandle
 from tqdm import tqdm
 
 from selfrel.data import CoNLLUPlusDataset
-from selfrel.data.serialization import to_conllu
+from selfrel.data.serialization import LabelTypes, to_conllu
 from selfrel.predictor import buffered_map, initialize_predictor_pool
 
 if TYPE_CHECKING:
@@ -40,13 +40,22 @@ def _infer_abstraction_level(classifier: Classifier[Sentence]) -> AbstractionLev
     raise ValueError(msg)
 
 
-def _get_sentence_serializer(abstraction_level: AbstractionLevel, label_type: str) -> functools.partial[str]:
+def _infer_global_label_types(
+    dataset: CoNLLUPlusDataset,
+    new_label_type: Optional[str],
+    abstraction_level: AbstractionLevel,
+) -> LabelTypes:
+    global_label_types: LabelTypes = LabelTypes(token_level=[], span_level=[])
     if abstraction_level == "token":
-        return functools.partial(to_conllu, default_token_fields={label_type})
-    if abstraction_level == "span":
-        return functools.partial(to_conllu, default_span_fields={label_type})
-    # relation and sentence
-    return functools.partial(to_conllu)
+        global_label_types.add_token_label_type(new_label_type)
+    elif abstraction_level == "span":
+        global_label_types.add_span_label_type(new_label_type)
+
+    for sentence in tqdm(dataset, desc="Inspecting Sentence Annotations"):
+        label_types: LabelTypes = LabelTypes.from_flair_sentence(sentence)
+        global_label_types.add_token_label_type(label_types.token_level)
+        global_label_types.add_span_label_type(label_types.span_level)
+    return global_label_types
 
 
 def annotate(
@@ -70,10 +79,7 @@ def annotate(
     classifier_ref = ray.put(classifier)
 
     label_type = classifier.label_type if label_type is None else label_type
-
-    # Set serialization function based on abstraction level
     abstraction_level = _infer_abstraction_level(classifier) if abstraction_level is None else abstraction_level
-    sentence_to_conllu: functools.partial[str] = _get_sentence_serializer(abstraction_level, label_type)
 
     # The classifier is no longer needed in the main process if has been loaded in this function
     if not isinstance(model, Classifier):
@@ -103,6 +109,17 @@ def annotate(
         n=batch_size,
     )
 
+    # Get global.columns including the new label type
+    global_label_types: LabelTypes = _infer_global_label_types(dataset, label_type, abstraction_level)
+    global_columns: str = f"# global.columns = {' '.join(global_label_types.as_global_columns())}"
+
+    # Set serialization function including the global label types
+    sentence_to_conllu = functools.partial(
+        to_conllu,
+        default_token_fields=frozenset(global_label_types.token_level),
+        default_span_fields=frozenset(global_label_types.span_level),
+    )
+
     # Set output path
     if out is None:
         dataset_path: Path = dataset.dataset_path
@@ -111,9 +128,6 @@ def annotate(
 
     # Create output directory
     out.parent.mkdir(parents=True, exist_ok=True)
-
-    # Get global.columns including the new label type
-    global_columns: str = sentence_to_conllu(dataset[0]).split("\n", 1)[0]
 
     # Process dataset
     with out.open("w", encoding="utf-8") as output_file:
