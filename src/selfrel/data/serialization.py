@@ -1,6 +1,6 @@
 import bisect
-from collections.abc import Set
-from typing import Any, NamedTuple, Optional
+from collections.abc import Iterable, Set
+from typing import Any, NamedTuple, Optional, Union
 
 import conllu
 from flair.data import DataPoint, Label, Relation, Sentence, Span, Token, get_spans_from_bio
@@ -15,10 +15,25 @@ __RESERVED_METADATA: set[str] = {"global.columns", "text", "relations"}
 
 
 class LabelTypes(NamedTuple):
-    """Named Tuple of the token and span level annotation label types of a Flair sentence."""
+    """
+    Named Tuple of the token and span level annotation label types of a Flair sentence.
+    Both attributes are sorted alphabetically.
+    """
 
     token_level: list[str]
     span_level: list[str]
+
+    def add_token_label_type(self, label_types: Union[str, Iterable[str]]) -> None:
+        label_types = {label_types} if isinstance(label_types, str) else label_types
+        for label_type in label_types:
+            if label_type not in self.token_level:
+                bisect.insort(self.token_level, label_type)
+
+    def add_span_label_type(self, label_types: Union[str, Iterable[str]]) -> None:
+        label_types = {label_types} if isinstance(label_types, str) else label_types
+        for label_type in label_types:
+            if label_type not in self.span_level:
+                bisect.insort(self.span_level, label_type)
 
     def as_global_columns(self) -> list[str]:
         """
@@ -44,10 +59,15 @@ class LabelTypes(NamedTuple):
     @classmethod
     def from_global_columns(cls, global_columns: list[str]) -> Self:
         """Returns the Flair label-types from the given CoNLL-U Plus global.columns."""
-        return cls(
+        label_types: Self = cls(
             token_level=[column[:-6].lower() for column in global_columns if column.endswith(":TOKEN")],
             span_level=[column[:-5].lower() for column in global_columns if column.endswith(":SPAN")],
         )
+
+        label_types.token_level.sort()
+        label_types.span_level.sort()
+
+        return label_types
 
     @classmethod
     def from_flair_sentence(cls, sentence: Sentence) -> Self:
@@ -67,28 +87,6 @@ class LabelTypes(NamedTuple):
         label_types.span_level.sort()
 
         return label_types
-
-
-def _add_default_token_fields(label_types: LabelTypes, default_token_fields: Set[str]) -> None:
-    """
-    Includes the default token fields (label-types) that are not annotated in the sentence
-    i.e. not present in the given `label_types`. The label-types remain alphabetically sorted.
-    """
-    token_fields: set[str] = set(label_types.token_level)
-    for default_token_field in default_token_fields:
-        if default_token_field not in token_fields:
-            bisect.insort(label_types.token_level, default_token_field)
-
-
-def _add_default_span_fields(label_types: LabelTypes, default_span_fields: Set[str]) -> None:
-    """
-    Includes the default span fields (label-types) that are not annotated in the sentence
-    i.e. not present in the given `label_types`. The label-types remain alphabetically sorted.
-    """
-    span_fields: set[str] = set(label_types.span_level)
-    for default_span_field in default_span_fields:
-        if default_span_field not in span_fields:
-            bisect.insort(label_types.span_level, default_span_field)
 
 
 # noinspection PyRedundantParentheses
@@ -130,9 +128,9 @@ def to_conllu(
 
     label_types: LabelTypes = LabelTypes.from_flair_sentence(sentence)
     if default_token_fields:
-        _add_default_token_fields(label_types, default_token_fields)
+        label_types.add_token_label_type(default_token_fields)
     if default_span_fields:
-        _add_default_span_fields(label_types, default_span_fields)
+        label_types.add_span_label_type(default_span_fields)
 
     conllu_sentence: conllu.TokenList = conllu.TokenList(
         [
