@@ -24,7 +24,7 @@ class LabelTypes(NamedTuple):
     span_level: list[str]
 
     def add_token_label_type(self, label_types: Union[str, Iterable[str]]) -> None:
-        label_types = {label_types} if isinstance(label_types, str) else label_types
+        label_types = [label_types] if isinstance(label_types, str) else label_types
         for label_type in label_types:
             if label_type not in self.token_level:
                 bisect.insort(self.token_level, label_type)

@@ -42,7 +42,7 @@ def _infer_abstraction_level(classifier: Classifier[Sentence]) -> AbstractionLev
 
 def _infer_global_label_types(
     dataset: CoNLLUPlusDataset,
-    new_label_type: Optional[str],
+    new_label_type: str,
     abstraction_level: AbstractionLevel,
 ) -> LabelTypes:
     global_label_types: LabelTypes = LabelTypes(token_level=[], span_level=[])
@@ -101,9 +101,7 @@ def annotate(
         return pipeline_actor.predict.remote(sentences)  # type: ignore[no-any-return]
 
     # Load dataset
-    dataset: CoNLLUPlusDataset = (
-        dataset if isinstance(dataset, CoNLLUPlusDataset) else CoNLLUPlusDataset(dataset, persist=False)
-    )
+    dataset = dataset if isinstance(dataset, CoNLLUPlusDataset) else CoNLLUPlusDataset(dataset, persist=False)
     sentence_batches: Iterator[list[Sentence]] = more_itertools.batched(
         tqdm(dataset, desc="Submitting to Actor Pool", position=0),
         n=batch_size,
