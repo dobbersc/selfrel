@@ -108,11 +108,11 @@ class CoNLLUPlusDataset(Dataset[Sentence], Sized):
             self._sentences: Union[tuple[Sentence, ...], tuple[str, ...]]
             if self.is_persistent:
                 self._sentences = tuple(
-                    _parse_conllu_plus(dataset_file, processes, dataset_name, disable_progress_bar, **kwargs)
+                    _parse_conllu_plus(dataset_file, processes, self._dataset_name, disable_progress_bar, **kwargs)
                 )
             else:
                 self._sentences = tuple(
-                    _serialized_conllu_plus_sentence_iter(dataset_file, dataset_name, disable_progress_bar)
+                    _serialized_conllu_plus_sentence_iter(dataset_file, self._dataset_name, disable_progress_bar)
                 )
 
         if not self._sentences:
