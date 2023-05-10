@@ -25,12 +25,15 @@ def call_export(args: argparse.Namespace) -> None:
 
 
 def call_annotate(args: argparse.Namespace) -> None:
+    import ray
+
     from selfrel.entry_points.annotate import annotate
 
+    ray.init()
     annotate(
-        dataset_path=args.dataset,
-        out_path=args.out,
-        model_path=args.model,
+        dataset=args.dataset,
+        out=args.out,
+        model=args.model,
         label_type=args.label_type,
         abstraction_level=args.abstraction_level,
         batch_size=args.batch_size,

@@ -50,9 +50,9 @@ def _get_sentence_serializer(abstraction_level: AbstractionLevel, label_type: st
 
 
 def annotate(
-    dataset_path: Union[str, Path],
-    out_path: Optional[Union[str, Path]] = None,
-    model_path: str = "flair/ner-english-large",
+    dataset: Union[str, Path, CoNLLUPlusDataset],
+    out: Optional[Union[str, Path]] = None,
+    model: Union[str, Path, Classifier[Sentence]] = "flair/ner-english-large",
     label_type: Optional[str] = None,
     abstraction_level: Optional[AbstractionLevel] = None,
     batch_size: int = 32,
@@ -65,12 +65,8 @@ def annotate(
     # Set default buffer size
     buffer_size = num_actors if buffer_size is None else 2 * buffer_size
 
-    # Initialize ray cluster
-    if not ray.is_initialized():
-        ray.init()
-
     # Load Flair classifier
-    classifier: Classifier[Sentence] = Classifier.load(model_path)
+    classifier: Classifier[Sentence] = model if isinstance(model, Classifier) else Classifier.load(model)
     classifier_ref = ray.put(classifier)
 
     label_type = classifier.label_type if label_type is None else label_type
@@ -79,11 +75,12 @@ def annotate(
     abstraction_level = _infer_abstraction_level(classifier) if abstraction_level is None else abstraction_level
     sentence_to_conllu: functools.partial[str] = _get_sentence_serializer(abstraction_level, label_type)
 
-    # The classifier is no longer needed in the main process
-    classifier_is_on_gpu: bool = next(classifier.parameters()).is_cuda
-    del classifier
-    if classifier_is_on_gpu:
-        torch.cuda.empty_cache()
+    # The classifier is no longer needed in the main process if has been loaded in this function
+    if not isinstance(model, Classifier):
+        classifier_is_on_gpu: bool = next(classifier.parameters()).is_cuda
+        del classifier
+        if classifier_is_on_gpu:
+            torch.cuda.empty_cache()
 
     # Initialize predictor actor pool
     predictor_pool: ActorPool = initialize_predictor_pool(
@@ -97,27 +94,29 @@ def annotate(
     def remote_predict(pipeline_actor: ActorHandle, sentences: list[Sentence]) -> list[Sentence]:
         return pipeline_actor.predict.remote(sentences)  # type: ignore[no-any-return]
 
-    # Set dataset and output path
-    dataset_path = Path(dataset_path)
-    if out_path is None:
-        out_path = dataset_path.parent / f"{dataset_path.stem}-{label_type}{dataset_path.suffix}"
-    out_path = Path(out_path)
-
-    # Create output directory
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-
     # Load dataset
-    dataset: CoNLLUPlusDataset = CoNLLUPlusDataset(dataset_path, persist=False)
+    dataset: CoNLLUPlusDataset = (
+        dataset if isinstance(dataset, CoNLLUPlusDataset) else CoNLLUPlusDataset(dataset, persist=False)
+    )
     sentence_batches: Iterator[list[Sentence]] = more_itertools.batched(
         tqdm(dataset, desc="Submitting to Actor Pool", position=0),
         n=batch_size,
     )
 
+    # Set output path
+    if out is None:
+        dataset_path: Path = dataset.dataset_path
+        out = dataset_path.parent / f"{dataset_path.stem}-{label_type}{dataset_path.suffix}"
+    out = Path(out)
+
+    # Create output directory
+    out.parent.mkdir(parents=True, exist_ok=True)
+
     # Get global.columns including the new label type
     global_columns: str = sentence_to_conllu(dataset[0]).split("\n", 1)[0]
 
     # Process dataset
-    with out_path.open("w", encoding="utf-8") as output_file:
+    with out.open("w", encoding="utf-8") as output_file:
         output_file.write(f"{global_columns}\n")
 
         with tqdm(desc="Processing Sentences", total=len(dataset), position=1) as progress_bar:
