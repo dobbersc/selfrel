@@ -160,6 +160,7 @@ class CoNLLUPlusDataset(Dataset[Sentence], Sized):
             yield from _parse_conllu_plus(
                 dataset_file,
                 self._processes,
+                self._dataset_name,
                 disable_progress_bar=True,
                 return_generator=True,
                 **self._kwargs,
