@@ -32,7 +32,7 @@ def _serialized_conllu_plus_sentence_iter(
             raise ValueError(msg)
 
         sentence_lines: list[str] = []
-        while line := fp.readline():
+        for line in fp:
             sentence_lines.append(line)
 
             # There must be exactly one blank line after every sentence, including the last sentence in the file.
@@ -43,6 +43,10 @@ def _serialized_conllu_plus_sentence_iter(
                 progress_bar.update(len(sentence.encode("utf-8")))
                 yield f"{global_columns}{sentence}"
                 sentence_lines = []
+
+        sentence: str = "".join(sentence_lines)
+        progress_bar.update(len(sentence.encode("utf-8")))
+        yield f"{global_columns}{sentence}"
 
 
 def _parse_conllu_plus(
