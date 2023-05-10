@@ -1,0 +1,117 @@
+# global.columns = ID FORM MISC
+# global_sentence_id = 1
+# article_id = 2
+# paragraph_id = 1
+# sentence_id = 1
+# text = The New York City Ballet Board of Directors announced on Saturday the interim team that has been appointed to run the artistic side of the company during ballet master in chief Peter Martins' leave of absence.
+1	The	_
+2	New	_
+3	York	_
+4	City	_
+5	Ballet	_
+6	Board	_
+7	of	_
+8	Directors	_
+9	announced	_
+10	on	_
+11	Saturday	_
+12	the	_
+13	interim	_
+14	team	_
+15	that	_
+16	has	_
+17	been	_
+18	appointed	_
+19	to	_
+20	run	_
+21	the	_
+22	artistic	_
+23	side	_
+24	of	_
+25	the	_
+26	company	_
+27	during	_
+28	ballet	_
+29	master	_
+30	in	_
+31	chief	_
+32	Peter	_
+33	Martins	SpaceAfter=No
+34	'	_
+35	leave	_
+36	of	_
+37	absence	SpaceAfter=No
+38	.	SpaceAfter=No
+
+# global_sentence_id = 2
+# article_id = 2
+# paragraph_id = 1
+# sentence_id = 2
+# text = Martins requested a temporary leave from both NYCB and the School of American Ballet last Thursday while the company undergoes an internal investigation into the sexual harassment accusations aimed at him.
+1	Martins	_
+2	requested	_
+3	a	_
+4	temporary	_
+5	leave	_
+6	from	_
+7	both	_
+8	NYCB	_
+9	and	_
+10	the	_
+11	School	_
+12	of	_
+13	American	_
+14	Ballet	_
+15	last	_
+16	Thursday	_
+17	while	_
+18	the	_
+19	company	_
+20	undergoes	_
+21	an	_
+22	internal	_
+23	investigation	_
+24	into	_
+25	the	_
+26	sexual	_
+27	harassment	_
+28	accusations	_
+29	aimed	_
+30	at	_
+31	him	SpaceAfter=No
+32	.	SpaceAfter=No
+
+# global_sentence_id = 3
+# article_id = 2
+# paragraph_id = 1
+# sentence_id = 3
+# text = The four-person group is made up of members of the company's current artistic staff, led by ballet master and former principal dancer Jonathan Stafford.
+1	The	_
+2	four	SpaceAfter=No
+3	-	SpaceAfter=No
+4	person	_
+5	group	_
+6	is	_
+7	made	_
+8	up	_
+9	of	_
+10	members	_
+11	of	_
+12	the	_
+13	company	SpaceAfter=No
+14	's	_
+15	current	_
+16	artistic	_
+17	staff	SpaceAfter=No
+18	,	_
+19	led	_
+20	by	_
+21	ballet	_
+22	master	_
+23	and	_
+24	former	_
+25	principal	_
+26	dancer	_
+27	Jonathan	_
+28	Stafford	SpaceAfter=No
+29	.	SpaceAfter=No
