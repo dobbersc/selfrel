@@ -6,7 +6,7 @@ import conllu
 from flair.data import DataPoint, Label, Relation, Sentence, Span, Token, get_spans_from_bio
 from typing_extensions import Self
 
-__all__ = ["to_conllu", "from_conllu"]
+__all__ = ["LabelTypes", "to_conllu", "from_conllu"]
 
 
 # The reserved metadata specifies CoNLL-U metadata keys reserved for special cases.
@@ -14,13 +14,15 @@ __all__ = ["to_conllu", "from_conllu"]
 __RESERVED_METADATA: set[str] = {"global.columns", "text", "relations"}
 
 
-class _LabelTypes(NamedTuple):
+class LabelTypes(NamedTuple):
+    """Named Tuple of the token and span level annotation label types of a Flair sentence."""
+
     token_level: list[str]
     span_level: list[str]
 
     def as_global_columns(self) -> list[str]:
         """
-        Returns the labele types' CoNLL-U Plus global.columns as list of columns.
+        Returns the label types' CoNLL-U Plus global.columns as list of columns.
 
         Order:
             1. ID
@@ -67,7 +69,7 @@ class _LabelTypes(NamedTuple):
         return label_types
 
 
-def _add_default_token_fields(label_types: _LabelTypes, default_token_fields: Set[str]) -> None:
+def _add_default_token_fields(label_types: LabelTypes, default_token_fields: Set[str]) -> None:
     """
     Includes the default token fields (label-types) that are not annotated in the sentence
     i.e. not present in the given `label_types`. The label-types remain alphabetically sorted.
@@ -78,7 +80,7 @@ def _add_default_token_fields(label_types: _LabelTypes, default_token_fields: Se
             bisect.insort(label_types.token_level, default_token_field)
 
 
-def _add_default_span_fields(label_types: _LabelTypes, default_span_fields: Set[str]) -> None:
+def _add_default_span_fields(label_types: LabelTypes, default_span_fields: Set[str]) -> None:
     """
     Includes the default span fields (label-types) that are not annotated in the sentence
     i.e. not present in the given `label_types`. The label-types remain alphabetically sorted.
@@ -126,7 +128,7 @@ def to_conllu(
         msg = "Can't serialize the empty sentence"
         raise ValueError(msg)
 
-    label_types: _LabelTypes = _LabelTypes.from_flair_sentence(sentence)
+    label_types: LabelTypes = LabelTypes.from_flair_sentence(sentence)
     if default_token_fields:
         _add_default_token_fields(label_types, default_token_fields)
     if default_span_fields:
@@ -218,7 +220,7 @@ def from_conllu(serialized: str, **kwargs: Any) -> Sentence:
 
     # Parse global columns and gather annotated label-types
     global_columns: list[str] = raw_global_columns[19:].split()
-    label_types: _LabelTypes = _LabelTypes.from_global_columns(global_columns)
+    label_types: LabelTypes = LabelTypes.from_global_columns(global_columns)
 
     # Parse serialized sentence
     conllu_sentences: conllu.SentenceList = conllu.parse(serialized, **kwargs)
