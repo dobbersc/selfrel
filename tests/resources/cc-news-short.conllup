@@ -85,7 +85,7 @@
 # article_id = 2
 # paragraph_id = 1
 # sentence_id = 3
-# text = The four-person group is made up of members of the company's current artistic staff, led by ballet master and former principal dancer Jonathan Stafford.
+# text = The four-person group is made up of members of the company's current artistic staff.
 1	The	_
 2	four	SpaceAfter=No
 3	-	SpaceAfter=No
@@ -103,15 +103,4 @@
 15	current	_
 16	artistic	_
 17	staff	SpaceAfter=No
-18	,	_
-19	led	_
-20	by	_
-21	ballet	_
-22	master	_
-23	and	_
-24	former	_
-25	principal	_
-26	dancer	_
-27	Jonathan	_
-28	Stafford	SpaceAfter=No
-29	.	SpaceAfter=No
+18	.	SpaceAfter=No

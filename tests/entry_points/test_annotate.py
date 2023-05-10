@@ -48,7 +48,7 @@ def test_annotate_span(tmp_path: Path, resources_dir: Path) -> None:
         ("School of American Ballet", "ORG"),
     }
 
-    sentence_without_entities: Sentence = result[5]
+    sentence_without_entities: Sentence = result[2]
     assert not sentence_without_entities.get_spans("ner")
 
 
