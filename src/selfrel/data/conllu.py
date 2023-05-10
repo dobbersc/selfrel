@@ -161,15 +161,16 @@ class CoNLLUPlusDataset(Dataset[Sentence], Sized):
         if self.is_persistent:
             assert isinstance(self._sentences[0], Sentence)
             yield from cast(tuple[Sentence, ...], self._sentences)
-        with self._dataset_path.open("r", encoding="utf-8") as dataset_file:
-            yield from _parse_conllu_plus(
-                dataset_file,
-                self._processes,
-                self._dataset_name,
-                disable_progress_bar=True,
-                return_generator=True,
-                **self._kwargs,
-            )
+        else:
+            with self._dataset_path.open("r", encoding="utf-8") as dataset_file:
+                yield from _parse_conllu_plus(
+                    dataset_file,
+                    self._processes,
+                    self._dataset_name,
+                    disable_progress_bar=True,
+                    return_generator=True,
+                    **self._kwargs,
+                )
 
     def __len__(self) -> int:
         return len(self._sentences)
