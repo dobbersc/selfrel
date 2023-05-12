@@ -5,9 +5,8 @@ import pytest
 import ray
 from flair.data import Sentence
 from flair.nn import Classifier
-from ray.actor import ActorHandle
 
-from selfrel.predictor import Predictor, buffered_map, initialize_predictor_pool
+from selfrel.predictor import Predictor, PredictorPool
 
 
 @pytest.mark.usefixtures("_init_ray")
@@ -38,15 +37,11 @@ def test_predictor(model_factory: Callable[[], Union[str, Classifier[Sentence]]]
 def test_predictor_pool(model_factory: Callable[[], Union[str, Classifier[Sentence]]]) -> None:
     sentence = Sentence("Berlin is the capital of Germany.")
 
-    # Set-up predictor pool
-    model_ref = ray.put(model_factory())
-    predictor_pool = initialize_predictor_pool(2, model=model_ref, label_name="prediction")
+    predictor_pool = PredictorPool(model=model_factory(), num_actors=2)
+    assert predictor_pool.num_actors == 2
+    assert predictor_pool.actor_options == {}
 
-    def remote_predict(pipeline_actor: ActorHandle, sentence_: Sentence) -> Sentence:
-        return pipeline_actor.predict.remote(sentence_)  # type: ignore[no-any-return]
-
-    # Test buffered_map
-    result_sentences = list(buffered_map(predictor_pool, fn=remote_predict, values=[sentence], buffer_size=1))
+    result_sentences = list(predictor_pool.predict([sentence], label_name="prediction"))
     assert len(result_sentences) == 1
     result_sentence = result_sentences[0]
 

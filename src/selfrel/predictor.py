@@ -13,10 +13,10 @@ from ray.util import ActorPool
 from selfrel.data import from_conllu, to_conllu
 
 __all__ = [
+    "Predictor",
+    "PredictorPool",
     "register_sentence_serializer",
     "register_classifier_serializers",
-    "Predictor",
-    "initialize_predictor_pool",
     "buffered_map",
 ]
 
@@ -83,25 +83,18 @@ register_classifier_serializers()
 class Predictor(Generic[SentenceT]):
     """A Ray actor that wraps the predict function of Flair's Classifier model."""
 
-    def __init__(
-        self,
-        model: Union[str, Path, Classifier[SentenceT]],
-        index: Optional[int] = None,
-        **kwargs: Any,
-    ) -> None:
+    def __init__(self, model: Union[str, Path, Classifier[SentenceT]], index: Optional[int] = None) -> None:
         """
         Initializes a :class:`Predictor` as Ray actor from a Flair classifier.
         :param model: A model path or identifier for a Flair classifier.
                       If providing a Flair classifier, it is recommended to put in into Ray's object store.
                       Reference: https://docs.ray.io/en/latest/ray-core/objects.html.
         :param index: An optional index that is attached to the predictor for logging purposes.
-        :param kwargs: Keywords arguments are passed to the classifier's predict function.
         """
         register_sentence_serializer()
 
         self._model = model if isinstance(model, Classifier) else Classifier.load(model)
         self._index = index
-        self._kwargs = kwargs
 
         model_message: str = "from instance" if isinstance(model, Classifier) else f"from {model!r}"
         index_message: str = "" if index is None else f" at index {self._index!r} "
@@ -118,35 +111,12 @@ class Predictor(Generic[SentenceT]):
     def predict(self, sentences: list[SentenceT]) -> list[SentenceT]:
         ...
 
-    def predict(self, sentences: Union[SentenceT, list[SentenceT]]) -> Union[SentenceT, list[SentenceT]]:
-        self._model.predict(sentences, **self._kwargs)
+    def predict(self, sentences: Union[SentenceT, list[SentenceT]], **kwargs: Any) -> Union[SentenceT, list[SentenceT]]:
+        self._model.predict(sentences, **kwargs)
         return sentences
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}(index={self._index!r})"
-
-
-def initialize_predictor_pool(
-    num_actors: int,
-    actor_options: Optional[dict[str, Any]] = None,
-    **predictor_kwargs: Any,
-) -> ActorPool:
-    """
-    Initializes a `ray.util.ActorPool` with :class:`Predictor` actors.
-    :param num_actors: The number of Ray actors in the predictor pool.
-    :param actor_options: An optional dictionary of options passed to the actor.
-    :param predictor_kwargs: Keyword arguments are passed to the :class:`Predictor` init.
-                             The index is set automatically.
-    :return: An actor pool of :class:`Predictor` actors.
-    """
-    predictor_kwargs.pop("index", None)
-    predictors: list[ActorHandle] = [
-        Predictor.options(**actor_options).remote(**predictor_kwargs, index=index)  # type: ignore[attr-defined]
-        if actor_options
-        else Predictor.remote(**predictor_kwargs)  # type: ignore[attr-defined]
-        for index in range(num_actors)
-    ]
-    return ActorPool(predictors)
 
 
 def buffered_map(
@@ -159,3 +129,65 @@ def buffered_map(
     value_buffer: Iterator[list[V]] = more_itertools.batched(values, n=buffer_size)
     for buffered_values in value_buffer:
         yield from actor_pool.map(fn, buffered_values)  # type: ignore[arg-type]
+
+
+class PredictorPool(Generic[SentenceT]):
+    def __init__(
+        self,
+        model: Union[str, Path, Classifier[SentenceT], ray.ObjectRef],
+        num_actors: int,
+        **actor_options: Any,
+    ):
+        """
+        Initializes a :class:`PredictorPool`.
+        :param model: The underlying model for the predictors
+        :param num_actors: The number of Ray actors in the predictor pool
+        :param actor_options: Keyword arguments are passed to the actor as options
+        """
+        self._num_actors = num_actors
+        self._actor_options = actor_options
+
+        model_ref: ray.ObjectRef = model if isinstance(model, ray.ObjectRef) else ray.put(model)
+        predictors: list[ActorHandle] = [
+            Predictor.options(**actor_options).remote(model_ref, index=index)  # type: ignore[attr-defined]
+            if actor_options
+            else Predictor.remote(model_ref, index=index)  # type: ignore[attr-defined]
+            for index in range(num_actors)
+        ]
+        self._pool = ActorPool(predictors)
+
+    def predict(
+        self,
+        sentences: Iterable[SentenceT],
+        mini_batch_size: int = 32,
+        buffer_size: Optional[int] = 1,
+        **kwargs: Any,
+    ) -> Iterator[Sentence]:
+        """
+        Submits the given sentences to the actor pool and predicts the class labels.
+        Contrary to Flair's `Classifier.predict` function, this function does not annotate the sentence in-place.
+        :param sentences: An iterable of sentences to predict
+        :param mini_batch_size: The mini batch size to use
+        :param buffer_size: The buffer size of how many batches of sentences are loaded in memory at once.
+                            Per default, the buffer size is the number of ray actors in the pool.
+        :param kwargs: Keyword arguments are passed to Flair's predict function
+        :return: Yields annotated Flair sentences
+        """
+        buffer_size = self._num_actors if buffer_size is None else buffer_size
+
+        def remote_predict(pipeline_actor: ActorHandle, sentences_: list[SentenceT]) -> list[SentenceT]:
+            return pipeline_actor.predict.remote(sentences_, **kwargs)  # type: ignore[no-any-return]
+
+        sentence_batches: Iterator[list[SentenceT]] = more_itertools.batched(sentences, n=mini_batch_size)
+        for processed_sentences in buffered_map(
+            actor_pool=self._pool, fn=remote_predict, values=sentence_batches, buffer_size=buffer_size
+        ):
+            yield from processed_sentences
+
+    @property
+    def num_actors(self) -> int:
+        return self._num_actors
+
+    @property
+    def actor_options(self) -> dict[str, Any]:
+        return self._actor_options
