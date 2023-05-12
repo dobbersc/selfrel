@@ -1,12 +1,12 @@
 import bisect
-from collections.abc import Iterable, Set
-from typing import Any, NamedTuple, Optional, Union
+from collections.abc import Iterable, Sequence, Set
+from typing import Any, NamedTuple, Optional, TextIO, Union
 
 import conllu
 from flair.data import DataPoint, Label, Relation, Sentence, Span, Token, get_spans_from_bio
 from typing_extensions import Self
 
-__all__ = ["LabelTypes", "to_conllu", "from_conllu"]
+__all__ = ["LabelTypes", "to_conllu", "export_to_conllu", "from_conllu"]
 
 
 # The reserved metadata specifies CoNLL-U metadata keys reserved for special cases.
@@ -56,9 +56,25 @@ class LabelTypes(NamedTuple):
         global_columns.append("MISC")
         return global_columns
 
+    def as_formatted_global_columns(self) -> str:
+        return f"# global.columns = {' '.join(self.as_global_columns())}"
+
     @classmethod
-    def from_global_columns(cls, global_columns: list[str]) -> Self:
-        """Returns the Flair label-types from the given CoNLL-U Plus global.columns."""
+    def from_global_columns(cls, global_columns: Union[str, Sequence[str]]) -> Self:
+        """
+        Returns the Flair token and span label-types from the given CoNLL-U Plus `global.columns`.
+        :param global_columns: A global columns string formatted according to the ConLL-U Plus standard or
+                               a sequence of strings representing the global columns
+        :return: The extracted token and span label-types
+        """
+        if isinstance(global_columns, str):
+            if not global_columns.startswith("# global.columns = "):
+                msg = f"Received malformed global columns {global_columns!r}'"
+                raise ValueError(msg)
+
+            global_columns = global_columns[19:].split()
+
+        # Extract token and span label-types
         label_types: Self = cls(
             token_level=[column[:-6].lower() for column in global_columns if column.endswith(":TOKEN")],
             span_level=[column[:-5].lower() for column in global_columns if column.endswith(":SPAN")],
@@ -70,23 +86,21 @@ class LabelTypes(NamedTuple):
         return label_types
 
     @classmethod
-    def from_flair_sentence(cls, sentence: Sentence) -> Self:
-        """Returns the label-types from the given Flair sentence sorted alphabetically."""
-        label_types: Self = cls(token_level=[], span_level=[])
+    def from_flair_sentence(cls, sentences: Union[Sentence, Iterable[Sentence]]) -> Self:
+        """Returns the label-types from the given Flair sentence(s) sorted alphabetically."""
+        sentences = [sentences] if isinstance(sentences, Sentence) else sentences
 
-        label_type: str
-        labels: list[Label]
-        for label_type, labels in sentence.annotation_layers.items():
-            data_point: DataPoint = labels[0].data_point
-            if isinstance(data_point, Token):
-                label_types.token_level.append(label_type)
-            elif isinstance(data_point, Span):
-                label_types.span_level.append(label_type)
+        token_level: set[str] = set()
+        span_level: set[str] = set()
+        for sentence in sentences:
+            for label_type, labels in sentence.annotation_layers.items():
+                data_point: DataPoint = labels[0].data_point
+                if isinstance(data_point, Token):
+                    token_level.add(label_type)
+                elif isinstance(data_point, Span):
+                    span_level.add(label_type)
 
-        label_types.token_level.sort()
-        label_types.span_level.sort()
-
-        return label_types
+        return cls(token_level=sorted(token_level), span_level=sorted(span_level))
 
 
 # noinspection PyRedundantParentheses
@@ -184,10 +198,35 @@ def to_conllu(
         conllu_sentence.metadata["relations"] = "|".join(relations)
 
     return (
-        f"# global.columns = {' '.join(label_types.as_global_columns())}\n{conllu_sentence.serialize()}"
+        f"{label_types.as_formatted_global_columns()}\n{conllu_sentence.serialize()}"
         if include_global_columns
         else conllu_sentence.serialize()
     )
+
+
+def export_to_conllu(fp: TextIO, sentences: Iterable[Sentence], global_label_types: LabelTypes) -> None:
+    """
+    Serializes and exports the given Flair sentences as CoNLL-U Plus file.
+    :param fp: The TextIO file pointer to write to
+    :param sentences: An iterable of Flair sentences
+    :param global_label_types: The global label types, i.e. the label types covering the given sentence's annotations
+    """
+    # Write global.columns
+    fp.write(global_label_types.as_formatted_global_columns())
+    fp.write("\n")
+
+    # Write serialized sentences
+    global_token_fields: frozenset[str] = frozenset(global_label_types.token_level)
+    global_span_fields: frozenset[str] = frozenset(global_label_types.span_level)
+    for sentence in sentences:
+        fp.write(
+            to_conllu(
+                sentence,
+                include_global_columns=False,
+                default_token_fields=global_token_fields,
+                default_span_fields=global_span_fields,
+            )
+        )
 
 
 def _infer_whitespace_after(token: conllu.Token) -> int:
@@ -211,13 +250,12 @@ def from_conllu(serialized: str, **kwargs: Any) -> Sentence:
     :param kwargs: Keywords arguments are passed to `conllu.parse`
     :return: The deserialized Flair sentence
     """
-    raw_global_columns: str = serialized.split("\n", 1)[0]
-    if not raw_global_columns.startswith("# global.columns = "):
+    global_columns: str = serialized.split("\n", maxsplit=1)[0]
+    if not global_columns.startswith("# global.columns = "):
         msg = "Missing CoNLL-U Plus required 'global.columns'"
         raise ValueError(msg)
 
     # Parse global columns and gather annotated label-types
-    global_columns: list[str] = raw_global_columns[19:].split()
     label_types: LabelTypes = LabelTypes.from_global_columns(global_columns)
 
     # Parse serialized sentence

@@ -1,7 +1,10 @@
+from pathlib import Path
+
 import pytest
 from flair.data import Relation, Sentence
 
 from selfrel.data import from_conllu, to_conllu
+from selfrel.data.serialization import LabelTypes, export_to_conllu
 
 
 def test_serialize_deserialize_unannotated_sentence() -> None:
@@ -152,3 +155,42 @@ def test_deserialize_multiple_sentences() -> None:
             "4\tsentence\tSpaceAfter=No\n"
             "5\t.\tSpaceAfter=No\n\n",
         )
+
+
+def test_export_to_conllu(tmp_path: Path) -> None:
+    sentences: list[Sentence] = [
+        Sentence("Berlin is the capital of Germany."),
+        Sentence("This is a sentence without annotations."),
+    ]
+
+    sentences[0][:1].add_label("ner", value="LOC")
+    sentences[0][5:6].add_label("ner", value="LOC")
+
+    global_label_types: LabelTypes = LabelTypes.from_flair_sentence(sentences)
+    assert global_label_types.token_level == []
+    assert global_label_types.span_level == ["ner"]
+
+    with (tmp_path / "out.conllup").open("w", encoding="utf-8") as serialized:
+        export_to_conllu(serialized, sentences, global_label_types=global_label_types)
+
+    expected: str = (
+        "# global.columns = ID FORM NER:SPAN NER:SPAN_SCORE MISC\n"
+        "# text = Berlin is the capital of Germany.\n"
+        "1\tBerlin\tS-LOC\t1.0\t_\n"
+        "2\tis\tO\t_\t_\n"
+        "3\tthe\tO\t_\t_\n4\tcapital\tO\t_\t_\n"
+        "5\tof\tO\t_\t_\n"
+        "6\tGermany\tS-LOC\t1.0\tSpaceAfter=No\n"
+        "7\t.\tO\t_\tSpaceAfter=No\n"
+        "\n"
+        "# text = This is a sentence without annotations.\n"
+        "1\tThis\tO\t_\t_\n"
+        "2\tis\tO\t_\t_\n"
+        "3\ta\tO\t_\t_\n"
+        "4\tsentence\tO\t_\t_\n"
+        "5\twithout\tO\t_\t_\n"
+        "6\tannotations\tO\t_\tSpaceAfter=No\n"
+        "7\t.\tO\t_\tSpaceAfter=No\n"
+        "\n"
+    )
+    assert (tmp_path / "out.conllup").read_text(encoding="utf-8") == expected
