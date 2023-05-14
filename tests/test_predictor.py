@@ -19,9 +19,9 @@ def test_predictor(model_factory: Callable[[], Union[str, Classifier[Sentence]]]
     sentence = Sentence("Berlin is the capital of Germany.")
 
     model_ref = ray.put(model_factory())
-    predictor = Predictor.remote(model_ref, index=1, label_name="prediction")  # type: ignore[attr-defined]
+    predictor = Predictor.remote(model_ref, index=1)  # type: ignore[attr-defined]
 
-    result: Sentence = ray.get(predictor.predict.remote(sentence))
+    result: Sentence = ray.get(predictor.predict.remote(sentence, label_name="prediction"))
     assert {(entity.text, entity.get_label("prediction").value) for entity in result.get_spans("prediction")} == {
         ("Berlin", "LOC"),
         ("Germany", "LOC"),
