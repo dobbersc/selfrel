@@ -121,7 +121,7 @@ def main() -> None:
         help=(
             "The output path of the annotated dataset. "
             "Per default, the dataset is exported to the same directory as the input dataset "
-            "with the original name suffixed with the provided label type, e.g. 'cc-news-ner.conllup'."
+            "with the original name suffixed with the provided label-type, e.g. 'cc-news-ner.conllup'."
         ),
     )
     annotate.add_argument(
@@ -132,7 +132,7 @@ def main() -> None:
     annotate.add_argument(
         "--label-type",
         default=None,
-        help="Overwrites the model's label type. Per default, the model's default label type is used.",
+        help="Overwrites the model's label-type. Per default, the model's default label-type is used.",
     )
     annotate.add_argument(
         "--abstraction-level",

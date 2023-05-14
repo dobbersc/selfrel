@@ -16,7 +16,7 @@ __RESERVED_METADATA: set[str] = {"global.columns", "text", "relations"}
 
 class LabelTypes(NamedTuple):
     """
-    Named Tuple of the token and span level annotation label types of a Flair sentence.
+    Named Tuple of the token and span level annotation label-types of a Flair sentence.
     Both attributes are sorted alphabetically.
     """
 
@@ -37,7 +37,7 @@ class LabelTypes(NamedTuple):
 
     def as_global_columns(self) -> list[str]:
         """
-        Returns the label types' CoNLL-U Plus global.columns as list of columns.
+        Returns the label-types' CoNLL-U Plus global.columns as list of columns.
 
         Order:
             1. ID
@@ -84,6 +84,10 @@ class LabelTypes(NamedTuple):
         label_types.span_level.sort()
 
         return label_types
+
+    @classmethod
+    def from_conllu_file(cls, fp: TextIO) -> Self:
+        return cls.from_global_columns(fp.readline().strip("\n"))
 
     @classmethod
     def from_flair_sentence(cls, sentences: Union[Sentence, Iterable[Sentence]]) -> Self:
@@ -209,7 +213,7 @@ def export_to_conllu(fp: TextIO, sentences: Iterable[Sentence], global_label_typ
     Serializes and exports the given Flair sentences as CoNLL-U Plus file.
     :param fp: The TextIO file pointer to write to
     :param sentences: An iterable of Flair sentences
-    :param global_label_types: The global label types, i.e. the label types covering the given sentence's annotations
+    :param global_label_types: The global label-types, i.e. the label-types covering the given sentence's annotations
     """
     # Write global.columns
     fp.write(global_label_types.as_formatted_global_columns())

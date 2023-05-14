@@ -100,7 +100,7 @@ class Predictor(Generic[SentenceT]):
         index_message: str = "" if index is None else f" at index {self._index!r} "
         print(
             f"Loaded Flair model {model_message} as {type(self._model).__name__!r} "
-            f"predicting labels of label type {self._model.label_type!r}{index_message}",
+            f"predicting labels of label-type {self._model.label_type!r}{index_message}",
         )
 
     @overload
