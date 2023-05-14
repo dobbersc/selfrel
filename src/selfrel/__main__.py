@@ -31,8 +31,8 @@ def call_annotate(args: argparse.Namespace) -> None:
 
     ray.init()
     annotate(
-        dataset=args.dataset,
-        out=args.out,
+        dataset_path=args.dataset,
+        out_path=args.out,
         model=args.model,
         label_type=args.label_type,
         abstraction_level=args.abstraction_level,
@@ -167,8 +167,8 @@ def main() -> None:
         type=int,
         default=None,
         help=(
-            "The buffer size of how many sentences are loaded in memory for each actor. "
-            "Per default, the buffer size is BATCH_SIZE*2"
+            "The buffer size of how many batches of sentences are loaded in memory at once."
+            "Per default, the buffer size is NUM_ACTORS."
         ),
     )
 
