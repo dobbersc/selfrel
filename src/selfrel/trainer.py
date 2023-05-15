@@ -31,7 +31,7 @@ class SelfTrainer:
         unlabelled_dataset: CoNLLUPlusDataset,
         num_actors: int = 1,
         num_cpus: Optional[float] = None,
-        num_gpus: Optional[float] = 1,
+        num_gpus: Optional[float] = 1.0,
         buffer_size: Optional[int] = None,
         prediction_batch_size: int = 32,
     ) -> None:
@@ -95,14 +95,14 @@ class SelfTrainer:
             global_label_types: LabelTypes = LabelTypes.from_conllu_file(dataset_file)
 
         selected_sentences: Iterator[Sentence] = selection_strategy.select_relations(
-            dataset, label_type=self._model.label_type
+            tqdm(dataset, desc="Selecting Confident Data Points"), label_type=self._model.label_type
         )
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with output_path.open("w", encoding="utf-8") as output_file:
             export_to_conllu(
                 output_file,
-                sentences=tqdm(selected_sentences, desc="Selecting Confident Data Points", total=len(dataset)),
+                sentences=selected_sentences,
                 global_label_types=global_label_types,
             )
 
