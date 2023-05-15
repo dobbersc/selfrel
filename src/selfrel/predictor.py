@@ -134,7 +134,7 @@ def buffered_map(
 class PredictorPool(Generic[SentenceT]):
     def __init__(
         self,
-        model: Union[str, Path, Classifier[SentenceT], ray.ObjectRef[Classifier[SentenceT]]],
+        model: Union[str, Path, Classifier[SentenceT], ray.ObjectRef],  # type: ignore[type-arg]
         num_actors: int,
         **actor_options: Any,
     ):
@@ -147,7 +147,7 @@ class PredictorPool(Generic[SentenceT]):
         self._num_actors = num_actors
         self._actor_options = actor_options
 
-        model_ref: ray.ObjectRef[Classifier[SentenceT]] = model if isinstance(model, ray.ObjectRef) else ray.put(model)
+        model_ref: ray.ObjectRef = model if isinstance(model, ray.ObjectRef) else ray.put(model)  # type: ignore[type-arg]  # noqa: E501
         predictors: list[ActorHandle] = [
             Predictor.options(**actor_options).remote(model_ref, index=index)  # type: ignore[attr-defined]
             if actor_options
