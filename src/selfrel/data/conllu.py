@@ -137,7 +137,8 @@ class CoNLLUPlusDataset(Dataset[Sentence], Sized):
             assert isinstance(self._sentences[0], Sentence)
             yield from cast(tuple[Sentence, ...], self._sentences)
         else:
-            for sentence in self._sentences:
+            assert isinstance(self._sentences[0], str)
+            for sentence in cast(tuple[str, ...], self._sentences):
                 yield from_conllu(sentence)
 
     def __len__(self) -> int:
