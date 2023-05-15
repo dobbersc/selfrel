@@ -65,7 +65,9 @@ def train(
     # A corpus for training the relation extractor requires annotated entities and relations.
     corpus: Corpus[Sentence] = _load_corpus(corpus_name)
     if down_sample_train is not None:
-        corpus.downsample(percentage=down_sample_train, downsample_train=True)
+        corpus.downsample(
+            percentage=down_sample_train, downsample_train=True, downsample_dev=False, downsample_test=False
+        )
 
     support_dataset: CoNLLUPlusDataset = CoNLLUPlusDataset(support_dataset_path, persist=False)
 
