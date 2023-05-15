@@ -2,7 +2,10 @@ import tempfile
 from pathlib import Path
 from typing import Any, TypeVar, cast
 
+from flair.data import Sentence
 from flair.nn import Model
+
+from selfrel.data import from_conllu, to_conllu
 
 ModelT = TypeVar("ModelT", bound=Model[Any])
 
@@ -18,3 +21,7 @@ def deepcopy_flair_model(model: ModelT, copy_optimizer_state: bool = False) -> M
         model_path.unlink()
 
     return model_copy
+
+
+def deepcopy_flair_sentence(sentence: Sentence) -> Sentence:
+    return from_conllu(to_conllu(sentence))
