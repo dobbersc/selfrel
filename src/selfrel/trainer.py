@@ -17,7 +17,6 @@ from selfrel.utils.copy import deepcopy_flair_model
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from flair.datasets import FlairDatapointDataset
     from flair.models.relation_classifier_model import EncodedSentence
 
 logger = logging.getLogger("flair")
@@ -27,8 +26,8 @@ class SelfTrainer:
     def __init__(
         self,
         model: RelationClassifier,
-        annotated_corpus: Corpus[Sentence],
-        unlabelled_dataset: CoNLLUPlusDataset,
+        corpus: Corpus[Sentence],
+        support_dataset: CoNLLUPlusDataset,
         num_actors: int = 1,
         num_cpus: Optional[float] = None,
         num_gpus: Optional[float] = 1.0,
@@ -41,10 +40,10 @@ class SelfTrainer:
 
         self._model = model
 
-        self._annotated_corpus = annotated_corpus
-        self._transformed_annotated_corpus: Corpus[EncodedSentence] = model.transform_corpus(annotated_corpus)
+        self.corpus = corpus
+        self._transformed_corpus: Corpus[EncodedSentence] = model.transform_corpus(corpus)
 
-        self._unlabelled_dataset = unlabelled_dataset
+        self._support_dataset = support_dataset
 
         self.num_actors = num_actors
         self.num_cpus = num_cpus
@@ -58,7 +57,7 @@ class SelfTrainer:
         trainer.fine_tune(base_path, **kwargs)
         return trained_model
 
-    def _annotate_unlabelled_dataset(self, teacher: RelationClassifier, output_path: Path) -> CoNLLUPlusDataset:
+    def _annotate_support_dataset(self, teacher: RelationClassifier, output_path: Path) -> CoNLLUPlusDataset:
         # Initialize predictor pool
         predictor_pool: PredictorPool[Sentence] = PredictorPool(
             teacher,  # type: ignore[arg-type]
@@ -68,12 +67,12 @@ class SelfTrainer:
         )
 
         # Get global label-types
-        with self._unlabelled_dataset.dataset_path.open("r", encoding="utf-8") as dataset_file:
+        with self._support_dataset.dataset_path.open("r", encoding="utf-8") as dataset_file:
             global_label_types: LabelTypes = LabelTypes.from_conllu_file(dataset_file)
 
         # Process dataset
         processed_sentences: Iterator[Sentence] = predictor_pool.predict(
-            self._unlabelled_dataset, mini_batch_size=self.prediction_batch_size, buffer_size=self.buffer_size
+            self._support_dataset, mini_batch_size=self.prediction_batch_size, buffer_size=self.buffer_size
         )
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -81,14 +80,14 @@ class SelfTrainer:
             export_to_conllu(
                 output_file,
                 sentences=tqdm(
-                    processed_sentences, desc="Annotating Unlabelled Dataset", total=len(self._unlabelled_dataset)
+                    processed_sentences, desc="Annotating Support Dataset", total=len(self._support_dataset)
                 ),
                 global_label_types=global_label_types,
             )
 
-        return CoNLLUPlusDataset(output_path, persist=False, disable_progress_bar=True)
+        return CoNLLUPlusDataset(output_path, persist=False)
 
-    def _select_datapoints(
+    def _select_support_datapoints(
         self, dataset: CoNLLUPlusDataset, selection_strategy: SelectionStrategy, output_path: Path
     ) -> CoNLLUPlusDataset:
         with dataset.dataset_path.open("r", encoding="utf-8") as dataset_file:
@@ -108,7 +107,7 @@ class SelfTrainer:
 
         # TODO: Actually is makes more sense to load it into memory right away.
         #  Then we would not need to load the sentences as conllu dataset and could return a list of sentences
-        return CoNLLUPlusDataset(output_path, persist=False, disable_progress_bar=True)
+        return CoNLLUPlusDataset(output_path, persist=False)
 
     def train(
         self,
@@ -124,37 +123,35 @@ class SelfTrainer:
         # Set default selection strategy
         selection_strategy = PredictionConfidence() if selection_strategy is None else selection_strategy
 
-        # Train initial teacher model on transformed annotated corpus
+        # Train initial teacher model on transformed corpus
         logger.info("Training initial teacher model")
         teacher_model: RelationClassifier = self._train_model(
-            base_path=base_path / "iteration-0", corpus=self._transformed_annotated_corpus, **kwargs
+            base_path=base_path / "iteration-0", corpus=self._transformed_corpus, **kwargs
         )
 
         for self_training_iteration in range(1, self_training_iterations + 1):
             logger.info("Self-training iteration: %s", self_training_iteration)
             iteration_base_path: Path = base_path / f"iteration-{self_training_iteration}"
 
-            # Predict unlabelled dataset
-            annotated_dataset: CoNLLUPlusDataset = self._annotate_unlabelled_dataset(
-                teacher_model, output_path=base_path / f"iteration-{self_training_iterations}" / "data.conllup"
+            # Predict support dataset
+            annotated_support_dataset: CoNLLUPlusDataset = self._annotate_support_dataset(
+                teacher_model, output_path=iteration_base_path / "support-dataset-full.conllup"
             )
 
             # Select confident data points
-            annotated_dataset = self._select_datapoints(
-                annotated_dataset,
+            annotated_support_dataset = self._select_support_datapoints(
+                annotated_support_dataset,
                 selection_strategy=selection_strategy,
-                output_path=iteration_base_path / "data.conllup",
+                output_path=iteration_base_path / "support-dataset-selection.conllup",
             )
-            transformed_annotated_dataset: FlairDatapointDataset[EncodedSentence] = self._model.transform_dataset(
-                annotated_dataset
-            )
+            transformed_annotated_support_dataset = self._model.transform_dataset(annotated_support_dataset)
 
             # Train student model on transformed augmented corpus
-            assert self._transformed_annotated_corpus.train
+            assert self._transformed_corpus.train
             transformed_augmented_corpus: Corpus[Sentence] = Corpus(
-                train=ConcatDataset([self._transformed_annotated_corpus.train, transformed_annotated_dataset]),
-                dev=self._transformed_annotated_corpus.dev,
-                test=self._transformed_annotated_corpus.test,
+                train=ConcatDataset([self._transformed_corpus.train, transformed_annotated_support_dataset]),
+                dev=self._transformed_corpus.dev,
+                test=self._transformed_corpus.test,
             )
 
             student_model: RelationClassifier = self._train_model(

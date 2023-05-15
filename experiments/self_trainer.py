@@ -97,8 +97,8 @@ def train(
     # Step 4: Initialize self-trainer
     trainer: SelfTrainer = SelfTrainer(
         model=model,
-        annotated_corpus=corpus,
-        unlabelled_dataset=CoNLLUPlusDataset("dev.conllup"),
+        corpus=corpus,
+        support_dataset=support_dataset,
         num_actors=num_actors,
         num_cpus=num_cpus,
         num_gpus=num_gpus,
@@ -162,8 +162,6 @@ def main() -> None:
     parser.add_argument("--prediction-batch-size", type=int, default=32, help="TODO")
 
     args: argparse.Namespace = parser.parse_args()
-
-    print(args)
 
     train(
         args.corpus,
