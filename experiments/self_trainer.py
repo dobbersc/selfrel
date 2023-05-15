@@ -26,7 +26,7 @@ def _load_corpus(corpus_name: str) -> Corpus[Sentence]:
     try:
         return _CORPORA[corpus_name]()
     except KeyError as e:
-        msg = f"The corpus {repr(corpus_name)} is not supported"
+        msg = f"The corpus {corpus_name!r} is not supported"
         raise ValueError(msg) from e
 
 
