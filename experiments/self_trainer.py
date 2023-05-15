@@ -33,6 +33,7 @@ def _load_corpus(corpus_name: str) -> Corpus[Sentence]:
 def train(
     corpus_name: Literal["conll04"],
     support_dataset_path: Union[str, Path],
+    down_sample_train: Optional[float] = None,
     base_path: Union[str, Path] = Path(),
     transformer: str = "bert-base-uncased",
     max_epochs: int = 10,
@@ -63,7 +64,8 @@ def train(
     # The relation extractor is *not* trained end-to-end.
     # A corpus for training the relation extractor requires annotated entities and relations.
     corpus: Corpus[Sentence] = _load_corpus(corpus_name)
-    corpus.downsample(percentage=0.50, downsample_train=True)
+    if down_sample_train is not None:
+        corpus.downsample(percentage=down_sample_train, downsample_train=True)
 
     support_dataset: CoNLLUPlusDataset = CoNLLUPlusDataset(support_dataset_path, persist=False)
 
@@ -129,6 +131,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(formatter_class=RawTextArgumentDefaultsHelpFormatter)
     parser.add_argument("corpus", choices=["conll04"], help="TODO")
     parser.add_argument("--support-dataset", type=Path, required=True, help="TODO")
+    parser.add_argument("--down-sample-train", type=float, default=None, help="TODO")
     parser.add_argument("--base-path", type=Path, default=Path(), help="TODO")
     parser.add_argument("--transformer", default="bert-base-uncased", help="TODO")
     parser.add_argument("--max-epochs", type=int, default=10, help="TODO")
@@ -166,6 +169,7 @@ def main() -> None:
     train(
         args.corpus,
         args.support_dataset,
+        down_sample_train=args.down_sample_train,
         base_path=args.base_path,
         transformer=args.transformer,
         max_epochs=args.max_epochs,
