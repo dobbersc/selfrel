@@ -78,9 +78,16 @@ class SelfTrainer:
         with self._support_dataset.dataset_path.open("r", encoding="utf-8") as dataset_file:
             global_label_types: LabelTypes = LabelTypes.from_conllu_file(dataset_file)
 
+        # Select sentences with NER annotations
+        sentences: Iterator[Sentence] = (
+            sentence
+            for sentence in self._support_dataset
+            if any(label_type in sentence.annotation_layers for label_type in self._model.entity_label_types)
+        )
+
         # Process dataset
         processed_sentences: Iterator[Sentence] = predictor_pool.predict(
-            self._support_dataset, mini_batch_size=self.prediction_batch_size, buffer_size=self.buffer_size
+            sentences, mini_batch_size=self.prediction_batch_size, buffer_size=self.buffer_size
         )
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
