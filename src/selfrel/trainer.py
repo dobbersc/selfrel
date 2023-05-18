@@ -37,7 +37,7 @@ class SelfTrainer:
         self,
         model: RelationClassifier,
         corpus: Corpus[Sentence],
-        support_dataset: CoNLLUPlusDataset,
+        support_dataset: CoNLLUPlusDataset[Sentence],
         num_actors: int = 1,
         num_cpus: Optional[float] = None,
         num_gpus: Optional[float] = 1.0,
@@ -51,7 +51,7 @@ class SelfTrainer:
         self._model = model
 
         self.corpus = corpus
-        self._transformed_corpus: Corpus[EncodedSentence] = model.transform_corpus(corpus)
+        self._encoded_corpus: Corpus[EncodedSentence] = model.transform_corpus(corpus)
 
         self._support_dataset = support_dataset
 
@@ -67,7 +67,7 @@ class SelfTrainer:
         trainer.fine_tune(base_path, **kwargs)
         return trained_model
 
-    def _annotate_support_dataset(self, teacher: RelationClassifier, output_path: Path) -> CoNLLUPlusDataset:
+    def _annotate_support_dataset(self, teacher: RelationClassifier, output_path: Path) -> CoNLLUPlusDataset[Sentence]:
         # Initialize predictor pool
         predictor_pool: PredictorPool[Sentence] = PredictorPool(
             teacher,  # type: ignore[arg-type]
@@ -98,20 +98,20 @@ class SelfTrainer:
         return CoNLLUPlusDataset(output_path, persist=False)
 
     def _select_support_datapoints(
-        self, dataset: CoNLLUPlusDataset, selection_strategy: SelectionStrategy, output_path: Path
-    ) -> CoNLLUPlusDataset:
+        self, dataset: CoNLLUPlusDataset[Sentence], selection_strategy: SelectionStrategy, output_path: Path
+    ) -> CoNLLUPlusDataset[Sentence]:
         with dataset.dataset_path.open("r", encoding="utf-8") as dataset_file:
             global_label_types: LabelTypes = LabelTypes.from_conllu_file(dataset_file)
 
         selected_sentences: Iterator[Sentence] = selection_strategy.select_relations(
-            tqdm(dataset, desc="Selecting Confident Data Points"), label_type=self._model.label_type
+            dataset, label_type=self._model.label_type
         )
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with output_path.open("w", encoding="utf-8") as output_file:
             export_to_conllu(
                 output_file,
-                sentences=selected_sentences,
+                sentences=tqdm(selected_sentences, desc="Selecting Confident Data Points"),
                 global_label_types=global_label_types,
             )
 
@@ -136,7 +136,7 @@ class SelfTrainer:
         # Train initial teacher model on transformed corpus
         logger.info("Training initial teacher model")
         teacher_model: RelationClassifier = self._train_model(
-            base_path=base_path / "iteration-0", corpus=self._transformed_corpus, **kwargs
+            base_path=base_path / "iteration-0", corpus=self._encoded_corpus, **kwargs
         )
 
         for self_training_iteration in range(1, self_training_iterations + 1):
@@ -144,7 +144,7 @@ class SelfTrainer:
             iteration_base_path: Path = base_path / f"iteration-{self_training_iteration}"
 
             # Predict support dataset
-            annotated_support_dataset: CoNLLUPlusDataset = self._annotate_support_dataset(
+            annotated_support_dataset: CoNLLUPlusDataset[Sentence] = self._annotate_support_dataset(
                 teacher_model, output_path=iteration_base_path / "support-dataset-full.conllup"
             )
 
