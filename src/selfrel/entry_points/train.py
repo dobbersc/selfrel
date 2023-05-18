@@ -14,6 +14,8 @@ from selfrel.data import CoNLLUPlusDataset
 from selfrel.trainer import SelfTrainer
 from selfrel.utils.inspect_relations import infer_entity_pair_labels
 
+__all__ = ["train"]
+
 logger: logging.Logger = logging.getLogger("flair")
 
 _CORPORA: Final[dict[str, Callable[[], Corpus[Sentence]]]] = {
@@ -71,8 +73,17 @@ def train(
 
     support_dataset: CoNLLUPlusDataset = CoNLLUPlusDataset(support_dataset_path, persist=False)
 
-    # Step 2: Make the label dictionary from the corpus
+    # Step 2: Make the label dictionary and infer entity-pair labels from the corpus
     label_dictionary = corpus.make_label_dictionary("relation")
+    entity_pair_labels: Optional[set[tuple[str, str]]] = (
+        infer_entity_pair_labels(
+            [batch[0] for batch in iter(DataLoader(corpus.train, batch_size=1))],
+            relation_label_type="relation",
+            entity_label_types="ner",
+        )
+        if entity_pair_label_filter
+        else None
+    )
 
     # Step 3: Initialize fine-tunable transformer embedding
     embeddings = TransformerDocumentEmbeddings(model=transformer, layers="-1", fine_tune=True)
@@ -83,13 +94,7 @@ def train(
         label_dictionary=label_dictionary,
         label_type="relation",
         entity_label_types="ner",
-        entity_pair_labels=infer_entity_pair_labels(
-            [batch[0] for batch in iter(DataLoader(corpus.train, batch_size=1))],
-            relation_label_type="relation",
-            entity_label_types="ner",
-        )
-        if entity_pair_label_filter
-        else None,
+        entity_pair_labels=entity_pair_labels,
         cross_augmentation=cross_augmentation,
         zero_tag_value="no_relation",
         encoding_strategy=getattr(
@@ -109,6 +114,7 @@ def train(
         buffer_size=buffer_size,
         prediction_batch_size=prediction_batch_size,
     )
+
     logger.info("-" * 100)
     logger.info("Parameters:")
     for parameter, parameter_value in hyperparameters.items():
