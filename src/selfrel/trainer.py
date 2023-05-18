@@ -133,7 +133,7 @@ class SelfTrainer:
                 global_label_types=LabelTypes(token_level=[], span_level=[]),
             )
 
-        return CoNLLUPlusDataset(output_path, sentence_factory=EncodedSentence, persist=False)
+        return CoNLLUPlusDataset(output_path, sentence_type=EncodedSentence, persist=False)
 
     def train(
         self,
