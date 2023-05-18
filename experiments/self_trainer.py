@@ -1,6 +1,8 @@
 import argparse
+import functools
 import logging
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Final, Literal, Optional, Union
 
@@ -17,8 +19,10 @@ from selfrel.utils.inspect_relations import infer_entity_pair_labels
 
 logger: logging.Logger = logging.getLogger("flair")
 
-_CORPORA: Final[dict[str, type[Corpus[Sentence]]]] = {
-    "conll04": RE_ENGLISH_CONLL04,
+_CORPORA: Final[dict[str, Callable[[], Corpus[Sentence]]]] = {
+    "conll04": functools.partial(
+        RE_ENGLISH_CONLL04, label_name_map={"Peop": "PER", "Org": "ORG", "Loc": "LOC", "Other": "MISC"}
+    ),
 }
 
 
