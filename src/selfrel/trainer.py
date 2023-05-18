@@ -102,14 +102,14 @@ class SelfTrainer:
             global_label_types: LabelTypes = LabelTypes.from_conllu_file(dataset_file)
 
         selected_sentences: Iterator[Sentence] = selection_strategy.select_relations(
-            dataset, label_type=self._model.label_type
+            tqdm(dataset, desc="Selecting Confident Data Points"), label_type=self._model.label_type
         )
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with output_path.open("w", encoding="utf-8") as output_file:
             export_to_conllu(
                 output_file,
-                sentences=tqdm(selected_sentences, desc="Selecting Confident Data Points"),
+                sentences=selected_sentences,
                 global_label_types=global_label_types,
             )
 
@@ -120,14 +120,16 @@ class SelfTrainer:
     ) -> CoNLLUPlusDataset[EncodedSentence]:
         with _set_cross_augmentation(self._model, cross_augmentation=False):
             encoded_sentences: Iterator[EncodedSentence] = (
-                self._model.transform_sentence(sentence)[0] for sentence in dataset
+                encoded_sentence
+                for sentence in tqdm(dataset, desc="Encoding Support Dataset")
+                for encoded_sentence in self._model.transform_sentence(sentence)
             )
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with output_path.open("w", encoding="utf-8") as output_file:
             export_to_conllu(
                 output_file,
-                sentences=tqdm(encoded_sentences, desc="Encoding Support Dataset"),
+                sentences=encoded_sentences,
                 global_label_types=LabelTypes(token_level=[], span_level=[]),
             )
 
