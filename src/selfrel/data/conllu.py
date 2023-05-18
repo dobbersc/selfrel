@@ -1,7 +1,7 @@
 import os
 from collections.abc import Iterator, Sized
 from pathlib import Path
-from typing import Optional, TextIO, Union, cast, overload
+from typing import Any, Optional, TextIO, TypeVar, Union, cast, overload
 
 from flair.data import Sentence
 from torch.utils.data.dataset import Dataset
@@ -10,6 +10,8 @@ from tqdm import tqdm
 from selfrel.data.serialization import from_conllu
 
 __all__ = ["CoNLLUPlusDataset"]
+
+SentenceT = TypeVar("SentenceT", bound=Sentence)
 
 
 def _serialized_conllu_plus_sentence_iter(
@@ -49,7 +51,7 @@ def _serialized_conllu_plus_sentence_iter(
             yield f"{global_columns}{sentence}"
 
 
-class CoNLLUPlusDataset(Dataset[Sentence], Sized):
+class CoNLLUPlusDataset(Dataset[SentenceT], Sized):
     """
     Dataset of Flair Sentences parsed from a CoNLL-U Plus file.
 
@@ -63,6 +65,10 @@ class CoNLLUPlusDataset(Dataset[Sentence], Sized):
         dataset_name: Optional[str] = None,
         persist: bool = True,
         disable_progress_bar: bool = False,
+        # Typing workaround for specifying a default value for a generic parameter
+        # https://github.com/python/mypy/issues/3737
+        sentence_type: type[SentenceT] = Sentence,  # type: ignore[assignment]
+        **kwargs: Any,
     ) -> None:
         """
         Initializes a :class:`CoNLLUPlusDataset` from a CoNLL-U Plus file.
@@ -76,16 +82,19 @@ class CoNLLUPlusDataset(Dataset[Sentence], Sized):
                         Calls to `__getitem__` or `__iter__` parse the dataset file on the fly to Flair Sentences.
                         The returned Sentences are not persistent.
         :param disable_progress_bar: Disables the progress bar for loading the dataset
+        :param kwargs: Keywords arguments are passed to `conllu.parse`
         """
         self._dataset_path = Path(dataset_path)
         self._dataset_name = str(self._dataset_path) if dataset_name is None else dataset_name
         self._persist = persist
+        self._sentence_type = sentence_type
+        self._kwargs: dict[str, Any] = kwargs
 
         with self.dataset_path.open("r", encoding="utf-8") as dataset_file:
-            self._sentences: Union[tuple[Sentence, ...], tuple[str, ...]]
+            self._sentences: Union[tuple[SentenceT, ...], tuple[str, ...]]
             if self.is_persistent:
                 self._sentences = tuple(
-                    from_conllu(sentence)
+                    from_conllu(sentence, cls=self._sentence_type, **self._kwargs)
                     for sentence in _serialized_conllu_plus_sentence_iter(
                         dataset_file, self._dataset_name, disable_progress_bar
                     )
@@ -112,34 +121,34 @@ class CoNLLUPlusDataset(Dataset[Sentence], Sized):
         return self._persist
 
     @overload
-    def __getitem__(self, item: int) -> Sentence:
+    def __getitem__(self, item: int) -> SentenceT:
         ...
 
     @overload
-    def __getitem__(self, item: slice) -> tuple[Sentence, ...]:
+    def __getitem__(self, item: slice) -> tuple[SentenceT, ...]:
         ...
 
-    def __getitem__(self, item: Union[int, slice]) -> Union[Sentence, tuple[Sentence, ...]]:
+    def __getitem__(self, item: Union[int, slice]) -> Union[SentenceT, tuple[SentenceT, ...]]:
         if self.is_persistent:
             assert isinstance(self._sentences[0], Sentence)
-            return cast(tuple[Sentence, ...], self._sentences)[item]
+            return cast(tuple[SentenceT, ...], self._sentences)[item]
 
         assert isinstance(self._sentences[0], str)
         sentences: tuple[str, ...] = cast(tuple[str, ...], self._sentences)
         return (
-            from_conllu(sentences[item])
+            from_conllu(sentences[item], cls=self._sentence_type, **self._kwargs)
             if isinstance(item, int)
-            else tuple(from_conllu(sentence) for sentence in sentences[item])
+            else tuple(from_conllu(sentence, cls=self._sentence_type, **self._kwargs) for sentence in sentences[item])
         )
 
-    def __iter__(self) -> Iterator[Sentence]:
+    def __iter__(self) -> Iterator[SentenceT]:
         if self.is_persistent:
             assert isinstance(self._sentences[0], Sentence)
-            yield from cast(tuple[Sentence, ...], self._sentences)
+            yield from cast(tuple[SentenceT, ...], self._sentences)
         else:
             assert isinstance(self._sentences[0], str)
             for sentence in cast(tuple[str, ...], self._sentences):
-                yield from_conllu(sentence)
+                yield from_conllu(sentence, cls=self._sentence_type, **self._kwargs)
 
     def __len__(self) -> int:
         return len(self._sentences)

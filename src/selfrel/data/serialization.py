@@ -1,12 +1,14 @@
 import bisect
 from collections.abc import Iterable, Sequence, Set
-from typing import Any, NamedTuple, Optional, TextIO, Union
+from typing import Any, NamedTuple, Optional, TextIO, TypeVar, Union
 
 import conllu
 from flair.data import DataPoint, Label, Relation, Sentence, Span, Token, get_spans_from_bio
 from typing_extensions import Self
 
 __all__ = ["LabelTypes", "to_conllu", "export_to_conllu", "from_conllu"]
+
+SentenceT = TypeVar("SentenceT", bound=Sentence)
 
 
 # The reserved metadata specifies CoNLL-U metadata keys reserved for special cases.
@@ -247,10 +249,17 @@ def _score_as_float(score: str) -> float:
         return 1.0
 
 
-def from_conllu(serialized: str, **kwargs: Any) -> Sentence:
+def from_conllu(
+    serialized: str,
+    # Typing workaround for specifying a default value for a generic parameter
+    # https://github.com/python/mypy/issues/3737
+    cls: type[SentenceT] = Sentence,  # type: ignore[assignment]
+    **kwargs: Any,
+) -> SentenceT:
     """
     Creates a Flair sentence from a CoNLL-U (Plus) serialized sentence.
-    :param serialized: The CoNLL-U (Plus) serialized sentence.
+    :param serialized: The CoNLL-U (Plus) serialized sentence
+    :param cls: The deserialization sentence class
     :param kwargs: Keywords arguments are passed to `conllu.parse`
     :return: The deserialized Flair sentence
     """
@@ -277,7 +286,7 @@ def from_conllu(serialized: str, **kwargs: Any) -> Sentence:
         )
         for conllu_token in conllu_sentence
     ]
-    flair_sentence: Sentence = Sentence(flair_tokens)
+    flair_sentence: SentenceT = cls(flair_tokens)
 
     # Add token labels
     for token_label_type in label_types.token_level:
