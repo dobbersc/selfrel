@@ -1,4 +1,6 @@
+import contextlib
 import logging
+from collections.abc import Iterator
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Union
 
@@ -15,11 +17,19 @@ from selfrel.selection_strategies import PredictionConfidence, SelectionStrategy
 from selfrel.utils.copy import deepcopy_flair_model
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
-
     from flair.models.relation_classifier_model import EncodedSentence
 
+__all__ = ["SelfTrainer"]
+
 logger = logging.getLogger("flair")
+
+
+@contextlib.contextmanager
+def _set_cross_augmentation(relation_classifier: RelationClassifier, cross_augmentation: bool) -> Iterator[None]:
+    original_cross_augmentation: bool = relation_classifier.cross_augmentation
+    relation_classifier.cross_augmentation = cross_augmentation
+    yield
+    relation_classifier.cross_augmentation = original_cross_augmentation
 
 
 class SelfTrainer:
@@ -144,7 +154,8 @@ class SelfTrainer:
                 selection_strategy=selection_strategy,
                 output_path=iteration_base_path / "support-dataset-selection.conllup",
             )
-            transformed_annotated_support_dataset = self._model.transform_dataset(annotated_support_dataset)
+            with _set_cross_augmentation(self._model, cross_augmentation=False):
+                transformed_annotated_support_dataset = self._model.transform_dataset(annotated_support_dataset)
 
             # Train student model on transformed augmented corpus
             assert self._transformed_corpus.train
