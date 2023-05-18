@@ -207,7 +207,7 @@ def main() -> None:
         description=(entrypoint_descriptions / "train.txt").read_text(encoding="utf-8"),
         formatter_class=RawTextArgumentDefaultsHelpFormatter,
     )
-    annotate.set_defaults(func=call_train)
+    train.set_defaults(func=call_train)
     train.add_argument("corpus", choices=["conll04"], help="TODO")
     train.add_argument("--support-dataset", type=Path, required=True, help="TODO")
     train.add_argument("--down-sample-train", type=float, default=None, help="TODO")
