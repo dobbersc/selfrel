@@ -1,4 +1,3 @@
-import argparse
 import functools
 import logging
 import sys
@@ -6,7 +5,6 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Final, Literal, Optional, Union
 
-import ray
 from flair.data import Corpus, Sentence
 from flair.datasets import RE_ENGLISH_CONLL04, DataLoader
 from flair.embeddings import TransformerDocumentEmbeddings
@@ -14,7 +12,6 @@ from flair.models import RelationClassifier
 
 from selfrel.data import CoNLLUPlusDataset
 from selfrel.trainer import SelfTrainer
-from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
 from selfrel.utils.inspect_relations import infer_entity_pair_labels
 
 logger: logging.Logger = logging.getLogger("flair")
@@ -62,7 +59,6 @@ def train(
     prediction_batch_size: int = 32,
 ) -> None:
     hyperparameters: dict[str, Any] = locals()
-    ray.init()
 
     # Step 1: Create the training data and support dataset
     # The relation extractor is *not* trained end-to-end.
@@ -131,68 +127,3 @@ def train(
         mini_batch_size=batch_size,
         main_evaluation_metric=("macro avg", "f1-score"),
     )
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(formatter_class=RawTextArgumentDefaultsHelpFormatter)
-    parser.add_argument("corpus", choices=["conll04"], help="TODO")
-    parser.add_argument("--support-dataset", type=Path, required=True, help="TODO")
-    parser.add_argument("--down-sample-train", type=float, default=None, help="TODO")
-    parser.add_argument("--base-path", type=Path, default=Path(), help="TODO")
-    parser.add_argument("--transformer", default="bert-base-uncased", help="TODO")
-    parser.add_argument("--max-epochs", type=int, default=10, help="TODO")
-    parser.add_argument("--learning-rate", type=float, default=5e-5, help="TODO")
-    parser.add_argument("--batch-size", type=int, default=32, help="TODO")
-    # noinspection PyTypeChecker
-    parser.add_argument("--cross-augmentation", action=argparse.BooleanOptionalAction, default=True, help="TODO")
-    # noinspection PyTypeChecker
-    parser.add_argument("--entity-pair-label-filter", action=argparse.BooleanOptionalAction, default=True, help="TODO")
-    parser.add_argument(
-        "--encoding-strategy",
-        choices=[
-            "entity-mask",
-            "typed-entity-mask",
-            "entity-marker",
-            "entity-marker-punct",
-            "typed-entity-marker",
-            "typed-entity-marker-punct",
-        ],
-        default="typed-entity-marker-punct",
-        help="TODO",
-    )
-    parser.add_argument("--self-training-iterations", type=int, default=1, help="TODO")
-    parser.add_argument(
-        "--selection-strategy", choices=["prediction-confidence"], default="prediction-confidence", help="TODO"
-    )
-    parser.add_argument("--num-actors", type=int, default=1, help="TODO")
-    parser.add_argument("--num-cpus", type=float, default=None, help="TODO")
-    parser.add_argument("--num-gpus", type=float, default=1.0, help="TODO")
-    parser.add_argument("--buffer-size", type=int, default=None, help="TODO")
-    parser.add_argument("--prediction-batch-size", type=int, default=32, help="TODO")
-
-    args: argparse.Namespace = parser.parse_args()
-
-    train(
-        args.corpus,
-        args.support_dataset,
-        down_sample_train=args.down_sample_train,
-        base_path=args.base_path,
-        transformer=args.transformer,
-        max_epochs=args.max_epochs,
-        learning_rate=args.learning_rate,
-        batch_size=args.batch_size,
-        cross_augmentation=args.cross_augmentation,
-        entity_pair_label_filter=args.entity_pair_label_filter,
-        encoding_strategy=args.encoding_strategy,
-        self_training_iterations=args.self_training_iterations,
-        selection_strategy=args.selection_strategy,
-        num_actors=args.num_actors,
-        num_cpus=args.num_cpus,
-        num_gpus=args.num_gpus,
-        buffer_size=args.buffer_size,
-        prediction_batch_size=args.prediction_batch_size,
-    )
-
-
-if __name__ == "__main__":
-    main()

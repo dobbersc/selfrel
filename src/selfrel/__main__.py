@@ -44,6 +44,34 @@ def call_annotate(args: argparse.Namespace) -> None:
     )
 
 
+def call_train(args: argparse.Namespace) -> None:
+    import ray
+
+    from selfrel.entry_points.train import train
+
+    ray.init()
+    train(
+        args.corpus,
+        args.support_dataset,
+        down_sample_train=args.down_sample_train,
+        base_path=args.base_path,
+        transformer=args.transformer,
+        max_epochs=args.max_epochs,
+        learning_rate=args.learning_rate,
+        batch_size=args.batch_size,
+        cross_augmentation=args.cross_augmentation,
+        entity_pair_label_filter=args.entity_pair_label_filter,
+        encoding_strategy=args.encoding_strategy,
+        self_training_iterations=args.self_training_iterations,
+        selection_strategy=args.selection_strategy,
+        num_actors=args.num_actors,
+        num_cpus=args.num_cpus,
+        num_gpus=args.num_gpus,
+        buffer_size=args.buffer_size,
+        prediction_batch_size=args.prediction_batch_size,
+    )
+
+
 def main() -> None:
     """The main entry-point."""
     parser = argparse.ArgumentParser(formatter_class=RawTextArgumentDefaultsHelpFormatter)
@@ -171,6 +199,57 @@ def main() -> None:
             "Per default, the buffer size is NUM_ACTORS."
         ),
     )
+
+    # Define "train" command arguments
+    train = subparsers.add_parser(
+        "train",
+        help="TODO",
+        description=(entrypoint_descriptions / "train.txt").read_text(encoding="utf-8"),
+        formatter_class=RawTextArgumentDefaultsHelpFormatter,
+    )
+    annotate.set_defaults(func=call_train)
+    train.add_argument("corpus", choices=["conll04"], help="TODO")
+    train.add_argument("--support-dataset", type=Path, required=True, help="TODO")
+    train.add_argument("--down-sample-train", type=float, default=None, help="TODO")
+    train.add_argument("--base-path", type=Path, default=Path(), help="TODO")
+    train.add_argument("--transformer", default="bert-base-uncased", help="TODO")
+    train.add_argument("--max-epochs", type=int, default=10, help="TODO")
+    train.add_argument("--learning-rate", type=float, default=5e-5, help="TODO")
+    train.add_argument("--batch-size", type=int, default=32, help="TODO")
+    # noinspection PyTypeChecker
+    train.add_argument("--cross-augmentation", action=argparse.BooleanOptionalAction, default=True, help="TODO")
+    # noinspection PyTypeChecker
+    train.add_argument("--entity-pair-label-filter", action=argparse.BooleanOptionalAction, default=True, help="TODO")
+    train.add_argument(
+        "--encoding-strategy",
+        choices=[
+            "entity-mask",
+            "typed-entity-mask",
+            "entity-marker",
+            "entity-marker-punct",
+            "typed-entity-marker",
+            "typed-entity-marker-punct",
+        ],
+        default="typed-entity-marker-punct",
+        help="TODO",
+    )
+    train.add_argument(
+        "--self-training-iterations",
+        type=int,
+        default=1,
+        help="TODO",
+    )
+    train.add_argument(
+        "--selection-strategy",
+        choices=["prediction-confidence"],
+        default="prediction-confidence",
+        help="TODO",
+    )
+    train.add_argument("--num-actors", type=int, default=1, help="TODO")
+    train.add_argument("--num-cpus", type=float, default=None, help="TODO")
+    train.add_argument("--num-gpus", type=float, default=1.0, help="TODO")
+    train.add_argument("--buffer-size", type=int, default=None, help="TODO")
+    train.add_argument("--prediction-batch-size", type=int, default=32, help="TODO")
 
     # Parse the args and call the dedicated function
     args: argparse.Namespace = parser.parse_args()
