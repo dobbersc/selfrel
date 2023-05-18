@@ -2,10 +2,11 @@ import contextlib
 import logging
 from collections.abc import Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import Any, Optional, Union
 
 from flair.data import Corpus, Sentence
 from flair.models import RelationClassifier
+from flair.models.relation_classifier_model import EncodedSentence
 from flair.trainers import ModelTrainer
 from torch.utils.data import ConcatDataset
 from tqdm import tqdm
@@ -15,9 +16,6 @@ from selfrel.data.serialization import LabelTypes, export_to_conllu
 from selfrel.predictor import PredictorPool
 from selfrel.selection_strategies import PredictionConfidence, SelectionStrategy
 from selfrel.utils.copy import deepcopy_flair_model
-
-if TYPE_CHECKING:
-    from flair.models.relation_classifier_model import EncodedSentence
 
 __all__ = ["SelfTrainer"]
 
@@ -115,9 +113,25 @@ class SelfTrainer:
                 global_label_types=global_label_types,
             )
 
-        # TODO: Actually is makes more sense to load it into memory right away.
-        #  Then we would not need to load the sentences as conllu dataset and could return a list of sentences
         return CoNLLUPlusDataset(output_path, persist=False)
+
+    def _encode_support_dataset(
+        self, dataset: CoNLLUPlusDataset[Sentence], output_path: Path
+    ) -> CoNLLUPlusDataset[EncodedSentence]:
+        with _set_cross_augmentation(self._model, cross_augmentation=False):
+            encoded_sentences: Iterator[EncodedSentence] = (
+                self._model.transform_sentence(sentence)[0] for sentence in dataset
+            )
+
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with output_path.open("w", encoding="utf-8") as output_file:
+            export_to_conllu(
+                output_file,
+                sentences=tqdm(encoded_sentences, desc="Encoding Support Dataset"),
+                global_label_types=LabelTypes(token_level=[], span_level=[]),
+            )
+
+        return CoNLLUPlusDataset(output_path, sentence_factory=EncodedSentence, persist=False)
 
     def train(
         self,
@@ -154,19 +168,22 @@ class SelfTrainer:
                 selection_strategy=selection_strategy,
                 output_path=iteration_base_path / "support-dataset-selection.conllup",
             )
-            with _set_cross_augmentation(self._model, cross_augmentation=False):
-                transformed_annotated_support_dataset = self._model.transform_dataset(annotated_support_dataset)
 
-            # Train student model on transformed augmented corpus
-            assert self._transformed_corpus.train
-            transformed_augmented_corpus: Corpus[Sentence] = Corpus(
-                train=ConcatDataset([self._transformed_corpus.train, transformed_annotated_support_dataset]),
-                dev=self._transformed_corpus.dev,
-                test=self._transformed_corpus.test,
+            # Encode annotated support dataset
+            encoded_support_dataset: CoNLLUPlusDataset[EncodedSentence] = self._encode_support_dataset(
+                annotated_support_dataset, output_path=iteration_base_path / "support-dataset-encoded.conllup"
+            )
+
+            # Train student model on encoded augmented corpus
+            assert self._encoded_corpus.train
+            encoded_augmented_corpus: Corpus[EncodedSentence] = Corpus(
+                train=ConcatDataset([self._encoded_corpus.train, encoded_support_dataset]),
+                dev=self._encoded_corpus.dev,
+                test=self._encoded_corpus.test,
             )
 
             student_model: RelationClassifier = self._train_model(
-                base_path=iteration_base_path, corpus=transformed_augmented_corpus, **kwargs
+                base_path=iteration_base_path, corpus=encoded_augmented_corpus, **kwargs
             )
 
             # Set student as new teacher model
