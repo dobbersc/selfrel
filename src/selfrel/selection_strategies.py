@@ -5,6 +5,8 @@ from flair.data import Relation, Sentence
 
 from selfrel.utils.copy import deepcopy_flair_sentence
 
+__all__ = ["SelectionStrategy", "PredictionConfidence", "TotalOccurrence", "PMI"]
+
 
 class SelectionStrategy(ABC):
     @abstractmethod
@@ -33,3 +35,13 @@ class PredictionConfidence(SelectionStrategy):
 
             if selected_relations:
                 yield selected_sentence
+
+
+class TotalOccurrence(SelectionStrategy):
+    def select_relations(self, sentences: Iterable[Sentence], label_type: str) -> Iterator[Sentence]:
+        pass
+
+
+class PMI(SelectionStrategy):
+    def select_relations(self, sentences: Iterable[Sentence], label_type: str) -> Iterator[Sentence]:
+        pass
