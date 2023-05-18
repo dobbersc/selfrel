@@ -21,7 +21,7 @@ def test_annotate_tokens(tmp_path: Path, resources_dir: Path) -> None:
         num_gpus=0,
     )
 
-    result = CoNLLUPlusDataset(tmp_path / "cc-news-pos.conllup")
+    result: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(tmp_path / "cc-news-pos.conllup")
     assert result
 
     for sentence in result:
@@ -38,7 +38,7 @@ def test_annotate_span(tmp_path: Path, resources_dir: Path) -> None:
         num_gpus=0,
     )
 
-    result = CoNLLUPlusDataset(tmp_path / "cc-news-ner.conllup")
+    result: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(tmp_path / "cc-news-ner.conllup")
     assert result
 
     sentence_with_entities: Sentence = result[1]
