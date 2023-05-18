@@ -7,9 +7,7 @@ from selfrel.data import CoNLLUPlusDataset
 
 @pytest.mark.parametrize("persist", [True, False])
 def test_conllu_plus_dataset(persist: bool, resources_dir: Path) -> None:
-    dataset: CoNLLUPlusDataset = CoNLLUPlusDataset(
-        resources_dir / "cc-news-short.conllup", dataset_name="cc-news", persist=persist
-    )
+    dataset = CoNLLUPlusDataset(resources_dir / "cc-news-short.conllup", dataset_name="cc-news", persist=persist)
     original_texts: list[str] = [
         "The New York City Ballet Board of Directors announced on Saturday the interim team that has been appointed to run the artistic side of the company during ballet master in chief Peter Martins' leave of absence.",  # noqa: E501
         "Martins requested a temporary leave from both NYCB and the School of American Ballet last Thursday while the company undergoes an internal investigation into the sexual harassment accusations aimed at him.",  # noqa: E501

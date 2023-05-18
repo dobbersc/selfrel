@@ -74,7 +74,7 @@ def annotate(
 
     # Load dataset
     dataset_path = Path(dataset_path)
-    dataset: CoNLLUPlusDataset = CoNLLUPlusDataset(dataset_path, persist=False)
+    dataset: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(dataset_path, persist=False)
 
     # Get global label-types including the new label-type
     with dataset_path.open("r", encoding="utf-8") as dataset_file:
