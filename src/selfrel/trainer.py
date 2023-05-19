@@ -109,7 +109,7 @@ class SelfTrainer:
             global_label_types: LabelTypes = LabelTypes.from_conllu_file(dataset_file)
 
         selected_sentences: Iterator[Sentence] = selection_strategy.select_relations(
-            tqdm(dataset, desc="Selecting Confident Data Points"), label_type=self._model.label_type
+            dataset, label_type=self._model.label_type
         )
 
         output_path.parent.mkdir(parents=True, exist_ok=True)

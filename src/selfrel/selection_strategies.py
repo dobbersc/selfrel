@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
 
 from flair.data import Label, Relation, Sentence
+from tqdm import tqdm
 
 from selfrel.utils.copy import deepcopy_flair_sentence
 
@@ -34,7 +35,7 @@ class PredictionConfidence(SelectionStrategy):
         self.confidence_threshold = confidence_threshold
 
     def select_relations(self, sentences: Sequence[Sentence], label_type: str) -> Iterator[Sentence]:
-        for sentence in sentences:
+        for sentence in tqdm(sentences, desc="Selecting Confident Data Points"):
             selected_relations: list[Relation] = [
                 relation
                 for relation in sentence.get_relations(label_type)
