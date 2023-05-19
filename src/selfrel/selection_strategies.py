@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterator, Sequence
 
 from flair.data import Relation, Sentence
 
@@ -10,7 +10,7 @@ __all__ = ["SelectionStrategy", "PredictionConfidence", "TotalOccurrence", "PMI"
 
 class SelectionStrategy(ABC):
     @abstractmethod
-    def select_relations(self, sentences: Iterable[Sentence], label_type: str) -> Iterator[Sentence]:
+    def select_relations(self, sentences: Sequence[Sentence], label_type: str) -> Iterator[Sentence]:
         pass
 
 
@@ -18,7 +18,7 @@ class PredictionConfidence(SelectionStrategy):
     def __init__(self, confidence_threshold: float = 0.8) -> None:
         self.confidence_threshold = confidence_threshold
 
-    def select_relations(self, sentences: Iterable[Sentence], label_type: str) -> Iterator[Sentence]:
+    def select_relations(self, sentences: Sequence[Sentence], label_type: str) -> Iterator[Sentence]:
         for sentence in sentences:
             selected_sentence: Sentence = deepcopy_flair_sentence(sentence)
             selected_sentence.remove_labels(label_type)  # Remove relation annotations
@@ -38,10 +38,10 @@ class PredictionConfidence(SelectionStrategy):
 
 
 class TotalOccurrence(SelectionStrategy):
-    def select_relations(self, sentences: Iterable[Sentence], label_type: str) -> Iterator[Sentence]:
+    def select_relations(self, sentences: Sequence[Sentence], label_type: str) -> Iterator[Sentence]:
         pass
 
 
 class PMI(SelectionStrategy):
-    def select_relations(self, sentences: Iterable[Sentence], label_type: str) -> Iterator[Sentence]:
+    def select_relations(self, sentences: Sequence[Sentence], label_type: str) -> Iterator[Sentence]:
         pass
