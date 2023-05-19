@@ -1,5 +1,5 @@
 import os
-from collections.abc import Iterator, Sized
+from collections.abc import Iterator, Sequence
 from pathlib import Path
 from typing import Any, Optional, TextIO, TypeVar, Union, cast, overload
 
@@ -51,7 +51,7 @@ def _serialized_conllu_plus_sentence_iter(
             yield f"{global_columns}{sentence}"
 
 
-class CoNLLUPlusDataset(Dataset[SentenceT], Sized):
+class CoNLLUPlusDataset(Dataset[SentenceT], Sequence[Sentence]):
     """
     Dataset of Flair Sentences parsed from a CoNLL-U Plus file.
 
