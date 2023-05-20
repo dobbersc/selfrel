@@ -11,6 +11,7 @@ from flair.embeddings import TransformerDocumentEmbeddings
 from flair.models import RelationClassifier
 
 from selfrel.data import CoNLLUPlusDataset
+from selfrel.selection_strategies import PredictionConfidence, SelectionStrategy, TotalOccurrence
 from selfrel.trainer import SelfTrainer
 from selfrel.utils.inspect_relations import infer_entity_pair_labels
 
@@ -54,6 +55,8 @@ def train(
     ] = "typed-entity-marker-punct",
     self_training_iterations: int = 1,
     selection_strategy: Literal["prediction-confidence", "total-occurrence"] = "prediction-confidence",
+    confidence_threshold: Optional[float] = None,
+    occurrence_threshold: int = 2,  # Only used for selection_strategy="total-occurrence"
     num_actors: int = 1,
     num_cpus: Optional[float] = None,
     num_gpus: Optional[float] = 1,
@@ -122,12 +125,21 @@ def train(
     logger.info("-" * 100)
 
     # Step 5: Run self-trainer
+    strategy: SelectionStrategy
+    if selection_strategy == "prediction-confidence":
+        strategy = (
+            PredictionConfidence() if confidence_threshold is None else PredictionConfidence(confidence_threshold)
+        )
+    elif selection_strategy == "total-occurrence":
+        strategy = TotalOccurrence(occurrence_threshold=occurrence_threshold, confidence_threshold=confidence_threshold)
+    else:
+        msg = f"Specified invalid selection strategy {selection_strategy!r}"
+        raise ValueError(msg)
+
     trainer.train(
         base_path,
         self_training_iterations=self_training_iterations,
-        selection_strategy=getattr(
-            sys.modules["selfrel.selection_strategies"], selection_strategy.title().replace("-", "")
-        )(),
+        selection_strategy=strategy,
         max_epochs=max_epochs,
         learning_rate=learning_rate,
         mini_batch_size=batch_size,
