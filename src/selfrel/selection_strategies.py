@@ -1,5 +1,9 @@
+import itertools
+import operator
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from collections.abc import Iterator, Sequence
+from typing import Optional
 
 from flair.data import Label, Relation, Sentence
 from tqdm import tqdm
@@ -48,10 +52,40 @@ class PredictionConfidence(SelectionStrategy):
 
 
 class TotalOccurrence(SelectionStrategy):
+    def __init__(self, occurrence_threshold: int = 2, confidence_threshold: Optional[float] = None) -> None:
+        self.occurrence_threshold = occurrence_threshold
+        self.confidence_threshold = confidence_threshold
+
     def select_relations(self, sentences: Sequence[Sentence], label_type: str) -> Iterator[Sentence]:
-        pass
+        # Mapping from the relation instance identifier to the location in the dataset
+        # {(head_text, tail_text, label): [(sentence_index, relation_index), ...], ...}
+        occurrences: defaultdict[tuple[str, str, str], list[tuple[int, int]]] = defaultdict(list)
+        for sentence_index, sentence in enumerate(sentences):
+            for relation_index, relation in enumerate(sentence.get_relations(label_type)):
+                label: Label = relation.get_label(label_type)
+                if self.confidence_threshold is None or label.score >= self.confidence_threshold:
+                    occurrences[relation.first.text, relation.second.text, label.value].append(
+                        (sentence_index, relation_index)
+                    )
+
+        selected_locations: list[tuple[int, int]] = [
+            relation_location
+            for relation_locations in occurrences.values()
+            for relation_location in relation_locations
+            if len(relation_locations) >= self.occurrence_threshold
+        ]
+        selected_locations.sort(key=operator.itemgetter(0, 1))
+
+        for sentence_index, locations_group in itertools.groupby(selected_locations, key=operator.itemgetter(0)):
+            sentence = sentences[sentence_index]
+            relations: list[Relation] = sentence.get_relations(label_type)
+            selected_relations: list[Relation] = [
+                relations[relation_index] for relation_index in map(operator.itemgetter(1), locations_group)
+            ]
+            yield self._create_selected_sentence(sentence=sentence, relations=selected_relations, label_type=label_type)
 
 
 class PMI(SelectionStrategy):
     def select_relations(self, sentences: Sequence[Sentence], label_type: str) -> Iterator[Sentence]:
-        pass
+        assert label_type
+        yield from sentences

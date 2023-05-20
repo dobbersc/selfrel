@@ -241,10 +241,12 @@ def main() -> None:
     )
     train.add_argument(
         "--selection-strategy",
-        choices=["prediction-confidence"],
+        choices=["prediction-confidence", "total-occurrence"],
         default="prediction-confidence",
         help="TODO",
     )
+    train.add_argument("--confidence-threshold")  # TODO make these parameters as well (properly needs sentinel)
+    train.add_argument("--occurrence-threshold")
     train.add_argument("--num-actors", type=int, default=1, help="TODO")
     train.add_argument("--num-cpus", type=float, default=None, help="TODO")
     train.add_argument("--num-gpus", type=float, default=1.0, help="TODO")

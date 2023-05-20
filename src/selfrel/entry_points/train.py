@@ -53,7 +53,7 @@ def train(
         "typed-entity-marker-punct",
     ] = "typed-entity-marker-punct",
     self_training_iterations: int = 1,
-    selection_strategy: Literal["prediction-confidence"] = "prediction-confidence",
+    selection_strategy: Literal["prediction-confidence", "total-occurrence"] = "prediction-confidence",
     num_actors: int = 1,
     num_cpus: Optional[float] = None,
     num_gpus: Optional[float] = 1,
