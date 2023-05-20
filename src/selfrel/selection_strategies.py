@@ -33,6 +33,9 @@ class SelectionStrategy(ABC):
     def select_relations(self, sentences: Sequence[Sentence], label_type: str) -> Iterator[Sentence]:
         pass
 
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}()"
+
 
 class PredictionConfidence(SelectionStrategy):
     def __init__(self, confidence_threshold: float = 0.8) -> None:
@@ -49,6 +52,9 @@ class PredictionConfidence(SelectionStrategy):
                 yield self._create_selected_sentence(
                     sentence=sentence, relations=selected_relations, label_type=label_type
                 )
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}(confidence_threshold={self.confidence_threshold!r})"
 
 
 class TotalOccurrence(SelectionStrategy):
@@ -83,6 +89,13 @@ class TotalOccurrence(SelectionStrategy):
                 relations[relation_index] for relation_index in map(operator.itemgetter(1), locations_group)
             ]
             yield self._create_selected_sentence(sentence=sentence, relations=selected_relations, label_type=label_type)
+
+    def __repr__(self) -> str:
+        return (
+            f"{type(self).__name__}("
+            f"occurrence_threshold={self.occurrence_threshold!r}, "
+            f"confidence_threshold={self.confidence_threshold!r})"
+        )
 
 
 class PMI(SelectionStrategy):
