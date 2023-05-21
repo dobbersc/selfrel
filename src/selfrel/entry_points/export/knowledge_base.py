@@ -45,7 +45,7 @@ def export_knowledge_base(
         ddm: Traversable = importlib_resources.files("selfrel.entry_points.export") / "knowledge_base.sql"
         cursor.executescript(ddm.read_text(encoding="utf-8"))
 
-        for sentence in tqdm(dataset, desc="Exporting to Knowledge Base"):
+        for sentence in tqdm(dataset, desc=f"Exporting to {str(out)!r}"):
             # Insert sentence
             cursor.execute("INSERT INTO sentences(text) VALUES(?)", (sentence.to_original_text(),))
             sentence_id: Optional[int] = cursor.lastrowid
