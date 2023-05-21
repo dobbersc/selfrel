@@ -1,13 +1,12 @@
 import argparse
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import importlib_resources
+from importlib_resources.abc import Traversable
 
 from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
 
-if TYPE_CHECKING:
-    from importlib_resources.abc import Traversable
+entrypoint_descriptions: Traversable = importlib_resources.files("selfrel.entry_points.descriptions")
 
 
 def call_export_cc_news(args: argparse.Namespace) -> None:
@@ -77,18 +76,7 @@ def call_train(args: argparse.Namespace) -> None:
     )
 
 
-def main() -> None:  # noqa: PLR0915
-    """The main entry-point."""
-    parser = argparse.ArgumentParser(formatter_class=RawTextArgumentDefaultsHelpFormatter)
-    subparsers = parser.add_subparsers(required=True)
-
-    entrypoint_descriptions: Traversable = importlib_resources.files("selfrel.entry_points.descriptions")
-
-    # Define "export" command arguments
-    export = subparsers.add_parser("export", formatter_class=RawTextArgumentDefaultsHelpFormatter)
-    export_subparsers = export.add_subparsers(required=True)
-
-    # Define "export cc-news" command arguments
+def add_export_cc_news(export_subparsers) -> None:
     export_cc_news = export_subparsers.add_parser(
         "cc-news",
         help=(
@@ -98,6 +86,7 @@ def main() -> None:  # noqa: PLR0915
         formatter_class=RawTextArgumentDefaultsHelpFormatter,
     )
     export_cc_news.set_defaults(func=call_export_cc_news)
+
     export_cc_news.add_argument(
         "-o",
         "--out",
@@ -136,16 +125,18 @@ def main() -> None:  # noqa: PLR0915
         help="The number of processes for multiprocessing.",
     )
 
-    # Define "export knowledge-base" command arguments
-    export_subparsers.add_parser(
+
+def add_export_knowledge_base(export_subparsers) -> None:
+    export_knowledge_base = export_subparsers.add_parser(
         "knowledge-base",
         help="KB",
         description=(entrypoint_descriptions / "export" / "knowledge_base.txt").read_text(encoding="utf-8"),
         formatter_class=RawTextArgumentDefaultsHelpFormatter,
     )
-    export_cc_news.set_defaults(func=call_export_knowledge_base)
+    export_knowledge_base.set_defaults(func=call_export_knowledge_base)
 
-    # Define "annotate" command arguments
+
+def add_annotate(subparsers) -> None:
     annotate = subparsers.add_parser(
         "annotate",
         help="Annotates a CoNLL-U Plus dataset with token, span, relation or sentence labels.",
@@ -153,6 +144,7 @@ def main() -> None:  # noqa: PLR0915
         formatter_class=RawTextArgumentDefaultsHelpFormatter,
     )
     annotate.set_defaults(func=call_annotate)
+
     annotate.add_argument("dataset", type=Path, help="The path to the CoNLL-U Plus dataset to annotate.")
     annotate.add_argument(
         "--out",
@@ -212,7 +204,8 @@ def main() -> None:  # noqa: PLR0915
         ),
     )
 
-    # Define "train" command arguments
+
+def add_train(subparsers) -> None:
     train = subparsers.add_parser(
         "train",
         help="TODO",
@@ -220,6 +213,7 @@ def main() -> None:  # noqa: PLR0915
         formatter_class=RawTextArgumentDefaultsHelpFormatter,
     )
     train.set_defaults(func=call_train)
+
     train.add_argument("corpus", choices=["conll04"], help="TODO")
     train.add_argument("--support-dataset", type=Path, required=True, help="TODO")
     train.add_argument("--down-sample-train", type=float, default=None, help="TODO")
@@ -265,6 +259,21 @@ def main() -> None:  # noqa: PLR0915
     train.add_argument("--buffer-size", type=int, default=None, help="TODO")
     train.add_argument("--prediction-batch-size", type=int, default=32, help="TODO")
     train.add_argument("--exclude-from-evaluation", nargs="*", default=None, help="TODO")
+
+
+def main() -> None:
+    """The main entry-point."""
+    parser = argparse.ArgumentParser(formatter_class=RawTextArgumentDefaultsHelpFormatter)
+    subparsers = parser.add_subparsers(required=True)
+
+    export = subparsers.add_parser("export", help="TODO", formatter_class=RawTextArgumentDefaultsHelpFormatter)
+    export_subparsers = export.add_subparsers(required=True)
+
+    add_export_cc_news(export_subparsers)
+    add_export_knowledge_base(export_subparsers)
+
+    add_annotate(subparsers)
+    add_train(subparsers)
 
     # Parse the args and call the dedicated function
     args: argparse.Namespace = parser.parse_args()
