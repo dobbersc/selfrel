@@ -208,7 +208,7 @@ def add_annotate(subparsers) -> None:
 def add_train(subparsers) -> None:
     train = subparsers.add_parser(
         "train",
-        help="TODO",
+        help="Trains a relation classification model using self-training.",
         description=(entrypoint_descriptions / "train.txt").read_text(encoding="utf-8"),
         formatter_class=RawTextArgumentDefaultsHelpFormatter,
     )
@@ -266,7 +266,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(formatter_class=RawTextArgumentDefaultsHelpFormatter)
     subparsers = parser.add_subparsers(required=True)
 
-    export = subparsers.add_parser("export", help="TODO", formatter_class=RawTextArgumentDefaultsHelpFormatter)
+    export = subparsers.add_parser(
+        "export",
+        help="Exports artifacts, e.g. datasets or knowledge bases.",
+        formatter_class=RawTextArgumentDefaultsHelpFormatter,
+    )
     export_subparsers = export.add_subparsers(required=True)
 
     add_export_cc_news(export_subparsers)
