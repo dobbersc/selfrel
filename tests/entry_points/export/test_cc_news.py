@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from selfrel.entry_points.export import export_cc_news
+from selfrel.entry_points.export.cc_news import export_cc_news
 
 
 def test_export_cc_news(tmp_path: Path, resources_dir: Path) -> None:
