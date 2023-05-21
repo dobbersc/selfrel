@@ -143,7 +143,7 @@ def export_cc_news(
     processes: int = 1,
     **kwargs: Any,
 ) -> None:
-    """See `selfrel export --help`. (Keyword arguments are passed to joblib Parallel.)"""
+    """See `selfrel export cc-news --help`. (Keyword arguments are passed to joblib Parallel.)"""
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 

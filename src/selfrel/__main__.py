@@ -10,10 +10,8 @@ if TYPE_CHECKING:
     from importlib_resources.abc import Traversable
 
 
-def call_export(args: argparse.Namespace) -> None:
-    assert args.dataset == "cc-news"
-
-    from selfrel.entry_points.export import export_cc_news
+def call_export_cc_news(args: argparse.Namespace) -> None:
+    from selfrel.entry_points.export.cc_news import export_cc_news
 
     export_cc_news(
         out_dir=args.out,
@@ -22,6 +20,12 @@ def call_export(args: argparse.Namespace) -> None:
         max_sentence_length=args.max_sentence_length,
         processes=args.processes,
     )
+
+
+def call_export_knowledge_base(args: argparse.Namespace) -> None:  # noqa: ARG001
+    from selfrel.entry_points.export.knowledge_base import export_knowledge_base
+
+    export_knowledge_base()
 
 
 def call_annotate(args: argparse.Namespace) -> None:
@@ -73,7 +77,7 @@ def call_train(args: argparse.Namespace) -> None:
     )
 
 
-def main() -> None:
+def main() -> None:  # noqa: PLR0915
     """The main entry-point."""
     parser = argparse.ArgumentParser(formatter_class=RawTextArgumentDefaultsHelpFormatter)
     subparsers = parser.add_subparsers(required=True)
@@ -81,22 +85,20 @@ def main() -> None:
     entrypoint_descriptions: Traversable = importlib_resources.files("selfrel.entry_points.descriptions")
 
     # Define "export" command arguments
-    export = subparsers.add_parser(
-        "export",
+    export = subparsers.add_parser("export", formatter_class=RawTextArgumentDefaultsHelpFormatter)
+    export_subparsers = export.add_subparsers(required=True)
+
+    # Define "export cc-news" command arguments
+    export_cc_news = export_subparsers.add_parser(
+        "cc-news",
         help=(
-            "Exports datasets segmented into paragraphs, sentences and tokens to the CoNLL-U Plus format. "
-            "Currently, only CC-News is supported."
+            "Exports the CC-News dataset segmented into paragraphs, sentences and tokens to the CoNLL-U Plus format."
         ),
-        description=(entrypoint_descriptions / "export.txt").read_text(encoding="utf-8"),
+        description=(entrypoint_descriptions / "export" / "export.txt").read_text(encoding="utf-8"),
         formatter_class=RawTextArgumentDefaultsHelpFormatter,
     )
-    export.set_defaults(func=call_export)
-    export.add_argument(
-        "dataset",
-        choices=["cc-news"],
-        help="The dataset to export. Currently, only CC-News is supported.",
-    )
-    export.add_argument(
+    export_cc_news.set_defaults(func=call_export_cc_news)
+    export_cc_news.add_argument(
         "-o",
         "--out",
         type=Path,
@@ -104,13 +106,13 @@ def main() -> None:
         help="The output directory for the processed articles.",
     )
     # noinspection PyTypeChecker
-    export.add_argument(
+    export_cc_news.add_argument(
         "--export-metadata",
         action=argparse.BooleanOptionalAction,
         default=True,
         help="If set, the article's metadata will be exported to 'OUT/metadata.json'.",
     )
-    export.add_argument(
+    export_cc_news.add_argument(
         "--slice",
         default=None,
         help=(
@@ -118,7 +120,7 @@ def main() -> None:
             "Reference: https://huggingface.co/docs/datasets/v1.11.0/splits.html"
         ),
     )
-    export.add_argument(
+    export_cc_news.add_argument(
         "--max-sentence-length",
         type=int,
         default=None,
@@ -127,12 +129,21 @@ def main() -> None:
             "The original article IDs are preserved."
         ),
     )
-    export.add_argument(
+    export_cc_news.add_argument(
         "--processes",
         type=int,
         default=1,
         help="The number of processes for multiprocessing.",
     )
+
+    # Define "export knowledge-base" command arguments
+    export_subparsers.add_parser(
+        "knowledge-base",
+        help="KB",
+        description=(entrypoint_descriptions / "export" / "knowledge_base.txt").read_text(encoding="utf-8"),
+        formatter_class=RawTextArgumentDefaultsHelpFormatter,
+    )
+    export_cc_news.set_defaults(func=call_export_knowledge_base)
 
     # Define "annotate" command arguments
     annotate = subparsers.add_parser(
