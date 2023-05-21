@@ -50,4 +50,26 @@ CREATE TABLE sentence_relations
     confidence           REAL    NOT NULL,
     FOREIGN KEY (sentence_id) REFERENCES sentences (sentence_id),
     FOREIGN KEY (relation_id) REFERENCES relations (relation_id)
-)
+);
+
+
+DROP VIEW IF EXISTS relation_overview;
+CREATE VIEW relation_overview AS
+SELECT sentence_relation_id,
+       sentence_id,
+       relation_id,
+       relation.head_id,
+       relation.tail_id,
+       sentence.text                           sentence_text,
+       head.text                               head_text,
+       tail.text                               tail_text,
+       head.label                              head_label,
+       tail.label                              tail_label,
+       relation.label,
+       sr.confidence,
+       count() OVER (PARTITION BY relation_id) occurrence
+FROM sentence_relations sr
+         JOIN sentences sentence USING (sentence_id)
+         JOIN relations relation USING (relation_id)
+         JOIN entities head ON head.entity_id = relation.head_id
+         JOIN entities tail ON tail.entity_id = relation.tail_id;
