@@ -29,6 +29,11 @@ warn_unused_configs = true
 show_error_codes = true
 
 [[tool.mypy.overrides]]
+# For argparse subparsers
+module = "selfrel.__main__"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
 module = "datasets.*"
 ignore_missing_imports = true
 
