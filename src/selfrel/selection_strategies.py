@@ -79,14 +79,14 @@ class TotalOccurrence(SelectionStrategy):
 
         selected_locations: list[tuple[int, int]] = [
             relation_location
-            for relation_locations in occurrences.values()
+            for relation_locations in tqdm(occurrences.values(), desc="Selecting Confident Relations")
             for relation_location in relation_locations
             if len(relation_locations) >= self.occurrence_threshold
         ]
         selected_locations.sort(key=operator.itemgetter(0, 1))
 
         for sentence_index, locations_group in itertools.groupby(
-            tqdm(selected_locations, desc="Selecting Confident Relations"), key=operator.itemgetter(0)
+            tqdm(selected_locations, desc="Creating Selected Sentences"), key=operator.itemgetter(0)
         ):
             sentence = sentences[sentence_index]
             relations: list[Relation] = sentence.get_relations(label_type)
