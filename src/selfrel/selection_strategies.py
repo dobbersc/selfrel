@@ -13,6 +13,9 @@ from selfrel.utils.copy import deepcopy_flair_sentence
 __all__ = ["SelectionStrategy", "PredictionConfidence", "TotalOccurrence", "PMI"]
 
 
+# TODO: Write some documentation for this module
+
+
 class SelectionStrategy(ABC):
     @staticmethod
     def _create_selected_sentence(sentence: Sentence, relations: list[Relation], label_type: str) -> Sentence:
@@ -42,7 +45,7 @@ class PredictionConfidence(SelectionStrategy):
         self.confidence_threshold = confidence_threshold
 
     def select_relations(self, sentences: Sequence[Sentence], label_type: str) -> Iterator[Sentence]:
-        for sentence in tqdm(sentences, desc="Selecting Confident Data Points"):
+        for sentence in tqdm(sentences, desc="Selecting Confident Relations"):
             selected_relations: list[Relation] = [
                 relation
                 for relation in sentence.get_relations(label_type)
@@ -66,7 +69,7 @@ class TotalOccurrence(SelectionStrategy):
         # Mapping from the relation instance identifier to the location in the dataset
         # {(head_text, tail_text, label): [(sentence_index, relation_index), ...], ...}
         occurrences: defaultdict[tuple[str, str, str], list[tuple[int, int]]] = defaultdict(list)
-        for sentence_index, sentence in enumerate(sentences):
+        for sentence_index, sentence in enumerate(tqdm(sentences, desc="Counting Relation Occurrences")):
             for relation_index, relation in enumerate(sentence.get_relations(label_type)):
                 label: Label = relation.get_label(label_type)
                 if self.confidence_threshold is None or label.score >= self.confidence_threshold:
@@ -82,7 +85,9 @@ class TotalOccurrence(SelectionStrategy):
         ]
         selected_locations.sort(key=operator.itemgetter(0, 1))
 
-        for sentence_index, locations_group in itertools.groupby(selected_locations, key=operator.itemgetter(0)):
+        for sentence_index, locations_group in itertools.groupby(
+            tqdm(selected_locations, desc="Selecting Confident Relations"), key=operator.itemgetter(0)
+        ):
             sentence = sentences[sentence_index]
             relations: list[Relation] = sentence.get_relations(label_type)
             selected_relations: list[Relation] = [
