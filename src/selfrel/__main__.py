@@ -21,10 +21,15 @@ def call_export_cc_news(args: argparse.Namespace) -> None:
     )
 
 
-def call_export_knowledge_base(args: argparse.Namespace) -> None:  # noqa: ARG001
+def call_export_knowledge_base(args: argparse.Namespace) -> None:
     from selfrel.entry_points.export.knowledge_base import export_knowledge_base
 
-    export_knowledge_base()
+    export_knowledge_base(
+        dataset=args.dataset,
+        out=args.out,
+        entity_label_type=args.entity_label_type,
+        relation_label_type=args.relation_label_type,
+    )
 
 
 def call_annotate(args: argparse.Namespace) -> None:
@@ -134,6 +139,11 @@ def add_export_knowledge_base(export_subparsers) -> None:
         formatter_class=RawTextArgumentDefaultsHelpFormatter,
     )
     export_knowledge_base.set_defaults(func=call_export_knowledge_base)
+
+    export_knowledge_base.add_argument("--dataset", type=Path, required=True, help="TODO")
+    export_knowledge_base.add_argument("--out", type=Path, default=Path("knowledge-base.db"), help="TODO")
+    export_knowledge_base.add_argument("--entity-label-type", default="ner", help="TODO")
+    export_knowledge_base.add_argument("--relation-label-type", default="relation", help="TODO")
 
 
 def add_annotate(subparsers) -> None:
