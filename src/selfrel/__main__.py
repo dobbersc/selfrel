@@ -87,7 +87,7 @@ def add_export_cc_news(export_subparsers) -> None:
         help=(
             "Exports the CC-News dataset segmented into paragraphs, sentences and tokens to the CoNLL-U Plus format."
         ),
-        description=(entrypoint_descriptions / "export" / "export.txt").read_text(encoding="utf-8"),
+        description=(entrypoint_descriptions / "export" / "cc_news.txt").read_text(encoding="utf-8"),
         formatter_class=RawTextArgumentDefaultsHelpFormatter,
     )
     export_cc_news.set_defaults(func=call_export_cc_news)
