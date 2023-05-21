@@ -1,22 +1,20 @@
 import argparse
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import pandas as pd
 import seaborn as sns
+from flair.data import Sentence
 from matplotlib.figure import figaspect
 from tqdm import tqdm
 
 from selfrel.data import CoNLLUPlusDataset
 from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
 
-if TYPE_CHECKING:
-    from flair.data import Sentence
 
-
-def build_sentence_lengths_dataframe(cc_news: CoNLLUPlusDataset) -> pd.DataFrame:
+def build_sentence_lengths_dataframe(cc_news: CoNLLUPlusDataset[Sentence]) -> pd.DataFrame:
     """
     Returns a dataframe containing all sentences with their token-level sentence length.
 
@@ -109,7 +107,7 @@ def main() -> None:
         print(f"Loading Dataframe from {args.dataset_or_dataframe}")
         sentence_lengths = pd.read_parquet(args.dataset_or_dataframe)
     else:
-        cc_news: CoNLLUPlusDataset = CoNLLUPlusDataset(args.dataset_or_dataframe, persist=False)
+        cc_news: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(args.dataset_or_dataframe, persist=False)
         sentence_lengths = build_sentence_lengths_dataframe(cc_news)
 
         if args.out is not None:

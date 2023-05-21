@@ -8,17 +8,18 @@ import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from flair.data import Sentence
 from tqdm import tqdm
 
 from selfrel.data import CoNLLUPlusDataset
 from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
 
 if TYPE_CHECKING:
-    from flair.data import Label, Sentence, Span
+    from flair.data import Label, Span
     from numpy.typing import NDArray
 
 
-def build_relation_candidates_dataframe(cc_news: CoNLLUPlusDataset) -> pd.DataFrame:
+def build_relation_candidates_dataframe(cc_news: CoNLLUPlusDataset[Sentence]) -> pd.DataFrame:
     """
     Returns a dataframe containing all valid entity pair permutations (relation candidates) per sentence.
     The permutations are constructed by a cross-product, excluding the identity entity pair.
@@ -189,7 +190,7 @@ def main() -> None:
         print(f"Loading Dataframe from {args.dataset_or_dataframe}")
         relation_candidates = pd.read_parquet(args.dataset_or_dataframe)
     else:
-        cc_news: CoNLLUPlusDataset = CoNLLUPlusDataset(args.dataset_or_dataframe, persist=False)
+        cc_news: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(args.dataset_or_dataframe, persist=False)
         relation_candidates = build_relation_candidates_dataframe(cc_news)
 
         if args.out is not None:

@@ -133,7 +133,7 @@ def train(
     elif selection_strategy == "total-occurrence":
         strategy = TotalOccurrence(occurrence_threshold=occurrence_threshold, confidence_threshold=confidence_threshold)
     else:
-        msg = f"Specified invalid selection strategy {selection_strategy!r}"
+        msg = f"Specified invalid selection strategy {selection_strategy!r}"  # type: ignore[unreachable]
         raise ValueError(msg)
 
     trainer.train(
