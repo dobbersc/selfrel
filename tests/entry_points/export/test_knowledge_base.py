@@ -1,13 +1,17 @@
 import sqlite3
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
+from _pytest.tmpdir import TempPathFactory
 from flair.data import Relation, Sentence
 
 from selfrel.entry_points.export.knowledge_base import export_knowledge_base
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
-@pytest.fixture()
+
+@pytest.fixture(scope="module")
 def dataset() -> list[Sentence]:
     sentences: list[Sentence] = [
         Sentence("Berlin is the capital of Germany."),
@@ -41,37 +45,48 @@ def dataset() -> list[Sentence]:
     return sentences
 
 
-def test_export_knowledge_base(dataset: list[Sentence], tmp_path: Path) -> None:
-    export_knowledge_base(dataset, out=tmp_path / "knowledge-base.db")
+@pytest.fixture(scope="module")
+def knowledge_base(dataset: list[Sentence], tmp_path_factory: TempPathFactory) -> sqlite3.Cursor:
+    database_path: Path = tmp_path_factory.getbasetemp() / "knowledge-base.db"
+    export_knowledge_base(dataset, out=database_path)
 
-    connection: sqlite3.Connection = sqlite3.connect(tmp_path / "knowledge-base.db")
+    connection: sqlite3.Connection = sqlite3.connect(database_path)
     cursor: sqlite3.Cursor = connection.cursor()
 
-    # Test contents for "sentences" table
-    assert cursor.execute("SELECT * FROM sentences ORDER BY sentence_id").fetchall() == [
+    yield cursor
+
+    cursor.close()
+    connection.close()
+
+
+def test_sentences_table(knowledge_base: sqlite3.Cursor) -> None:
+    assert knowledge_base.execute("SELECT * FROM sentences ORDER BY sentence_id").fetchall() == [
         (1, "Berlin is the capital of Germany."),
         (2, "Albert Einstein was born in Ulm, Germany."),
         (3, "Ulm, located in Germany, is the birthplace of Albert Einstein."),
         (4, "This is a sentence."),
     ]
 
-    # Test contents for "entities" table
-    assert cursor.execute("SELECT * FROM entities ORDER BY entity_id").fetchall() == [
+
+def test_entities_table(knowledge_base: sqlite3.Cursor) -> None:
+    assert knowledge_base.execute("SELECT * FROM entities ORDER BY entity_id").fetchall() == [
         (1, "Berlin", "LOC"),
         (2, "Germany", "LOC"),
         (3, "Albert Einstein", "PER"),
         (4, "Ulm", "LOC"),
     ]
 
-    # Test contents for "relations" table
-    assert cursor.execute("SELECT * FROM relations ORDER BY relation_id").fetchall() == [
+
+def test_relations_table(knowledge_base: sqlite3.Cursor) -> None:
+    assert knowledge_base.execute("SELECT * FROM relations ORDER BY relation_id").fetchall() == [
         (1, 1, 2, "capital_of"),  # Berlin -> Germany
         (2, 3, 4, "born_in"),  # Albert Einstein -> Ulm
         (3, 4, 2, "located_in"),  # Ulm -> Germany
     ]
 
-    # Test contents for "sentence_entities" table
-    assert cursor.execute("SELECT * FROM sentence_entities ORDER BY sentence_entity_id").fetchall() == [
+
+def test_sentence_entities_table(knowledge_base: sqlite3.Cursor) -> None:
+    assert knowledge_base.execute("SELECT * FROM sentence_entities ORDER BY sentence_entity_id").fetchall() == [
         # Sentence 1
         (1, 1, 1, 1.0),  # Berlin
         (2, 1, 2, 1.0),  # Germany
@@ -85,8 +100,9 @@ def test_export_knowledge_base(dataset: list[Sentence], tmp_path: Path) -> None:
         (8, 3, 3, 1.0),  # Albert Einstein
     ]
 
-    # Test contents for "sentence_relations" table
-    assert cursor.execute("SELECT * FROM sentence_relations ORDER BY sentence_relation_id").fetchall() == [
+
+def test_sentence_relations_table(knowledge_base: sqlite3.Cursor) -> None:
+    assert knowledge_base.execute("SELECT * FROM sentence_relations ORDER BY sentence_relation_id").fetchall() == [
         # Sentence 1
         (1, 1, 1, 1.0),  # Berlin -> Germany
         # Sentence 2
@@ -96,5 +112,3 @@ def test_export_knowledge_base(dataset: list[Sentence], tmp_path: Path) -> None:
         (4, 3, 2, 1.0),  # Albert Einstein -> Ulm
         (5, 3, 3, 1.0),  # Ulm -> Germany
     ]
-
-    connection.close()
