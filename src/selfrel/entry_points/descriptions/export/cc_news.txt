@@ -8,7 +8,7 @@ The segmented sentences are then written to 'OUT/cc-news.conllup'.
 Additional metadata, e.g. the URL, about the processed articles are exported to `OUT/metadata.json`.
 
 The following metadata is included in each sentence:
-	- global_sentence_id (A globally unique identifier for each sentence.)
+    - global_sentence_id (A globally unique identifier for each sentence.)
     - article_id (The article ID of the sentence's origin article, starting at 1.)
     - paragraph_id (The paragraph ID of the sentence in the current article, starting at 1.)
     - sentence_id (The sentence ID in the current article, starting at 1.)
