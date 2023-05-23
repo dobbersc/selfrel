@@ -1,4 +1,5 @@
 import argparse
+import sys
 from pathlib import Path
 
 import importlib_resources
@@ -271,8 +272,7 @@ def add_train(subparsers) -> None:
     train.add_argument("--exclude-from-evaluation", nargs="*", default=None, help="TODO")
 
 
-def main() -> None:
-    """The main entry-point."""
+def parse_args(args: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(formatter_class=RawTextArgumentDefaultsHelpFormatter)
     subparsers = parser.add_subparsers(required=True)
 
@@ -289,8 +289,14 @@ def main() -> None:
     add_annotate(subparsers)
     add_train(subparsers)
 
+    return parser.parse_args(args)
+
+
+def main() -> None:
+    """The main entry-point."""
+
     # Parse the args and call the dedicated function
-    args: argparse.Namespace = parser.parse_args()
+    args: argparse.Namespace = parse_args(sys.argv[1:])
     args.func(args)
 
 
