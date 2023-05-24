@@ -1,4 +1,5 @@
 import sqlite3
+from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
 import pytest
@@ -46,7 +47,7 @@ def dataset() -> list[Sentence]:
 
 
 @pytest.fixture(scope="module")
-def knowledge_base(dataset: list[Sentence], tmp_path_factory: TempPathFactory) -> sqlite3.Cursor:
+def knowledge_base(dataset: list[Sentence], tmp_path_factory: TempPathFactory) -> Iterator[sqlite3.Cursor]:
     database_path: Path = tmp_path_factory.getbasetemp() / "knowledge-base.db"
     export_knowledge_base(dataset, out=database_path)
 
