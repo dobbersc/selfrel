@@ -36,7 +36,7 @@ def export_knowledge_base(
     relation_label_type: str = "relation",
 ) -> None:
     """See `selfrel export knowledge-base --help`."""
-    dataset = CoNLLUPlusDataset(dataset) if isinstance(dataset, (str, Path)) else dataset
+    dataset = CoNLLUPlusDataset(dataset, persist=False) if isinstance(dataset, (str, Path)) else dataset
 
     connection: sqlite3.Connection = sqlite3.connect(out)
     with connection:
