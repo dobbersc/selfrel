@@ -30,6 +30,7 @@ def call_export_knowledge_base(args: argparse.Namespace) -> None:
         out=args.out,
         entity_label_type=args.entity_label_type,
         relation_label_type=args.relation_label_type,
+        relation_overview=args.relation_overview,
     )
 
 
@@ -145,6 +146,9 @@ def add_export_knowledge_base(export_subparsers) -> None:
     export_knowledge_base.add_argument("--out", type=Path, default=Path("knowledge-base.db"), help="TODO")
     export_knowledge_base.add_argument("--entity-label-type", default="ner", help="TODO")
     export_knowledge_base.add_argument("--relation-label-type", default="relation", help="TODO")
+    export_knowledge_base.add_argument(
+        "--relation-overview", action=argparse.BooleanOptionalAction, default=True, help="TODO"
+    )
 
 
 def add_annotate(subparsers) -> None:
@@ -233,9 +237,7 @@ def add_train(subparsers) -> None:
     train.add_argument("--max-epochs", type=int, default=10, help="TODO")
     train.add_argument("--learning-rate", type=float, default=5e-5, help="TODO")
     train.add_argument("--batch-size", type=int, default=32, help="TODO")
-    # noinspection PyTypeChecker
     train.add_argument("--cross-augmentation", action=argparse.BooleanOptionalAction, default=True, help="TODO")
-    # noinspection PyTypeChecker
     train.add_argument("--entity-pair-label-filter", action=argparse.BooleanOptionalAction, default=True, help="TODO")
     train.add_argument(
         "--encoding-strategy",
