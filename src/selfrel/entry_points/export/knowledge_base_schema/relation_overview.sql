@@ -50,13 +50,14 @@ CREATE INDEX relation_overview_relation_id_fkey ON relation_overview (relation_i
 CREATE INDEX relation_overview_head_id_fkey ON relation_overview (head_id);
 CREATE INDEX relation_overview_tail_id_fkey ON relation_overview (tail_id);
 
+-- Create INDEX on sentence text
+CREATE INDEX relation_overview_sentence_text_idx ON relation_overview (sentence_text);
 
 -- Create INDEX for entity properties
 CREATE INDEX relation_overview_head_text_idx ON relation_overview (head_text);
 CREATE INDEX relation_overview_tail_text_idx ON relation_overview (tail_text);
 CREATE INDEX relation_overview_head_label_idx ON relation_overview (head_label);
 CREATE INDEX relation_overview_tail_label_idx ON relation_overview (tail_label);
-
 
 -- Create INDEX for relation properties
 CREATE INDEX relation_overview_label_idx ON relation_overview (label);
