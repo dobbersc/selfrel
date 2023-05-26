@@ -86,12 +86,12 @@ def create_knowledge_base(
 
 
 def update_relation_metrics(cursor: sqlite3.Cursor) -> None:
-    sql: Traversable = knowledge_base_sql / "create_relation_metrics.sql"
+    sql: Traversable = knowledge_base_sql / "relation_metrics.sql"
     cursor.executescript(sql.read_text(encoding="utf-8"))
 
 
 def update_relation_overview(cursor: sqlite3.Cursor) -> None:
-    sql: Traversable = knowledge_base_sql / "create_relation_overview.sql"
+    sql: Traversable = knowledge_base_sql / "relation_overview.sql"
     cursor.executescript(sql.read_text(encoding="utf-8"))
 
 
