@@ -118,7 +118,7 @@ def export_knowledge_base(
     )
 
     if create_relation_metrics:
-        print("Building 'create_relation_metrics' table")
+        print("Building 'create_relation_metrics' table...")
         update_relation_metrics(cursor)
 
     if create_relation_overview:
