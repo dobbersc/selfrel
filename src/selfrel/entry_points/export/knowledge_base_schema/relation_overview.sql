@@ -13,7 +13,6 @@ CREATE TABLE relation_overview
     tail_label           TEXT    NOT NULL,
     label                TEXT    NOT NULL,
     confidence           REAL    NOT NULL,
-    occurrence           INTEGER NOT NULL,
     FOREIGN KEY (sentence_relation_id) REFERENCES sentence_relations (sentence_relation_id),
     FOREIGN KEY (sentence_id) REFERENCES sentences (sentence_id),
     FOREIGN KEY (relation_id) REFERENCES relations (relation_id),
@@ -28,14 +27,13 @@ SELECT sentence_relation_id,
        relation_id,
        relation.head_id,
        relation.tail_id,
-       sentence.text                           sentence_text,
-       head.text                               head_text,
-       tail.text                               tail_text,
-       head.label                              head_label,
-       tail.label                              tail_label,
+       sentence.text sentence_text,
+       head.text     head_text,
+       tail.text     tail_text,
+       head.label    head_label,
+       tail.label    tail_label,
        relation.label,
-       sr.confidence,
-       count() OVER (PARTITION BY relation_id) occurrence
+       sr.confidence
 FROM sentence_relations sr
          JOIN sentences sentence USING (sentence_id)
          JOIN relations relation USING (relation_id)
@@ -43,7 +41,7 @@ FROM sentence_relations sr
          JOIN entities tail ON tail.entity_id = relation.tail_id;
 
 
--- Create INDEX for each foreign key
+-- Create INDEX on each foreign key
 CREATE INDEX relation_overview_sentence_relation_id_fkey ON relation_overview (sentence_relation_id);
 CREATE INDEX relation_overview_sentence_id_fkey ON relation_overview (sentence_id);
 CREATE INDEX relation_overview_relation_id_fkey ON relation_overview (relation_id);
@@ -53,12 +51,12 @@ CREATE INDEX relation_overview_tail_id_fkey ON relation_overview (tail_id);
 -- Create INDEX on sentence text
 CREATE INDEX relation_overview_sentence_text_idx ON relation_overview (sentence_text);
 
--- Create INDEX for entity properties
+-- Create INDEX on entity properties
 CREATE INDEX relation_overview_head_text_idx ON relation_overview (head_text);
 CREATE INDEX relation_overview_tail_text_idx ON relation_overview (tail_text);
 CREATE INDEX relation_overview_head_label_idx ON relation_overview (head_label);
 CREATE INDEX relation_overview_tail_label_idx ON relation_overview (tail_label);
 
--- Create INDEX for relation properties
+-- Create INDEX on relation properties
 CREATE INDEX relation_overview_label_idx ON relation_overview (label);
-CREATE INDEX relation_overview_occurrence_idx ON relation_overview (occurrence);
+CREATE INDEX relation_overview_confidence_idx ON relation_overview (confidence);
