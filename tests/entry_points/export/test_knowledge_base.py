@@ -115,42 +115,41 @@ def test_sentence_relations(knowledge_base: sqlite3.Cursor) -> None:
     ]
 
 
+def test_relation_metrics() -> None:
+    # | relation_id | occurrence | distinct_occurrence |
+    pass
+
+
 def test_relation_overview(knowledge_base: sqlite3.Cursor) -> None:
-    # | sentence_relation_id |sentence_id | relation_id | head_id | tail_id
+    # | sentence_relation_id |sentence_id | relation_id | head_id | tail_id |
     # | sentence_text |
-    # | head_text | tail_text | head_label | tail_label | label
-    # | confidence | occurrence
+    # | head_text | tail_text | head_label | tail_label | label | confidence |
     # fmt: off
     assert knowledge_base.execute("SELECT * FROM relation_overview ORDER BY sentence_relation_id").fetchall() == [
         (
             1, 1, 1, 1, 2,
             "Berlin is the capital of Germany.",
-            "Berlin", "Germany", "LOC", "LOC", "capital_of",
-            1.0, 1,
+            "Berlin", "Germany", "LOC", "LOC", "capital_of", 1.0,
         ),
         (
             2, 2, 2, 3, 4,
             "Albert Einstein was born in Ulm, Germany.",
-            "Albert Einstein", "Ulm", "PER", "LOC", "born_in",
-            1.0, 2,
+            "Albert Einstein", "Ulm", "PER", "LOC", "born_in", 1.0,
         ),
         (
             3, 2, 3, 4, 2,
             "Albert Einstein was born in Ulm, Germany.",
-            "Ulm", "Germany", "LOC", "LOC", "located_in",
-            1.0, 2,
+            "Ulm", "Germany", "LOC", "LOC", "located_in", 1.0,
         ),
         (
             4, 3, 2, 3, 4,
             "Ulm, located in Germany, is the birthplace of Albert Einstein.",
-            "Albert Einstein", "Ulm", "PER", "LOC", "born_in",
-            1.0, 2,
+            "Albert Einstein", "Ulm", "PER", "LOC", "born_in", 1.0,
         ),
         (
             5, 3, 3, 4, 2,
             "Ulm, located in Germany, is the birthplace of Albert Einstein.",
-            "Ulm", "Germany", "LOC", "LOC", "located_in",
-            1.0, 2,
+            "Ulm", "Germany", "LOC", "LOC", "located_in", 1.0,
         ),
     ]
     # fmt: on

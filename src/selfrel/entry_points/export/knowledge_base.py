@@ -10,10 +10,12 @@ from tqdm import tqdm
 
 from selfrel.data import CoNLLUPlusDataset
 
+__all__ = ["export_knowledge_base", "create_knowledge_base", "update_relation_metrics", "update_relation_overview"]
+
 knowledge_base_sql: Traversable = importlib_resources.files("selfrel.entry_points.export.knowledge_base_schema")
 
 
-def get_entity_id(cursor: sqlite3.Cursor, text: str, label: str) -> int:
+def _get_entity_id(cursor: sqlite3.Cursor, text: str, label: str) -> int:
     entity_id: int = cursor.execute(
         "SELECT entity_id FROM entities WHERE text = ? AND label = ?",
         (text, label),
@@ -21,7 +23,7 @@ def get_entity_id(cursor: sqlite3.Cursor, text: str, label: str) -> int:
     return entity_id
 
 
-def get_relation_id(cursor: sqlite3.Cursor, head_id: int, tail_id: int, label: str) -> int:
+def _get_relation_id(cursor: sqlite3.Cursor, head_id: int, tail_id: int, label: str) -> int:
     relation_id: int = cursor.execute(
         "SELECT relation_id FROM relations WHERE head_id = ? AND tail_id = ? AND label = ?",
         (head_id, tail_id, label),
@@ -49,7 +51,7 @@ def create_knowledge_base(
                 "INSERT INTO entities(text, label) VALUES(?, ?) ON CONFLICT DO NOTHING",
                 (entity.text, entity_label.value),
             )
-            entity_id: int = get_entity_id(cursor, text=entity.text, label=entity_label.value)
+            entity_id: int = _get_entity_id(cursor, text=entity.text, label=entity_label.value)
 
             cursor.execute(
                 "INSERT INTO sentence_entities(sentence_id, entity_id, confidence) VALUES(?, ?, ?)",
@@ -60,10 +62,10 @@ def create_knowledge_base(
         for relation in sentence.get_relations(relation_label_type):
             relation_label: Label = relation.get_label(relation_label_type)
 
-            head_id: int = get_entity_id(
+            head_id: int = _get_entity_id(
                 cursor, text=relation.first.text, label=relation.first.get_label(entity_label_type).value
             )
-            tail_id: int = get_entity_id(
+            tail_id: int = _get_entity_id(
                 cursor, text=relation.second.text, label=relation.second.get_label(entity_label_type).value
             )
 
@@ -71,7 +73,7 @@ def create_knowledge_base(
                 "INSERT INTO relations(head_id, tail_id, label) VALUES(?, ?, ?) ON CONFLICT DO NOTHING",
                 (head_id, tail_id, relation_label.value),
             )
-            relation_id: int = get_relation_id(cursor, head_id=head_id, tail_id=tail_id, label=relation_label.value)
+            relation_id: int = _get_relation_id(cursor, head_id=head_id, tail_id=tail_id, label=relation_label.value)
 
             cursor.execute(
                 "INSERT INTO sentence_relations(sentence_id, relation_id, confidence) VALUES(?, ?, ?)",
@@ -83,8 +85,13 @@ def create_knowledge_base(
     cursor.executescript(indices.read_text(encoding="utf-8"))
 
 
-def create_relation_overview(cursor: sqlite3.Cursor) -> None:
-    sql: Traversable = knowledge_base_sql / "relation_overview.sql"
+def update_relation_metrics(cursor: sqlite3.Cursor) -> None:
+    sql: Traversable = knowledge_base_sql / "create_relation_metrics.sql"
+    cursor.executescript(sql.read_text(encoding="utf-8"))
+
+
+def update_relation_overview(cursor: sqlite3.Cursor) -> None:
+    sql: Traversable = knowledge_base_sql / "create_relation_overview.sql"
     cursor.executescript(sql.read_text(encoding="utf-8"))
 
 
@@ -93,7 +100,8 @@ def export_knowledge_base(
     out: Union[str, Path] = Path("knowledge-base.db"),
     entity_label_type: str = "ner",
     relation_label_type: str = "relation",
-    relation_overview: bool = True,
+    create_relation_metrics: bool = True,
+    create_relation_overview: bool = True,
 ) -> None:
     """See `selfrel export knowledge-base --help`."""
     dataset = CoNLLUPlusDataset(dataset, persist=False) if isinstance(dataset, (str, Path)) else dataset
@@ -109,9 +117,13 @@ def export_knowledge_base(
         relation_label_type=relation_label_type,
     )
 
-    if relation_overview:
-        print("Building relation overview...")
-        create_relation_overview(cursor)
+    if create_relation_metrics:
+        print("Building 'create_relation_metrics' table")
+        update_relation_metrics(cursor)
+
+    if create_relation_overview:
+        print("Building 'create_relation_overview' table...")
+        update_relation_overview(cursor)
 
     connection.commit()
     connection.close()
