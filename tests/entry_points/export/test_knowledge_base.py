@@ -1,19 +1,30 @@
+import contextlib
 import sqlite3
 from collections.abc import Iterator
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 from _pytest.tmpdir import TempPathFactory
 from flair.data import Relation, Sentence
+from flair.tokenization import SpaceTokenizer
 
 from selfrel.entry_points.export.knowledge_base import export_knowledge_base
 
-if TYPE_CHECKING:
-    from pathlib import Path
+
+@contextlib.contextmanager
+def get_cursor(database_path: Path) -> Iterator[sqlite3.Cursor]:
+    connection: sqlite3.Connection = sqlite3.connect(database_path)
+    cursor: sqlite3.Cursor = connection.cursor()
+
+    yield cursor
+
+    cursor.close()
+    connection.close()
 
 
 @pytest.fixture(scope="module")
 def dataset() -> list[Sentence]:
+    """The dataset used for the basic table tests."""
     sentences: list[Sentence] = [
         Sentence("Berlin is the capital of Germany."),
         Sentence("Berlin is the capital of Germany."),
@@ -57,16 +68,43 @@ def dataset() -> list[Sentence]:
 
 @pytest.fixture(scope="module")
 def knowledge_base(dataset: list[Sentence], tmp_path_factory: TempPathFactory) -> Iterator[sqlite3.Cursor]:
+    """The knowledge base used for the basic table tests."""
     database_path: Path = tmp_path_factory.getbasetemp() / "knowledge-base.db"
     export_knowledge_base(dataset, out=database_path)
 
-    connection: sqlite3.Connection = sqlite3.connect(database_path)
-    cursor: sqlite3.Cursor = connection.cursor()
+    with get_cursor(database_path) as cursor:
+        yield cursor
 
-    yield cursor
 
-    cursor.close()
-    connection.close()
+@pytest.fixture(scope="module")
+def entropy_dataset() -> list[Sentence]:
+    """The dataset used for the entropy relation metric test."""
+    sentences: list[Sentence] = [
+        *[Sentence("Berlin located_in Germany", use_tokenizer=SpaceTokenizer()) for _ in range(8)],
+        *[Sentence("Berlin no_relation Germany", use_tokenizer=SpaceTokenizer()) for _ in range(2)],
+        *[Sentence("Obama born_in USA", use_tokenizer=SpaceTokenizer()) for _ in range(4)],
+        *[Sentence("Obama no_relation USA", use_tokenizer=SpaceTokenizer()) for _ in range(6)],
+    ]
+
+    for sentence in sentences:
+        head, tail = sentence[:1], sentence[2:3]
+        head.add_label("ner", value="HEAD")
+        tail.add_label("ner", value="TAIL")
+        Relation(first=head, second=tail).add_label("relation", value=sentence[1].text)
+
+    return sentences
+
+
+@pytest.fixture(scope="module")
+def entropy_knowledge_base(
+    entropy_dataset: list[Sentence], tmp_path_factory: TempPathFactory
+) -> Iterator[sqlite3.Cursor]:
+    """The knowledge base used for the entropy relation metric test."""
+    database_path: Path = tmp_path_factory.getbasetemp() / "entropy-knowledge-base.db"
+    export_knowledge_base(entropy_dataset, out=database_path)
+
+    with get_cursor(database_path) as cursor:
+        yield cursor
 
 
 class TestTables:
@@ -149,7 +187,7 @@ class TestRelationMetrics:
 
     def test_distinct_occurrence(self, knowledge_base: sqlite3.Cursor) -> None:
         assert knowledge_base.execute(
-            "SELECT relation_id, total_occurrence FROM relation_metrics ORDER BY relation_id"
+            "SELECT relation_id, distinct_occurrence FROM relation_metrics ORDER BY relation_id"
         ).fetchall() == [
             (1, 1),  # Berlin          ---capital_of--> Germany
             (2, 2),  # Albert Einstein ---born_in-----> Ulm
@@ -157,8 +195,29 @@ class TestRelationMetrics:
             (4, 1),  # Amazon          ---founded_by--> Jeff
         ]
 
-    def test_entropy(self) -> None:
-        pass
+    def test_entropy(self, entropy_knowledge_base: sqlite3.Cursor) -> None:
+        """
+        Tests the relation entropy calculation for the following relations:
+
+        | Relation Candidate | Relation    | Occurrence |
+        |--------------------|-------------|------------|
+        | Berlin -> Germany  | located_in  | 8          |
+        |                    | born_in     | 0          |
+        |                    | no_relation | 2          |
+        |                    |             |            |
+        | Obama  -> USA      | located_in  | 0          |
+        |                    | born_in     | 4          |
+        |                    | no_relation | 6          |
+
+        """
+        assert entropy_knowledge_base.execute(
+            "SELECT relation_id, round(entropy, 2) FROM relation_metrics ORDER BY relation_id"
+        ).fetchall() == [
+            (1, 0.72),
+            (2, 0.72),
+            (3, 0.97),
+            (4, 0.97),
+        ]
 
 
 def test_relation_overview(knowledge_base: sqlite3.Cursor) -> None:
