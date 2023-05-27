@@ -100,7 +100,6 @@ def export_knowledge_base(
     out: Union[str, Path] = Path("knowledge-base.db"),
     entity_label_type: str = "ner",
     relation_label_type: str = "relation",
-    create_relation_metrics: bool = True,
     create_relation_overview: bool = True,
 ) -> None:
     """See `selfrel export knowledge-base --help`."""
@@ -117,12 +116,11 @@ def export_knowledge_base(
         relation_label_type=relation_label_type,
     )
 
-    if create_relation_metrics:
-        print("Building 'create_relation_metrics' table...")
-        update_relation_metrics(cursor)
+    print("Building 'relation_metrics' table...")
+    update_relation_metrics(cursor)
 
     if create_relation_overview:
-        print("Building 'create_relation_overview' table...")
+        print("Building 'relation_overview' table...")
         update_relation_overview(cursor)
 
     connection.commit()

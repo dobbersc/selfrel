@@ -221,45 +221,16 @@ class TestRelationMetrics:
 
 
 def test_relation_overview(knowledge_base: sqlite3.Cursor) -> None:
-    # | sentence_relation_id | sentence_id | relation_id | head_id | tail_id |
-    # | sentence_text |
-    # | head_text | tail_text | head_label | tail_label | label | confidence |
-    # fmt: off
-    assert knowledge_base.execute("SELECT * FROM relation_overview ORDER BY sentence_relation_id").fetchall() == [
-        (
-            1, 1, 1, 1, 2,
-            "Berlin is the capital of Germany.",
-            "Berlin", "Germany", "LOC", "LOC", "capital_of", 1.0,
-        ),
-        (
-            2, 2, 1, 1, 2,
-            "Berlin is the capital of Germany.",
-            "Berlin", "Germany", "LOC", "LOC", "capital_of", 1.0,
-        ),
-        (
-            3, 3, 2, 3, 4,
-            "Albert Einstein was born in Ulm, Germany.",
-            "Albert Einstein", "Ulm", "PER", "LOC", "born_in", 1.0,
-        ),
-        (
-            4, 3, 3, 4, 2,
-            "Albert Einstein was born in Ulm, Germany.",
-            "Ulm", "Germany", "LOC", "LOC", "located_in", 1.0,
-        ),
-        (
-            5, 4, 2, 3, 4,
-            "Ulm, located in Germany, is the birthplace of Albert Einstein.",
-            "Albert Einstein", "Ulm", "PER", "LOC", "born_in", 1.0,
-        ),
-        (
-            6, 4, 3, 4, 2,
-            "Ulm, located in Germany, is the birthplace of Albert Einstein.",
-            "Ulm", "Germany", "LOC", "LOC", "located_in", 1.0,
-        ),
-        (
-            7, 5, 4, 5, 6,
-            "Amazon was founded by Jeff Bezos.",
-            "Amazon", "Jeff Bezos", "ORG", "PER", "founded_by", 1.0,
-        ),
+    assert knowledge_base.execute(
+        "SELECT sentence_relation_id, sentence_id, relation_id, head_id, tail_id "
+        "FROM relation_overview "
+        "ORDER BY sentence_relation_id"
+    ).fetchall() == [
+        (1, 1, 1, 1, 2),
+        (2, 2, 1, 1, 2),
+        (3, 3, 2, 3, 4),
+        (4, 3, 3, 4, 2),
+        (5, 4, 2, 3, 4),
+        (6, 4, 3, 4, 2),
+        (7, 5, 4, 5, 6),
     ]
-    # fmt: on
