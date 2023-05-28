@@ -53,7 +53,6 @@ WITH relation_occurrence AS
                        sum(distinct_occurrence) OVER (PARTITION BY head_id, tail_id) dp
                 FROM relation_occurrence
                          JOIN relations USING (relation_id)))
-SELECT * FROM relation_entropy
 
 UPDATE relation_metrics
 SET entropy          = relation_entropy.entropy,
