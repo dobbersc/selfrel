@@ -16,6 +16,7 @@ CREATE TABLE relation_overview
     occurrence           INTEGER NOT NULL,
     distinct_occurrence  INTEGER NOT NULL,
     entropy              REAL    NOT NULL,
+    distinct_entropy     REAL    NOT NULL,
     FOREIGN KEY (sentence_relation_id) REFERENCES sentence_relations (sentence_relation_id),
     FOREIGN KEY (sentence_id) REFERENCES sentences (sentence_id),
     FOREIGN KEY (relation_id) REFERENCES relations (relation_id),
@@ -39,7 +40,8 @@ SELECT sentence_relation_id,
        sr.confidence,
        occurrence,
        distinct_occurrence,
-       entropy
+       entropy,
+       distinct_entropy
 FROM sentence_relations sr
          JOIN sentences sentence USING (sentence_id)
          JOIN relations relation USING (relation_id)
@@ -72,3 +74,4 @@ CREATE INDEX relation_overview_confidence_idx ON relation_overview (confidence);
 CREATE INDEX relation_overview_occurrence_idx ON relation_overview (occurrence);
 CREATE INDEX relation_overview_distinct_occurrence_idx ON relation_overview (distinct_occurrence);
 CREATE INDEX relation_overview_entropy_idx ON relation_overview (entropy);
+CREATE INDEX relation_overview_distinct_entropy_idx ON relation_overview (distinct_entropy);
