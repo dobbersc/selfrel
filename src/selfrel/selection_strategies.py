@@ -7,7 +7,7 @@ from flair.data import Label, Relation, Sentence
 
 from selfrel.utils.copy import deepcopy_flair_sentence
 
-__all__ = ["SelectionStrategy", "PredictionConfidence", "build_relation_overview"]
+__all__ = ["SelectionStrategy", "PredictionConfidence", "TotalOccurrence", "build_relation_overview"]
 
 
 def build_relation_overview(
@@ -122,3 +122,18 @@ class PredictionConfidence(RelationOverviewSelectionStrategy):
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}(min_confidence={self.min_confidence!r}, top_k={self.top_k!r})"
+
+
+class TotalOccurrence(RelationOverviewSelectionStrategy):
+    def __init__(self, min_occurrence: int, top_k: Optional[int] = None) -> None:
+        self.min_occurrence = min_occurrence
+        self.top_k = top_k
+
+    def compute_score(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
+        pass
+
+    def select_rows(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
+        pass
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}(min_occurrence={self.min_occurrence!r}, top_k={self.top_k!r})"

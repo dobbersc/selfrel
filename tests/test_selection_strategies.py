@@ -1,40 +1,75 @@
 import pytest
 from flair.data import Relation, Sentence
 
-from selfrel.selection_strategies import PredictionConfidence, SelectionStrategy, TotalOccurrence
+from selfrel.selection_strategies import (
+    PredictionConfidence,
+    SelectionStrategy,
+    TotalOccurrence,
+    build_relation_overview,
+)
 
 
 @pytest.fixture()
 def prediction_confidence_sentences() -> list[Sentence]:
     sentences: list[Sentence] = [
-        Sentence("Berlin is the capital of Germany."),
-        Sentence("Paris is the capital of Germany."),
+        Sentence("Berlin located in Germany and Hamburg located in Germany."),
+        Sentence("Berlin located in Germany."),
         Sentence("This is a sentence."),
     ]
 
-    for sentence, score in zip(sentences[:3], (0.9, 0.6)):
-        sentence[:1].add_label("ner", value="LOC")
-        sentence[5:6].add_label("ner", value="LOC")
-        Relation(first=sentence[:1], second=sentence[5:6]).add_label("relation", value="capital_of", score=score)
+    sentence: Sentence = sentences[0]
+    for span in (sentence[:1], sentence[3:4], sentence[5:6], sentence[8:9]):
+        span.add_label("ner", value="LOC")
+    Relation(first=sentence[:1], second=sentence[3:4]).add_label("relation", value="located_in", score=0.9)
+    Relation(first=sentence[5:6], second=sentence[8:9]).add_label("relation", value="located_in", score=0.9)
+
+    sentence = sentences[1]
+    sentence[:1].add_label("ner", value="LOC")
+    sentence[3:4].add_label("ner", value="LOC")
+    Relation(first=sentence[:1], second=sentence[3:4]).add_label("relation", value="located_in", score=0.6)
 
     return sentences
 
 
+def test_build_relation_overview(prediction_confidence_sentences: list[Sentence]) -> None:
+    assert build_relation_overview(
+        prediction_confidence_sentences, entity_label_type="ner", relation_label_type="relation"
+    ).to_dict("list") == {
+        "sentence_index": [0, 0, 1],
+        "relation_index": [0, 1, 0],
+        "sentence_text": [
+            "Berlin located in Germany and Hamburg located in Germany.",
+            "Berlin located in Germany and Hamburg located in Germany.",
+            "Berlin located in Germany.",
+        ],
+        "head_text": ["Berlin", "Hamburg", "Berlin"],
+        "tail_text": ["Germany", "Germany", "Germany"],
+        "head_label": ["LOC", "LOC", "LOC"],
+        "tail_label": ["LOC", "LOC", "LOC"],
+        "label": ["located_in", "located_in", "located_in"],
+        "confidence": [0.9, 0.9, 0.6],
+    }
+
+
 def test_prediction_confidence(prediction_confidence_sentences: list[Sentence]) -> None:
     sentences: list[Sentence] = prediction_confidence_sentences
-    selection_strategy: SelectionStrategy = PredictionConfidence(confidence_threshold=0.8)
+    selection_strategy: SelectionStrategy = PredictionConfidence(min_confidence=0.8, top_k=2)
 
-    selected_sentences: list[Sentence] = list(selection_strategy.select_relations(sentences, label_type="relation"))
+    selected_sentences: list[Sentence] = list(
+        selection_strategy.select_relations(sentences, entity_label_type="ner", relation_label_type="relation")
+    )
     assert len(selected_sentences) == 1
 
     selected_sentence: Sentence = selected_sentences[0]
     assert selected_sentence is not sentences[0]
-    assert selected_sentence.to_original_text() == "Berlin is the capital of Germany."
-    assert {(span.text, span.get_label("ner").value) for span in selected_sentence.get_spans("ner")} == {
+    assert selected_sentence.to_original_text() == "Berlin located in Germany and Hamburg located in Germany."
+    assert [(span.text, span.get_label("ner").value) for span in selected_sentence.get_spans("ner")] == [
         ("Berlin", "LOC"),
         ("Germany", "LOC"),
-    }
-    assert {
+        ("Hamburg", "LOC"),
+        ("Germany", "LOC"),
+    ]
+    assert [
         (
             relation.first.text,
             relation.second.text,
@@ -42,7 +77,7 @@ def test_prediction_confidence(prediction_confidence_sentences: list[Sentence]) 
             relation.get_label("relation").score,
         )
         for relation in selected_sentence.get_relations("relation")
-    } == {("Berlin", "Germany", "capital_of", 0.9)}
+    ] == [("Berlin", "Germany", "located_in", 0.9), ("Hamburg", "Germany", "located_in", 0.9)]
 
 
 @pytest.fixture()
@@ -81,7 +116,7 @@ def total_occurrence_sentences() -> list[Sentence]:
 
 def test_total_occurrence(total_occurrence_sentences: list[Sentence]) -> None:
     sentences: list[Sentence] = total_occurrence_sentences
-    selection_strategy: SelectionStrategy = TotalOccurrence(occurrence_threshold=2)
+    selection_strategy: SelectionStrategy = TotalOccurrence(min_occurrence=2)
 
     selected_sentences: list[Sentence] = list(selection_strategy.select_relations(sentences, label_type="relation"))
     assert len(selected_sentences) == 2
