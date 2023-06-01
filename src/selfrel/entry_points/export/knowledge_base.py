@@ -12,6 +12,8 @@ from selfrel.data import CoNLLUPlusDataset
 
 __all__ = ["export_knowledge_base", "create_knowledge_base", "update_relation_metrics", "update_relation_overview"]
 
+from selfrel.utils.sqlite3 import register_log
+
 knowledge_base_sql: Traversable = importlib_resources.files("selfrel.entry_points.export.knowledge_base_schema")
 
 
@@ -107,6 +109,9 @@ def export_knowledge_base(
 
     connection: sqlite3.Connection = sqlite3.connect(out)
     cursor: sqlite3.Cursor = connection.cursor()
+
+    # Register "log" function if not available, e.g. for Python 3.9 on Windows
+    register_log(connection)
 
     print("Building knowledge base...")
     create_knowledge_base(
