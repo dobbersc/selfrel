@@ -9,28 +9,6 @@ from selfrel.selection_strategies import (
 )
 
 
-@pytest.fixture()
-def prediction_confidence_sentences() -> list[Sentence]:
-    sentences: list[Sentence] = [
-        Sentence("Berlin located in Germany and Hamburg located in Germany."),
-        Sentence("Berlin located in Germany."),
-        Sentence("This is a sentence."),
-    ]
-
-    sentence: Sentence = sentences[0]
-    for span in (sentence[:1], sentence[3:4], sentence[5:6], sentence[8:9]):
-        span.add_label("ner", value="LOC")
-    Relation(first=sentence[:1], second=sentence[3:4]).add_label("relation", value="located_in", score=0.9)
-    Relation(first=sentence[5:6], second=sentence[8:9]).add_label("relation", value="located_in", score=0.9)
-
-    sentence = sentences[1]
-    sentence[:1].add_label("ner", value="LOC")
-    sentence[3:4].add_label("ner", value="LOC")
-    Relation(first=sentence[:1], second=sentence[3:4]).add_label("relation", value="located_in", score=0.6)
-
-    return sentences
-
-
 def test_build_relation_overview(prediction_confidence_sentences: list[Sentence]) -> None:
     assert build_relation_overview(
         prediction_confidence_sentences, entity_label_type="ner", relation_label_type="relation"
