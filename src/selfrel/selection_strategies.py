@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
-from typing import Any, Optional
+from typing import Optional
 
 import pandas as pd
 from flair.data import Label, Relation, Sentence
@@ -13,38 +13,52 @@ __all__ = ["SelectionStrategy", "PredictionConfidence", "TotalOccurrence", "buil
 def build_relation_overview(
     sentences: Sequence[Sentence], entity_label_type: str, relation_label_type: str
 ) -> pd.DataFrame:
-    relation_overview: dict[str, list[Any]] = {
-        "sentence_index": [],
-        "relation_index": [],
-        "sentence_text": [],
-        "head_text": [],
-        "tail_text": [],
-        "head_label": [],
-        "tail_label": [],
-        "label": [],
-        "confidence": [],
-    }
+    sentence_indices: list[int] = []
+    relation_indices: list[int] = []
+    sentence_texts: list[str] = []
+    head_texts: list[str] = []
+    tail_texts: list[str] = []
+    head_labels: list[str] = []
+    tail_labels: list[str] = []
+    labels: list[str] = []
+    confidences: list[float] = []
+
     for sentence_index, sentence in enumerate(sentences):
         sentence_text: str = sentence.to_original_text()
 
         relation: Relation
         for relation_index, relation in enumerate(sentence.get_relations(relation_label_type)):
-            relation_overview["sentence_index"].append(sentence_index)
-            relation_overview["relation_index"].append(relation_index)
+            sentence_indices.append(sentence_index)
+            relation_indices.append(relation_index)
 
-            relation_overview["sentence_text"].append(sentence_text)
+            sentence_texts.append(sentence_text)
 
             relation_label: Label = relation.get_label(relation_label_type)
-            relation_overview["label"].append(relation_label.value)
-            relation_overview["confidence"].append(relation_label.score)
+            labels.append(relation_label.value)
+            confidences.append(relation_label.score)
 
-            relation_overview["head_text"].append(relation.first.text)
-            relation_overview["tail_text"].append(relation.second.text)
+            head_texts.append(relation.first.text)
+            tail_texts.append(relation.second.text)
 
-            relation_overview["head_label"].append(relation.first.get_label(entity_label_type).value)
-            relation_overview["tail_label"].append(relation.second.get_label(entity_label_type).value)
+            head_labels.append(relation.first.get_label(entity_label_type).value)
+            tail_labels.append(relation.second.get_label(entity_label_type).value)
 
-    return pd.DataFrame.from_dict(relation_overview)
+    index: pd.MultiIndex = pd.MultiIndex.from_arrays(
+        (sentence_indices, relation_indices),
+        names=("sentence_index", "relation_index"),
+    )
+    return pd.DataFrame(
+        {
+            "sentence_text": pd.Series(sentence_texts, index=index, dtype="string"),
+            "head_text": pd.Series(head_texts, index=index, dtype="string"),
+            "tail_text": pd.Series(tail_texts, index=index, dtype="string"),
+            "head_label": pd.Series(head_labels, index=index, dtype="category"),
+            "tail_label": pd.Series(tail_labels, index=index, dtype="category"),
+            "label": pd.Series(labels, index=index, dtype="category"),
+            "confidence": confidences,
+        },
+        index=index,
+    )
 
 
 class SelectionStrategy(ABC):
@@ -98,7 +112,7 @@ class RelationOverviewSelectionStrategy(SelectionStrategy, ABC):
             sentence: Sentence = sentences[sentence_index]
             relations: list[Relation] = sentence.get_relations(relation_label_type)
             selected_relations: list[Relation] = [
-                relations[relation_index] for relation_index in group["relation_index"]
+                relations[relation_index] for relation_index in group.reset_index()["relation_index"]
             ]
 
             yield self._create_selected_sentence(
@@ -125,15 +139,23 @@ class PredictionConfidence(RelationOverviewSelectionStrategy):
 
 
 class TotalOccurrence(RelationOverviewSelectionStrategy):
-    def __init__(self, min_occurrence: int, top_k: Optional[int] = None) -> None:
+    def __init__(self, min_occurrence: int, distinct: bool = True, top_k: Optional[int] = None) -> None:
         self.min_occurrence = min_occurrence
+        self.distinct = distinct
         self.top_k = top_k
 
     def compute_score(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
-        pass
+        group_by_columns: list[str] = ["head_text", "tail_text", "head_label", "tail_label", "label"]
+        if self.distinct:
+            group_by_columns.append("sentence_text")
+
+        relation_overview.groupby(group_by_columns).size()
 
     def select_rows(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
         pass
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}(min_occurrence={self.min_occurrence!r}, top_k={self.top_k!r})"
+        return (
+            f"{type(self).__name__}("
+            f"min_occurrence={self.min_occurrence!r}, distinct={self.distinct}, top_k={self.top_k!r})"
+        )
