@@ -55,8 +55,8 @@ def train(
     ] = "typed-entity-marker-punct",
     self_training_iterations: int = 1,
     selection_strategy: Literal["prediction-confidence", "total-occurrence"] = "prediction-confidence",
-    confidence_threshold: Optional[float] = None,
-    occurrence_threshold: int = 2,  # Only used for selection_strategy="total-occurrence"
+    min_confidence: Optional[float] = None,
+    min_occurrence: Optional[int] = None,
     num_actors: int = 1,
     num_cpus: Optional[float] = None,
     num_gpus: Optional[float] = 1,
@@ -128,11 +128,9 @@ def train(
     # Step 5: Run self-trainer
     strategy: SelectionStrategy
     if selection_strategy == "prediction-confidence":
-        strategy = (
-            PredictionConfidence() if confidence_threshold is None else PredictionConfidence(confidence_threshold)
-        )
+        strategy = PredictionConfidence() if min_confidence is None else PredictionConfidence(min_confidence)
     elif selection_strategy == "total-occurrence":
-        strategy = TotalOccurrence(occurrence_threshold=occurrence_threshold, confidence_threshold=confidence_threshold)
+        strategy = TotalOccurrence() if min_occurrence is not None else TotalOccurrence(min_occurrence)
     else:
         msg = f"Specified invalid selection strategy {selection_strategy!r}"  # type: ignore[unreachable]
         raise ValueError(msg)

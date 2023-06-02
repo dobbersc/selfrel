@@ -74,6 +74,8 @@ def call_train(args: argparse.Namespace) -> None:
         encoding_strategy=args.encoding_strategy,
         self_training_iterations=args.self_training_iterations,
         selection_strategy=args.selection_strategy,
+        min_confidence=args.min_confidence,
+        min_occurrence=args.min_occurrence,
         num_actors=args.num_actors,
         num_cpus=args.num_cpus,
         num_gpus=args.num_gpus,
@@ -264,8 +266,8 @@ def add_train(subparsers) -> None:
         default="prediction-confidence",
         help="TODO",
     )
-    train.add_argument("--confidence-threshold", type=float, default=None, help="TODO")
-    train.add_argument("--occurrence-threshold", type=int, default=2, help="TODO")
+    train.add_argument("--min-confidence", type=float, default=None, help="TODO")
+    train.add_argument("--min-occurrence", type=int, default=None, help="TODO")
     train.add_argument("--num-actors", type=int, default=1, help="TODO")
     train.add_argument("--num-cpus", type=float, default=None, help="TODO")
     train.add_argument("--num-gpus", type=float, default=1.0, help="TODO")
