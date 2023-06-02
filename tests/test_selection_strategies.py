@@ -105,7 +105,7 @@ class TestTotalOccurrence:
         selection_strategy: TotalOccurrence = TotalOccurrence(min_occurrence=2, distinct=True)
 
         scored_relation_overview: pd.DataFrame = selection_strategy.compute_score(relation_overview)
-        expected_score: pd.Series = pd.Series(
+        expected_score: pd.Series[int] = pd.Series(
             (1, 1, 2, 2, 2, 2, 1), index=scored_relation_overview.index, name="occurrence"
         )
         pd.testing.assert_series_equal(scored_relation_overview["occurrence"], expected_score)
@@ -122,7 +122,7 @@ class TestTotalOccurrence:
         selection_strategy: TotalOccurrence = TotalOccurrence(min_occurrence=2, distinct=False)
 
         scored_relation_overview: pd.DataFrame = selection_strategy.compute_score(relation_overview)
-        expected_score: pd.Series = pd.Series(
+        expected_score: pd.Series[int] = pd.Series(
             (2, 2, 2, 2, 2, 2, 1), index=scored_relation_overview.index, name="occurrence"
         )
         pd.testing.assert_series_equal(scored_relation_overview["occurrence"], expected_score)

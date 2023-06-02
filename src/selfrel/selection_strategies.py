@@ -105,7 +105,7 @@ class DFSelectionStrategy(SelectionStrategy, ABC):
         pass
 
     def select_relations(
-        self, sentences: Sequence[Sentence], relation_label_type: str, entity_label_type: str
+        self, sentences: Sequence[Sentence], entity_label_type: str, relation_label_type: str
     ) -> Iterator[Sentence]:
         relation_overview: pd.DataFrame = build_relation_overview(
             sentences, entity_label_type=entity_label_type, relation_label_type=relation_label_type
@@ -115,6 +115,7 @@ class DFSelectionStrategy(SelectionStrategy, ABC):
         selected_relation_overview: pd.DataFrame = self.select_rows(scored_relation_overview)
 
         for sentence_index, group in selected_relation_overview.groupby("sentence_index"):
+            assert isinstance(sentence_index, int)
             sentence: Sentence = sentences[sentence_index]
             relations: list[Relation] = sentence.get_relations(relation_label_type)
             selected_relations: list[Relation] = [
@@ -127,7 +128,7 @@ class DFSelectionStrategy(SelectionStrategy, ABC):
 
 
 class PredictionConfidence(DFSelectionStrategy):
-    def __init__(self, min_confidence: float, top_k: Optional[int] = None) -> None:
+    def __init__(self, min_confidence: float = 0.8, top_k: Optional[int] = None) -> None:
         self.min_confidence = min_confidence
         self.top_k = top_k
 
@@ -152,7 +153,7 @@ class TotalOccurrence(DFSelectionStrategy):
 
     def compute_score(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
         relation_identifier: list[str] = ["head_text", "tail_text", "head_label", "tail_label", "label"]
-        occurrences: pd.Series = relation_overview.groupby(relation_identifier)["sentence_text"].transform(
+        occurrences: pd.Series[int] = relation_overview.groupby(relation_identifier)["sentence_text"].transform(
             "nunique" if self.distinct else "count"
         )
         return relation_overview.assign(occurrence=occurrences)
