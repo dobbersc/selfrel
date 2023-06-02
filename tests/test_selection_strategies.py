@@ -59,7 +59,7 @@ def test_build_relation_overview(sentences_with_relation_annotations: list[Sente
 def test_prediction_confidence(prediction_confidence_sentences: list[Sentence]) -> None:
     """
     Tests the PredictionConfidence selection strategy
-    including the underlying RelationOverviewSelectionStrategy abstract class.
+    including the underlying DFSelectionStrategy abstract class.
     """
     sentences: list[Sentence] = prediction_confidence_sentences
     selection_strategy: SelectionStrategy = PredictionConfidence(min_confidence=0.8, top_k=2)
@@ -89,7 +89,7 @@ def test_prediction_confidence(prediction_confidence_sentences: list[Sentence]) 
     ] == [("Berlin", "Germany", "located_in", 0.9), ("Hamburg", "Germany", "located_in", 0.9)]
 
 
-# For all further selection strategies inheriting from RelationOverviewSelectionStrategy,
+# For all further selection strategies inheriting from DFSelectionStrategy,
 # we test the `compute_score` and `select_rows` functions.
 
 
