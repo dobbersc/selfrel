@@ -139,20 +139,23 @@ class PredictionConfidence(RelationOverviewSelectionStrategy):
 
 
 class TotalOccurrence(RelationOverviewSelectionStrategy):
-    def __init__(self, min_occurrence: int, distinct: bool = True, top_k: Optional[int] = None) -> None:
+    def __init__(self, min_occurrence: int = 2, distinct: bool = True, top_k: Optional[int] = None) -> None:
         self.min_occurrence = min_occurrence
         self.distinct = distinct
         self.top_k = top_k
 
     def compute_score(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
-        group_by_columns: list[str] = ["head_text", "tail_text", "head_label", "tail_label", "label"]
-        if self.distinct:
-            group_by_columns.append("sentence_text")
-
-        relation_overview.groupby(group_by_columns).size()
+        relation_identifier: list[str] = ["head_text", "tail_text", "head_label", "tail_label", "label"]
+        occurrences: pd.Series = relation_overview.groupby(relation_identifier)["sentence_text"].transform(
+            "nunique" if self.distinct else "count"
+        )
+        return relation_overview.assign(occurrence=occurrences)
 
     def select_rows(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
-        pass
+        selected: pd.DataFrame = relation_overview[relation_overview.occurrence >= self.min_occurrence]
+        if self.top_k is not None:
+            return selected.nlargest(self.top_k, columns="occurrence", keep="all").head(self.top_k)
+        return selected
 
     def __repr__(self) -> str:
         return (

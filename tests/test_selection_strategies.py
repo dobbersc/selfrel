@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from flair.data import Relation, Sentence
+from flair.data import Sentence
 
 from selfrel.selection_strategies import (
     PredictionConfidence,
@@ -57,6 +57,10 @@ def test_build_relation_overview(sentences_with_relation_annotations: list[Sente
 
 
 def test_prediction_confidence(prediction_confidence_sentences: list[Sentence]) -> None:
+    """
+    Tests the PredictionConfidence selection strategy
+    including the underlying RelationOverviewSelectionStrategy abstract class.
+    """
     sentences: list[Sentence] = prediction_confidence_sentences
     selection_strategy: SelectionStrategy = PredictionConfidence(min_confidence=0.8, top_k=2)
 
@@ -85,59 +89,59 @@ def test_prediction_confidence(prediction_confidence_sentences: list[Sentence]) 
     ] == [("Berlin", "Germany", "located_in", 0.9), ("Hamburg", "Germany", "located_in", 0.9)]
 
 
+# For all further selection strategies inheriting from RelationOverviewSelectionStrategy,
+# we test the `compute_score` and `select_rows` functions.
+
+
 @pytest.fixture()
-def total_occurrence_sentences() -> list[Sentence]:
-    sentences: list[Sentence] = [
-        Sentence("Berlin is the capital of Germany."),
-        Sentence("Albert Einstein was born in Ulm, Germany."),
-        Sentence("Ulm, located in Germany, is the birthplace of Albert Einstein."),
-        Sentence("This is a sentence."),
-    ]
-
-    # Annotate "Berlin is the capital of Germany."
-    sentence: Sentence = sentences[0]
-    sentence[:1].add_label("ner", value="LOC")
-    sentence[5:6].add_label("ner", value="LOC")
-    Relation(first=sentence[:1], second=sentence[5:6]).add_label("relation", value="capital_of")
-
-    # Annotate "Albert Einstein was born in Ulm, Germany."
-    sentence = sentences[1]
-    sentence[:2].add_label("ner", value="PER")
-    sentence[5:6].add_label("ner", value="LOC")
-    sentence[7:8].add_label("ner", value="LOC")
-    Relation(first=sentence[:2], second=sentence[5:6]).add_label("relation", value="born_in")
-    Relation(first=sentence[5:6], second=sentence[7:8]).add_label("relation", value="located_in")
-
-    # Annotate "Ulm, located in Germany, is the birthplace of Albert Einstein."
-    sentence = sentences[2]
-    sentence[:1].add_label("ner", value="LOC")
-    sentence[4:5].add_label("ner", value="LOC")
-    sentence[10:12].add_label("ner", value="PER")
-    Relation(first=sentence[10:12], second=sentence[:1]).add_label("relation", value="born_in")
-    Relation(first=sentence[:1], second=sentence[4:5]).add_label("relation", value="located_in")
-
-    return sentences
+def total_occurrence_relation_overview(sentences_with_relation_annotations: list[Sentence]) -> pd.DataFrame:
+    sentences: list[Sentence] = sentences_with_relation_annotations
+    return build_relation_overview(sentences, entity_label_type="ner", relation_label_type="relation")
 
 
-def test_total_occurrence(total_occurrence_sentences: list[Sentence]) -> None:
-    sentences: list[Sentence] = total_occurrence_sentences
-    selection_strategy: SelectionStrategy = TotalOccurrence(min_occurrence=2)
+class TestTotalOccurrence:
+    def test_distinct(self, total_occurrence_relation_overview: pd.DataFrame) -> None:
+        relation_overview: pd.DataFrame = total_occurrence_relation_overview
+        selection_strategy: TotalOccurrence = TotalOccurrence(min_occurrence=2, distinct=True)
 
-    selected_sentences: list[Sentence] = list(selection_strategy.select_relations(sentences, label_type="relation"))
-    assert len(selected_sentences) == 2
+        scored_relation_overview: pd.DataFrame = selection_strategy.compute_score(relation_overview)
+        expected_score: pd.Series = pd.Series(
+            (1, 1, 2, 2, 2, 2, 1), index=scored_relation_overview.index, name="occurrence"
+        )
+        pd.testing.assert_series_equal(scored_relation_overview["occurrence"], expected_score)
 
-    assert selected_sentences[0] is not sentences[1]
-    assert selected_sentences[0].to_original_text() == "Albert Einstein was born in Ulm, Germany."
-    assert selected_sentences[1] is not sentences[2]
-    assert selected_sentences[1].to_original_text() == "Ulm, located in Germany, is the birthplace of Albert Einstein."
+        selected_relation_overview: pd.DataFrame = selection_strategy.select_rows(scored_relation_overview)
+        expected_index: pd.MultiIndex = pd.MultiIndex.from_arrays(
+            ((2, 2, 3, 3), (0, 1, 0, 1)),
+            names=("sentence_index", "relation_index"),
+        )
+        pd.testing.assert_index_equal(selected_relation_overview.index, expected_index)
 
-    for selected_sentence in selected_sentences:
-        assert {(span.text, span.get_label("ner").value) for span in selected_sentence.get_spans("ner")} == {
-            ("Albert Einstein", "PER"),
-            ("Ulm", "LOC"),
-            ("Germany", "LOC"),
-        }
-        assert {
-            (relation.first.text, relation.second.text, relation.get_label("relation").value)
-            for relation in selected_sentence.get_relations("relation")
-        } == {("Albert Einstein", "Ulm", "born_in"), ("Ulm", "Germany", "located_in")}
+    def test_not_distinct(self, total_occurrence_relation_overview: pd.DataFrame) -> None:
+        relation_overview: pd.DataFrame = total_occurrence_relation_overview
+        selection_strategy: TotalOccurrence = TotalOccurrence(min_occurrence=2, distinct=False)
+
+        scored_relation_overview: pd.DataFrame = selection_strategy.compute_score(relation_overview)
+        expected_score: pd.Series = pd.Series(
+            (2, 2, 2, 2, 2, 2, 1), index=scored_relation_overview.index, name="occurrence"
+        )
+        pd.testing.assert_series_equal(scored_relation_overview["occurrence"], expected_score)
+
+        selected_relation_overview: pd.DataFrame = selection_strategy.select_rows(scored_relation_overview)
+        expected_index: pd.MultiIndex = pd.MultiIndex.from_arrays(
+            ((0, 1, 2, 2, 3, 3), (0, 0, 0, 1, 0, 1)),
+            names=("sentence_index", "relation_index"),
+        )
+        pd.testing.assert_index_equal(selected_relation_overview.index, expected_index)
+
+    def test_top_k(self, total_occurrence_relation_overview: pd.DataFrame) -> None:
+        relation_overview: pd.DataFrame = total_occurrence_relation_overview
+        selection_strategy: TotalOccurrence = TotalOccurrence(min_occurrence=1, distinct=True, top_k=5)
+
+        scored_relation_overview: pd.DataFrame = selection_strategy.compute_score(relation_overview)
+        selected_relation_overview: pd.DataFrame = selection_strategy.select_rows(scored_relation_overview)
+        expected_index: pd.MultiIndex = pd.MultiIndex.from_arrays(
+            ((2, 2, 3, 3, 0), (0, 1, 0, 1, 0)),
+            names=("sentence_index", "relation_index"),
+        )
+        pd.testing.assert_index_equal(selected_relation_overview.index, expected_index)
