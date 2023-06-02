@@ -1,8 +1,12 @@
+from collections.abc import Sequence
+from typing import Any
+
 import pandas as pd
 import pytest
 from flair.data import Sentence
 
 from selfrel.selection_strategies import (
+    DFSelectionStrategy,
     PredictionConfidence,
     SelectionStrategy,
     TotalOccurrence,
@@ -93,6 +97,29 @@ def test_prediction_confidence(prediction_confidence_sentences: list[Sentence]) 
 # we test the `compute_score` and `select_rows` functions.
 
 
+def assert_scores_and_selected_indices(
+    selection_strategy: DFSelectionStrategy,
+    relation_overview: pd.DataFrame,
+    score_name: str,
+    expected_scores: Sequence[Any],
+    expected_scores_indices: Sequence[tuple[int, int]],
+    expected_selected_indices: Sequence[tuple[int, int]],
+) -> None:
+    scored_relation_overview: pd.DataFrame = selection_strategy.compute_score(relation_overview)
+    expected_score_series: pd.Series[Any] = pd.Series(
+        expected_scores,
+        index=pd.MultiIndex.from_tuples(expected_scores_indices, names=("sentence_index", "relation_index")),
+        name=score_name,
+    )
+    pd.testing.assert_series_equal(scored_relation_overview[score_name], expected_score_series)
+
+    expected_selected_index: pd.MultiIndex = pd.MultiIndex.from_tuples(
+        expected_selected_indices, names=("sentence_index", "relation_index")
+    )
+    selected_relation_overview: pd.DataFrame = selection_strategy.select_rows(scored_relation_overview)
+    pd.testing.assert_index_equal(selected_relation_overview.index, expected_selected_index)
+
+
 @pytest.fixture()
 def total_occurrence_relation_overview(sentences_with_relation_annotations: list[Sentence]) -> pd.DataFrame:
     sentences: list[Sentence] = sentences_with_relation_annotations
@@ -101,47 +128,34 @@ def total_occurrence_relation_overview(sentences_with_relation_annotations: list
 
 class TestTotalOccurrence:
     def test_distinct(self, total_occurrence_relation_overview: pd.DataFrame) -> None:
-        relation_overview: pd.DataFrame = total_occurrence_relation_overview
         selection_strategy: TotalOccurrence = TotalOccurrence(min_occurrence=2, distinct=True)
-
-        scored_relation_overview: pd.DataFrame = selection_strategy.compute_score(relation_overview)
-        expected_score: pd.Series[int] = pd.Series(
-            (1, 1, 2, 2, 2, 2, 1), index=scored_relation_overview.index, name="occurrence"
+        assert_scores_and_selected_indices(
+            selection_strategy=selection_strategy,
+            relation_overview=total_occurrence_relation_overview,
+            score_name="occurrence",
+            expected_scores=(1, 1, 2, 2, 2, 2, 1),
+            expected_scores_indices=((0, 0), (1, 0), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0)),
+            expected_selected_indices=((2, 0), (2, 1), (3, 0), (3, 1)),
         )
-        pd.testing.assert_series_equal(scored_relation_overview["occurrence"], expected_score)
-
-        selected_relation_overview: pd.DataFrame = selection_strategy.select_rows(scored_relation_overview)
-        expected_index: pd.MultiIndex = pd.MultiIndex.from_arrays(
-            ((2, 2, 3, 3), (0, 1, 0, 1)),
-            names=("sentence_index", "relation_index"),
-        )
-        pd.testing.assert_index_equal(selected_relation_overview.index, expected_index)
 
     def test_not_distinct(self, total_occurrence_relation_overview: pd.DataFrame) -> None:
-        relation_overview: pd.DataFrame = total_occurrence_relation_overview
         selection_strategy: TotalOccurrence = TotalOccurrence(min_occurrence=2, distinct=False)
-
-        scored_relation_overview: pd.DataFrame = selection_strategy.compute_score(relation_overview)
-        expected_score: pd.Series[int] = pd.Series(
-            (2, 2, 2, 2, 2, 2, 1), index=scored_relation_overview.index, name="occurrence"
+        assert_scores_and_selected_indices(
+            selection_strategy=selection_strategy,
+            relation_overview=total_occurrence_relation_overview,
+            score_name="occurrence",
+            expected_scores=(2, 2, 2, 2, 2, 2, 1),
+            expected_scores_indices=((0, 0), (1, 0), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0)),
+            expected_selected_indices=((0, 0), (1, 0), (2, 0), (2, 1), (3, 0), (3, 1)),
         )
-        pd.testing.assert_series_equal(scored_relation_overview["occurrence"], expected_score)
-
-        selected_relation_overview: pd.DataFrame = selection_strategy.select_rows(scored_relation_overview)
-        expected_index: pd.MultiIndex = pd.MultiIndex.from_arrays(
-            ((0, 1, 2, 2, 3, 3), (0, 0, 0, 1, 0, 1)),
-            names=("sentence_index", "relation_index"),
-        )
-        pd.testing.assert_index_equal(selected_relation_overview.index, expected_index)
 
     def test_top_k(self, total_occurrence_relation_overview: pd.DataFrame) -> None:
-        relation_overview: pd.DataFrame = total_occurrence_relation_overview
         selection_strategy: TotalOccurrence = TotalOccurrence(min_occurrence=1, distinct=True, top_k=5)
-
-        scored_relation_overview: pd.DataFrame = selection_strategy.compute_score(relation_overview)
-        selected_relation_overview: pd.DataFrame = selection_strategy.select_rows(scored_relation_overview)
-        expected_index: pd.MultiIndex = pd.MultiIndex.from_arrays(
-            ((2, 2, 3, 3, 0), (0, 1, 0, 1, 0)),
-            names=("sentence_index", "relation_index"),
+        assert_scores_and_selected_indices(
+            selection_strategy=selection_strategy,
+            relation_overview=total_occurrence_relation_overview,
+            score_name="occurrence",
+            expected_scores=(1, 1, 2, 2, 2, 2, 1),
+            expected_scores_indices=((0, 0), (1, 0), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0)),
+            expected_selected_indices=((2, 0), (2, 1), (3, 0), (3, 1), (0, 0)),
         )
-        pd.testing.assert_index_equal(selected_relation_overview.index, expected_index)
