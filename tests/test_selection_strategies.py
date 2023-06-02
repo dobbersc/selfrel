@@ -12,7 +12,7 @@ from selfrel.selection_strategies import (
 
 def test_build_relation_overview(sentences_with_relation_annotations: list[Sentence]) -> None:
     sentences: list[Sentence] = sentences_with_relation_annotations
-    result: pd.DataFrame = build_relation_overview(sentences, entity_label_type="ner", relation_label_type="relation")
+    result: pd.DataFrame = build_relation_overview(sentences, entity_label_types="ner", relation_label_type="relation")
 
     index: pd.MultiIndex = pd.MultiIndex.from_arrays(
         ((0, 1, 2, 2, 3, 3, 4), (0, 0, 0, 1, 0, 1, 0)),
@@ -65,7 +65,7 @@ def test_prediction_confidence(prediction_confidence_sentences: list[Sentence]) 
     selection_strategy: SelectionStrategy = PredictionConfidence(min_confidence=0.8, top_k=2)
 
     selected_sentences: list[Sentence] = list(
-        selection_strategy.select_relations(sentences, entity_label_type="ner", relation_label_type="relation")
+        selection_strategy.select_relations(sentences, entity_label_types="ner", relation_label_type="relation")
     )
     assert len(selected_sentences) == 1
 
@@ -96,7 +96,7 @@ def test_prediction_confidence(prediction_confidence_sentences: list[Sentence]) 
 @pytest.fixture()
 def total_occurrence_relation_overview(sentences_with_relation_annotations: list[Sentence]) -> pd.DataFrame:
     sentences: list[Sentence] = sentences_with_relation_annotations
-    return build_relation_overview(sentences, entity_label_type="ner", relation_label_type="relation")
+    return build_relation_overview(sentences, entity_label_types="ner", relation_label_type="relation")
 
 
 class TestTotalOccurrence:

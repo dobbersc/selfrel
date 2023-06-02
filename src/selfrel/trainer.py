@@ -109,7 +109,9 @@ class SelfTrainer:
             global_label_types: LabelTypes = LabelTypes.from_conllu_file(dataset_file)
 
         selected_sentences: Iterator[Sentence] = selection_strategy.select_relations(
-            dataset, entity_label_type=self._model.entity_label_types, relation_label_type=self._model.label_type
+            dataset,
+            entity_label_types=set(self._model.entity_label_types.keys()),
+            relation_label_type=self._model.label_type,
         )
 
         output_path.parent.mkdir(parents=True, exist_ok=True)

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
-from typing import Optional
+from typing import Optional, Union
 
 import pandas as pd
 from flair.data import Label, Relation, Sentence
@@ -17,8 +17,13 @@ __all__ = [
 
 
 def build_relation_overview(
-    sentences: Sequence[Sentence], entity_label_type: str, relation_label_type: str
+    sentences: Sequence[Sentence],
+    entity_label_types: Optional[Union[set[Optional[str]], str]],
+    relation_label_type: str,
 ) -> pd.DataFrame:
+    if not isinstance(entity_label_types, set):
+        entity_label_types = {entity_label_types}
+
     sentence_indices: list[int] = []
     relation_indices: list[int] = []
     sentence_texts: list[str] = []
@@ -46,8 +51,10 @@ def build_relation_overview(
             head_texts.append(relation.first.text)
             tail_texts.append(relation.second.text)
 
-            head_labels.append(relation.first.get_label(entity_label_type).value)
-            tail_labels.append(relation.second.get_label(entity_label_type).value)
+            head_label: str = next(relation.first.get_label(label_type).value for label_type in entity_label_types)
+            tail_label: str = next(relation.second.get_label(label_type).value for label_type in entity_label_types)
+            head_labels.append(head_label)
+            tail_labels.append(tail_label)
 
     index: pd.MultiIndex = pd.MultiIndex.from_arrays(
         (sentence_indices, relation_indices),
@@ -87,7 +94,10 @@ class SelectionStrategy(ABC):
 
     @abstractmethod
     def select_relations(
-        self, sentences: Sequence[Sentence], entity_label_type: str, relation_label_type: str
+        self,
+        sentences: Sequence[Sentence],
+        entity_label_types: Optional[Union[set[Optional[str]], str]],
+        relation_label_type: str,
     ) -> Iterator[Sentence]:
         pass
 
@@ -105,10 +115,13 @@ class DFSelectionStrategy(SelectionStrategy, ABC):
         pass
 
     def select_relations(
-        self, sentences: Sequence[Sentence], entity_label_type: str, relation_label_type: str
+        self,
+        sentences: Sequence[Sentence],
+        entity_label_types: Optional[Union[set[Optional[str]], str]],
+        relation_label_type: str,
     ) -> Iterator[Sentence]:
         relation_overview: pd.DataFrame = build_relation_overview(
-            sentences, entity_label_type=entity_label_type, relation_label_type=relation_label_type
+            sentences, entity_label_types=entity_label_types, relation_label_type=relation_label_type
         )
 
         scored_relation_overview: pd.DataFrame = self.compute_score(relation_overview)
