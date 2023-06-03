@@ -5,6 +5,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Final, Literal, Optional, Union
 
+import flair
 from flair.data import Corpus, Sentence
 from flair.datasets import RE_ENGLISH_CONLL04, DataLoader
 from flair.embeddings import TransformerDocumentEmbeddings
@@ -63,8 +64,12 @@ def train(
     buffer_size: Optional[int] = None,
     prediction_batch_size: int = 32,
     exclude_from_evaluation: Optional[list[str]] = None,
+    seed: Optional[int] = None,
 ) -> None:
     hyperparameters: dict[str, Any] = locals()
+
+    if seed is not None:
+        flair.set_seed(seed)
 
     # Step 1: Create the training data and support dataset
     # The relation extractor is *not* trained end-to-end.
