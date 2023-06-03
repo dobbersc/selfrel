@@ -5,6 +5,7 @@ from pathlib import Path
 import importlib_resources
 from importlib_resources.abc import Traversable
 
+import selfrel
 from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
 
 entrypoint_descriptions: Traversable = importlib_resources.files("selfrel.entry_points.descriptions")
@@ -279,7 +280,9 @@ def add_train(subparsers) -> None:
 
 
 def parse_args(args: list[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(formatter_class=RawTextArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(prog="selfrel", formatter_class=RawTextArgumentDefaultsHelpFormatter)
+    parser.add_argument("--version", action="version", version=f"%(prog)s {selfrel.__version__}")
+
     subparsers = parser.add_subparsers(required=True)
 
     export = subparsers.add_parser(
