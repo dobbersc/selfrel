@@ -77,12 +77,13 @@ def call_train(args: argparse.Namespace) -> None:
         selection_strategy=args.selection_strategy,
         min_confidence=args.min_confidence,
         min_occurrence=args.min_occurrence,
+        top_k=args.top_k,
+        exclude_labels_from_evaluation=args.exclude_labels_from_evaluation,
         num_actors=args.num_actors,
         num_cpus=args.num_cpus,
         num_gpus=args.num_gpus,
         buffer_size=args.buffer_size,
         prediction_batch_size=args.prediction_batch_size,
-        exclude_labels_from_evaluation=args.exclude_labels_from_evaluation,
         seed=args.seed,
     )
 
@@ -271,6 +272,7 @@ def add_train(subparsers) -> None:
     )
     train.add_argument("--min-confidence", type=float, default=None, help="TODO")
     train.add_argument("--min-occurrence", type=int, default=None, help="TODO")
+    train.add_argument("--top-k", type=int, default=None, help="TODO")
     train.add_argument("--num-actors", type=int, default=1, help="TODO")
     train.add_argument("--num-cpus", type=float, default=None, help="TODO")
     train.add_argument("--num-gpus", type=float, default=1.0, help="TODO")

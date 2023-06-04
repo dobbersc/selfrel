@@ -58,12 +58,13 @@ def train(
     selection_strategy: Literal["prediction-confidence", "total-occurrence"] = "prediction-confidence",
     min_confidence: Optional[float] = None,
     min_occurrence: Optional[int] = None,
+    top_k: Optional[int] = None,
+    exclude_labels_from_evaluation: Optional[list[str]] = None,
     num_actors: int = 1,
     num_cpus: Optional[float] = None,
     num_gpus: Optional[float] = 1,
     buffer_size: Optional[int] = None,
     prediction_batch_size: int = 32,
-    exclude_labels_from_evaluation: Optional[list[str]] = None,
     seed: Optional[int] = None,
 ) -> None:
     hyperparameters: dict[str, Any] = locals()
@@ -133,9 +134,15 @@ def train(
     # Step 5: Run self-trainer
     strategy: SelectionStrategy
     if selection_strategy == "prediction-confidence":
-        strategy = PredictionConfidence() if min_confidence is None else PredictionConfidence(min_confidence)
+        strategy = (
+            PredictionConfidence(top_k=top_k)
+            if min_confidence is None
+            else PredictionConfidence(min_confidence, top_k=top_k)
+        )
     elif selection_strategy == "total-occurrence":
-        strategy = TotalOccurrence() if min_occurrence is None else TotalOccurrence(min_occurrence)
+        strategy = (
+            TotalOccurrence(top_k=top_k) if min_occurrence is None else TotalOccurrence(min_occurrence, top_k=top_k)
+        )
     else:
         msg = f"Specified invalid selection strategy {selection_strategy!r}"  # type: ignore[unreachable]
         raise ValueError(msg)
