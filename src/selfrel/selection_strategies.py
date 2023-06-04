@@ -4,6 +4,7 @@ from typing import Optional, Union
 
 import pandas as pd
 from flair.data import Label, Relation, Sentence
+from tqdm import tqdm
 
 from selfrel.utils.copy import deepcopy_flair_sentence
 
@@ -34,7 +35,7 @@ def build_relation_overview(
     labels: list[str] = []
     confidences: list[float] = []
 
-    for sentence_index, sentence in enumerate(sentences):
+    for sentence_index, sentence in enumerate(tqdm(sentences, desc="Building Relation Overview")):
         sentence_text: str = sentence.to_original_text()
 
         relation: Relation
@@ -127,17 +128,19 @@ class DFSelectionStrategy(SelectionStrategy, ABC):
         scored_relation_overview: pd.DataFrame = self.compute_score(relation_overview)
         selected_relation_overview: pd.DataFrame = self.select_rows(scored_relation_overview)
 
-        for sentence_index, group in selected_relation_overview.groupby("sentence_index"):
-            assert isinstance(sentence_index, int)
-            sentence: Sentence = sentences[sentence_index]
-            relations: list[Relation] = sentence.get_relations(relation_label_type)
-            selected_relations: list[Relation] = [
-                relations[relation_index] for relation_index in group.reset_index()["relation_index"]
-            ]
+        with tqdm(desc="Creating Data Points", total=len(selected_relation_overview.index)) as progress_bar:
+            for sentence_index, group in selected_relation_overview.groupby("sentence_index"):
+                assert isinstance(sentence_index, int)
+                sentence: Sentence = sentences[sentence_index]
+                relations: list[Relation] = sentence.get_relations(relation_label_type)
+                selected_relations: list[Relation] = [
+                    relations[relation_index] for relation_index in group.reset_index()["relation_index"]
+                ]
 
-            yield self._create_selected_sentence(
-                sentence=sentence, relations=selected_relations, relation_label_type=relation_label_type
-            )
+                progress_bar.update(len(group.index))
+                yield self._create_selected_sentence(
+                    sentence=sentence, relations=selected_relations, relation_label_type=relation_label_type
+                )
 
 
 class PredictionConfidence(DFSelectionStrategy):
