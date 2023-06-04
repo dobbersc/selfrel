@@ -29,6 +29,7 @@ def knowledge_base(sentences_with_relation_annotations: list[Sentence], tmp_path
         yield cursor
 
 
+@pytest.fixture()
 def entropy_knowledge_base(entropy_sentences: list[Sentence], tmp_path: Path) -> Iterator[sqlite3.Cursor]:
     """The knowledge base used for the entropy relation calculation test."""
     database_path: Path = tmp_path / "knowledge-base.db"
