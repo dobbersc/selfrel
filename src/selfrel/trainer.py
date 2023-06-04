@@ -1,9 +1,11 @@
 import contextlib
 import logging
-from collections.abc import Iterator
+import shutil
+from collections.abc import Iterator, Sequence
 from pathlib import Path
 from typing import Any, Optional, Union
 
+import more_itertools
 from flair.data import Corpus, Sentence
 from flair.models import RelationClassifier
 from flair.models.relation_classifier_model import EncodedSentence
@@ -149,8 +151,14 @@ class SelfTrainer:
         base_path: Union[str, Path],
         self_training_iterations: int = 1,
         selection_strategy: Optional[SelectionStrategy] = None,
+        overwrite_annotated_support_datasets: Sequence[Optional[CoNLLUPlusDataset]] = (),
         **kwargs: Any,
     ) -> RelationClassifier:
+        # Pad "overwrite_annotated_support_datasets" with "None" values to match the number of self-training iterations
+        overwrite_annotated_support_datasets = tuple(
+            more_itertools.padded(overwrite_annotated_support_datasets, n=self_training_iterations)
+        )
+
         # Create output folder
         base_path = Path(base_path)
         base_path.mkdir(parents=True, exist_ok=True)
@@ -169,9 +177,15 @@ class SelfTrainer:
             iteration_base_path: Path = base_path / f"iteration-{self_training_iteration}"
 
             # Predict support dataset
-            annotated_support_dataset: CoNLLUPlusDataset[Sentence] = self._annotate_support_dataset(
-                teacher_model, output_path=iteration_base_path / "support-dataset-full.conllup"
-            )
+            annotated_support_dataset: CoNLLUPlusDataset[Sentence]
+            output_path: Path = iteration_base_path / "support-dataset-full.conllup"
+            if (overwrite := overwrite_annotated_support_datasets[self_training_iteration - 1]) is None:
+                annotated_support_dataset = self._annotate_support_dataset(teacher_model, output_path=output_path)
+            else:
+                logger.info("Overwriting annotated support dataset with %s", repr(str(overwrite.dataset_path)))
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy(overwrite.dataset_path, output_path)
+                annotated_support_dataset = overwrite
 
             # Select confident data points
             annotated_support_dataset = self._select_support_datapoints(

@@ -6,7 +6,7 @@ import importlib_resources
 from importlib_resources.abc import Traversable
 
 import selfrel
-from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
+from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter, none_or_str
 
 entrypoint_descriptions: Traversable = importlib_resources.files("selfrel.entry_points.descriptions")
 
@@ -78,6 +78,7 @@ def call_train(args: argparse.Namespace) -> None:
         min_confidence=args.min_confidence,
         min_occurrence=args.min_occurrence,
         top_k=args.top_k,
+        overwrite_annotated_support_datasets=args.overwrite_annotated_support_datasets,
         exclude_labels_from_evaluation=args.exclude_labels_from_evaluation,
         num_actors=args.num_actors,
         num_cpus=args.num_cpus,
@@ -273,6 +274,7 @@ def add_train(subparsers) -> None:
     train.add_argument("--min-confidence", type=float, default=None, help="TODO")
     train.add_argument("--min-occurrence", type=int, default=None, help="TODO")
     train.add_argument("--top-k", type=int, default=None, help="TODO")
+    train.add_argument("--overwrite-annotated-support-datasets", nargs="*", default=(), type=none_or_str, help="TODO")
     train.add_argument("--num-actors", type=int, default=1, help="TODO")
     train.add_argument("--num-cpus", type=float, default=None, help="TODO")
     train.add_argument("--num-gpus", type=float, default=1.0, help="TODO")
