@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 def test_annotate_tokens(tmp_path: Path, resources_dir: Path) -> None:
     annotate(
         resources_dir / "cc-news-short.conllup",
-        out_path=tmp_path / "cc-news-pos.conllup",
+        out=tmp_path / "cc-news-pos.conllup",
         model="flair/upos-english-fast",
         num_gpus=0,
     )
@@ -33,7 +33,7 @@ def test_annotate_tokens(tmp_path: Path, resources_dir: Path) -> None:
 def test_annotate_span(tmp_path: Path, resources_dir: Path) -> None:
     annotate(
         resources_dir / "cc-news-short.conllup",
-        out_path=tmp_path / "cc-news-ner.conllup",
+        out=tmp_path / "cc-news-ner.conllup",
         model="flair/ner-english-fast",
         num_gpus=0,
     )

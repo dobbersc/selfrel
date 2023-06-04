@@ -15,9 +15,9 @@ def call_export_cc_news(args: argparse.Namespace) -> None:
     from selfrel.entry_points.export.cc_news import export_cc_news
 
     export_cc_news(
-        out_dir=args.out,
+        out_dir=args.out_dir,
         export_metadata=args.export_metadata,
-        dataset_slice=args.slice,
+        dataset_slice=args.dataset_slice,
         max_sentence_length=args.max_sentence_length,
         processes=args.processes,
     )
@@ -43,7 +43,7 @@ def call_annotate(args: argparse.Namespace) -> None:
     ray.init()
     annotate(
         dataset_path=args.dataset,
-        out_path=args.out,
+        out=args.out,
         model=args.model,
         label_type=args.label_type,
         abstraction_level=args.abstraction_level,
@@ -100,9 +100,9 @@ def add_export_cc_news(export_subparsers) -> None:
 
     export_cc_news.add_argument(
         "-o",
-        "--out",
+        "--out-dir",
         type=Path,
-        default=".",
+        default=Path(),
         help="The output directory for the processed articles.",
     )
     # noinspection PyTypeChecker
@@ -113,7 +113,7 @@ def add_export_cc_news(export_subparsers) -> None:
         help="If set, the article's metadata will be exported to 'OUT/metadata.json'.",
     )
     export_cc_news.add_argument(
-        "--slice",
+        "--dataset-slice",
         default=None,
         help=(
             "A huggingface datasets slice, e.g. ':100', '25%%:75%%'. "  # Double '%' to escape formatted string
@@ -166,6 +166,7 @@ def add_annotate(subparsers) -> None:
 
     annotate.add_argument("dataset", type=Path, help="The path to the CoNLL-U Plus dataset to annotate.")
     annotate.add_argument(
+        "-o",
         "--out",
         type=Path,
         default=None,

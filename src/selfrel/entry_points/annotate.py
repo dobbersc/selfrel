@@ -45,7 +45,7 @@ def _add_new_label_type(
 
 def annotate(
     dataset_path: Union[str, Path],
-    out_path: Optional[Union[str, Path]] = None,
+    out: Optional[Union[str, Path]] = None,
     model: Union[str, Path] = "flair/ner-english-large",
     label_type: Optional[str] = None,
     abstraction_level: Optional[AbstractionLevel] = None,
@@ -82,17 +82,17 @@ def annotate(
     _add_new_label_type(global_label_types, new_label_type=label_type, abstraction_level=abstraction_level)
 
     # Set output path
-    if out_path is None:
-        out_path = dataset_path.parent / f"{dataset_path.stem}-{label_type}{dataset_path.suffix}"
-    out_path = Path(out_path)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
+    if out is None:
+        out = dataset_path.parent / f"{dataset_path.stem}-{label_type}{dataset_path.suffix}"
+    out = Path(out)
+    out.parent.mkdir(parents=True, exist_ok=True)
 
     # Process dataset
     processed_sentences: Iterator[Sentence] = predictor_pool.predict(
         dataset, mini_batch_size=batch_size, buffer_size=buffer_size
     )
 
-    with out_path.open("w", encoding="utf-8") as output_file:
+    with out.open("w", encoding="utf-8") as output_file:
         export_to_conllu(
             output_file,
             sentences=tqdm(processed_sentences, desc="Processing Sentences", total=len(dataset)),
