@@ -280,7 +280,7 @@ def add_train(subparsers) -> None:
     train.add_argument("--seed", type=int, default=None, help="TODO")
 
 
-def parse_args(args: list[str]) -> argparse.Namespace:
+def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="selfrel", formatter_class=RawTextArgumentDefaultsHelpFormatter)
     parser.add_argument("--version", action="version", version=f"%(prog)s {selfrel.__version__}")
 
@@ -299,15 +299,18 @@ def parse_args(args: list[str]) -> argparse.Namespace:
     add_annotate(subparsers)
     add_train(subparsers)
 
-    return parser.parse_args(args)
+    return parser.parse_args(argv)
+
+
+def run(argv: list[str]) -> None:
+    """Parses the args and calls the dedicated function."""
+    args: argparse.Namespace = parse_args(argv)
+    args.func(args)
 
 
 def main() -> None:
     """The main entry-point."""
-
-    # Parse the args and call the dedicated function
-    args: argparse.Namespace = parse_args(sys.argv[1:])
-    args.func(args)
+    run(sys.argv[1:])
 
 
 if __name__ == "__main__":
