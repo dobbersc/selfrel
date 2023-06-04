@@ -59,7 +59,7 @@ def register_classifier_serializers() -> None:
 
         return serialized
 
-    def deserializer(model_binary: bytes) -> Classifier[Sentence]:
+    def deserializer(model_binary: bytes) -> Classifier[Sentence]:  # pragma: no cover
         with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as file:
             model_path: Path = Path(file.name)
 
@@ -83,7 +83,9 @@ register_classifier_serializers()
 class Predictor(Generic[SentenceT]):
     """A Ray actor that wraps the predict function of Flair's Classifier model."""
 
-    def __init__(self, model: Union[str, Path, Classifier[SentenceT]], index: Optional[int] = None) -> None:
+    def __init__(
+        self, model: Union[str, Path, Classifier[SentenceT]], index: Optional[int] = None
+    ) -> None:  # pragma: no cover
         """
         Initializes a :class:`Predictor` as Ray actor from a Flair classifier.
         :param model: A model path or identifier for a Flair classifier.
@@ -111,7 +113,9 @@ class Predictor(Generic[SentenceT]):
     def predict(self, sentences: list[SentenceT]) -> list[SentenceT]:
         ...
 
-    def predict(self, sentences: Union[SentenceT, list[SentenceT]], **kwargs: Any) -> Union[SentenceT, list[SentenceT]]:
+    def predict(
+        self, sentences: Union[SentenceT, list[SentenceT]], **kwargs: Any
+    ) -> Union[SentenceT, list[SentenceT]]:  # pragma: no cover
         self._model.predict(sentences, **kwargs)
         return sentences
 
