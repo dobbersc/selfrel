@@ -1,6 +1,8 @@
 import math
 import sqlite3
 
+__all__ = ["function_is_registered", "register_log"]
+
 
 def function_is_registered(cursor: sqlite3.Cursor, function_name: str, number_of_arguments: int) -> bool:
     """

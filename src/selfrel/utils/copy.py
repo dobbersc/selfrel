@@ -7,6 +7,8 @@ from flair.nn import Model
 
 from selfrel.data import from_conllu, to_conllu
 
+__all__ = ["deepcopy_flair_model", "deepcopy_flair_sentence"]
+
 ModelT = TypeVar("ModelT", bound=Model[Any])
 
 
