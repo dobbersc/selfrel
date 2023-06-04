@@ -8,9 +8,20 @@ write_to = "src/selfrel/_version.py"
 
 
 [tool.pytest.ini_options]
-addopts = "--cov=selfrel"
+addopts = "--cov=selfrel --cov-config pyproject.toml"
 testpaths = [
     "tests",
+]
+
+
+[tool.coverage.report]
+# Selection from https://coverage.readthedocs.io/en/stable/excluding.html#advanced-exclusion
+exclude_also = [
+    'def __repr__',
+    'if TYPE_CHECKING:',
+    '@(typing\.)?overload',
+    '@(abc\.)?abstractmethod',
+    'class .*\bProtocol\):',
 ]
 
 
