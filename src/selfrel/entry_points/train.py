@@ -63,7 +63,7 @@ def train(
     num_gpus: Optional[float] = 1,
     buffer_size: Optional[int] = None,
     prediction_batch_size: int = 32,
-    exclude_from_evaluation: Optional[list[str]] = None,
+    exclude_labels_from_evaluation: Optional[list[str]] = None,
     seed: Optional[int] = None,
 ) -> None:
     hyperparameters: dict[str, Any] = locals()
@@ -148,5 +148,5 @@ def train(
         learning_rate=learning_rate,
         mini_batch_size=batch_size,
         main_evaluation_metric=("macro avg", "f1-score"),
-        exclude_labels=[] if exclude_from_evaluation is None else exclude_from_evaluation,
+        exclude_labels=[] if exclude_labels_from_evaluation is None else exclude_labels_from_evaluation,
     )

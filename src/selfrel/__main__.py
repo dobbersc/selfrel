@@ -82,7 +82,7 @@ def call_train(args: argparse.Namespace) -> None:
         num_gpus=args.num_gpus,
         buffer_size=args.buffer_size,
         prediction_batch_size=args.prediction_batch_size,
-        exclude_from_evaluation=args.exclude_from_evaluation,
+        exclude_labels_from_evaluation=args.exclude_labels_from_evaluation,
         seed=args.seed,
     )
 
@@ -276,7 +276,7 @@ def add_train(subparsers) -> None:
     train.add_argument("--num-gpus", type=float, default=1.0, help="TODO")
     train.add_argument("--buffer-size", type=int, default=None, help="TODO")
     train.add_argument("--prediction-batch-size", type=int, default=32, help="TODO")
-    train.add_argument("--exclude-from-evaluation", nargs="*", default=None, help="TODO")
+    train.add_argument("--exclude-labels-from-evaluation", nargs="*", default=None, help="TODO")
     train.add_argument("--seed", type=int, default=None, help="TODO")
 
 
