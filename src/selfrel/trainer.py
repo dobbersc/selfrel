@@ -134,13 +134,13 @@ class SelfTrainer:
                 for encoded_sentence in self._model.transform_sentence(sentence)
             )
 
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        with output_path.open("w", encoding="utf-8") as output_file:
-            export_to_conllu(
-                output_file,
-                sentences=encoded_sentences,
-                global_label_types=LabelTypes(token_level=[], span_level=[]),
-            )
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            with output_path.open("w", encoding="utf-8") as output_file:
+                export_to_conllu(
+                    output_file,
+                    sentences=encoded_sentences,
+                    global_label_types=LabelTypes(token_level=[], span_level=[]),
+                )
 
         return CoNLLUPlusDataset(output_path, sentence_type=EncodedSentence, persist=False)
 
