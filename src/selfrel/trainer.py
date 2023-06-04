@@ -198,6 +198,7 @@ class SelfTrainer:
             encoded_support_dataset: CoNLLUPlusDataset[EncodedSentence] = self._encode_support_dataset(
                 annotated_support_dataset, output_path=iteration_base_path / "support-dataset-encoded.conllup"
             )
+            logger.info("Augmented training data with %s data points", len(encoded_support_dataset))
 
             # Train student model on encoded augmented corpus
             assert self._encoded_corpus.train
