@@ -17,7 +17,7 @@ SentenceT = TypeVar("SentenceT", bound=Sentence)
 def _serialized_conllu_plus_sentence_iter(
     fp: TextIO,
     dataset_name: str,
-    disable_progress_bar: bool = False,
+    show_progress_bar: bool = True,
 ) -> Iterator[str]:
     dataset_size: int = os.fstat(fp.fileno()).st_size
     with tqdm(
@@ -25,7 +25,7 @@ def _serialized_conllu_plus_sentence_iter(
         unit="B",
         unit_scale=True,
         desc=f"Loading Dataset {dataset_name!r}",
-        disable=disable_progress_bar,
+        disable=not show_progress_bar,
     ) as progress_bar:
         global_columns: str = fp.readline()
         if not global_columns.startswith("# global.columns"):
@@ -64,7 +64,7 @@ class CoNLLUPlusDataset(Dataset[SentenceT], Sequence[Sentence]):
         dataset_path: Union[str, Path],
         dataset_name: Optional[str] = None,
         persist: bool = True,
-        disable_progress_bar: bool = False,
+        show_progress_bar: bool = True,
         # Typing workaround for specifying a default value for a generic parameter
         # https://github.com/python/mypy/issues/3737
         sentence_type: type[SentenceT] = Sentence,  # type: ignore[assignment]
@@ -81,7 +81,7 @@ class CoNLLUPlusDataset(Dataset[SentenceT], Sequence[Sentence]):
                         If False, only the dataset file is loaded into memory as a string.
                         Calls to `__getitem__` or `__iter__` parse the dataset file on the fly to Flair Sentences.
                         The returned Sentences are not persistent.
-        :param disable_progress_bar: Disables the progress bar for loading the dataset
+        :param show_progress_bar: Flag to show the progress bar when loading the dataset
         :param kwargs: Keywords arguments are passed to `conllu.parse`
         """
         self._dataset_path = Path(dataset_path)
@@ -96,12 +96,12 @@ class CoNLLUPlusDataset(Dataset[SentenceT], Sequence[Sentence]):
                 self._sentences = tuple(
                     from_conllu(sentence, cls=self._sentence_type, **self._kwargs)
                     for sentence in _serialized_conllu_plus_sentence_iter(
-                        dataset_file, self._dataset_name, disable_progress_bar
+                        dataset_file, self._dataset_name, show_progress_bar
                     )
                 )
             else:
                 self._sentences = tuple(
-                    _serialized_conllu_plus_sentence_iter(dataset_file, self._dataset_name, disable_progress_bar)
+                    _serialized_conllu_plus_sentence_iter(dataset_file, self._dataset_name, show_progress_bar)
                 )
 
         if not self._sentences:
