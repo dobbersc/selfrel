@@ -18,6 +18,7 @@ def test_prediction_confidence(prediction_confidence_sentences: list[Sentence]) 
     sentences: list[Sentence] = prediction_confidence_sentences
     selection_strategy: SelectionStrategy = PredictionConfidence(min_confidence=0.8, top_k=2)
 
+    # TODO: Test `SelectionReport` correctness and `precomputed_relation_overview` parameter
     selected_sentences: list[Sentence] = list(
         selection_strategy.select_relations(sentences, entity_label_types="ner", relation_label_type="relation")
     )

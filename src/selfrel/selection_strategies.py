@@ -9,14 +9,42 @@ from tqdm import tqdm
 from selfrel.utils.copy import deepcopy_flair_sentence
 from selfrel.utils.inspect_relations import build_relation_overview
 
-__all__ = ["SelectionStrategy", "PredictionConfidence", "TotalOccurrence"]
+__all__ = ["SelectionReport", "SelectionStrategy", "PredictionConfidence", "TotalOccurrence"]
+
+
+class SelectionReport(Iterator[Sentence]):
+    def __init__(
+        self,
+        sentences: Iterator[Sentence],
+        relation_overview: pd.DataFrame,
+        scored_relation_overview: pd.DataFrame,
+        selected_relation_overview: pd.DataFrame,
+    ) -> None:
+        self.sentences = sentences
+        self.relation_overview = relation_overview
+        self.scored_relation_overview = scored_relation_overview
+        self.selected_relation_overview = selected_relation_overview
+
+    def __next__(self) -> Sentence:
+        return next(self.sentences)
 
 
 class SelectionStrategy(ABC):
+    @abstractmethod
+    def compute_score(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def select_rows(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
+        pass
+
     @staticmethod
-    def _create_selected_sentence(
+    def _create_sentence_with_relations(
         sentence: Sentence, relations: Sequence[Relation], relation_label_type: str
     ) -> Sentence:
+        assert all(
+            relation.sentence is sentence for relation in relations
+        ), "The passed relations do not originate from the passed sentence."
         sentence = deepcopy_flair_sentence(sentence)
         sentence.remove_labels(relation_label_type)  # Remove relation annotations
 
@@ -30,28 +58,11 @@ class SelectionStrategy(ABC):
 
         return sentence
 
-    @abstractmethod
-    def compute_score(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
-        pass
-
-    @abstractmethod
-    def select_rows(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
-        pass
-
-    def select_relations(
-        self,
-        sentences: Sequence[Sentence],
-        entity_label_types: Optional[Union[set[Optional[str]], str]],
-        relation_label_type: str,
+    @classmethod
+    def _create_sentences_with_selected_relations(
+        cls, sentences: Sequence[Sentence], selected_relation_overview: pd.DataFrame, relation_label_type: str
     ) -> Iterator[Sentence]:
-        relation_overview: pd.DataFrame = build_relation_overview(
-            sentences, entity_label_types=entity_label_types, relation_label_type=relation_label_type
-        )
-
-        scored_relation_overview: pd.DataFrame = self.compute_score(relation_overview)
-        selected_relation_overview: pd.DataFrame = self.select_rows(scored_relation_overview)
-
-        with tqdm(desc="Creating Data Points", total=len(selected_relation_overview.index)) as progress_bar:
+        with tqdm(desc="Creating Selected Data Points", total=len(selected_relation_overview.index)) as progress_bar:
             for sentence_index, group in selected_relation_overview.groupby("sentence_index"):
                 assert isinstance(sentence_index, int)
                 sentence: Sentence = sentences[sentence_index]
@@ -60,10 +71,38 @@ class SelectionStrategy(ABC):
                     relations[relation_index] for relation_index in group.reset_index()["relation_index"]
                 ]
 
-                progress_bar.update(len(group.index))
-                yield self._create_selected_sentence(
+                yield cls._create_sentence_with_relations(
                     sentence=sentence, relations=selected_relations, relation_label_type=relation_label_type
                 )
+                progress_bar.update(len(group.index))
+
+    def select_relations(
+        self,
+        sentences: Sequence[Sentence],
+        entity_label_types: Optional[Union[set[Optional[str]], str]],
+        relation_label_type: str,
+        precomputed_relation_overview: Optional[pd.DataFrame] = None,
+    ) -> SelectionReport:
+        relation_overview: pd.DataFrame = (
+            build_relation_overview(
+                sentences, entity_label_types=entity_label_types, relation_label_type=relation_label_type
+            )
+            if precomputed_relation_overview is None
+            else precomputed_relation_overview
+        )
+
+        scored_relation_overview: pd.DataFrame = self.compute_score(relation_overview)
+        selected_relation_overview: pd.DataFrame = self.select_rows(scored_relation_overview)
+        selected_sentences: Iterator[Sentence] = self._create_sentences_with_selected_relations(
+            sentences, selected_relation_overview, relation_label_type
+        )
+
+        return SelectionReport(
+            sentences=selected_sentences,
+            relation_overview=relation_overview,
+            scored_relation_overview=scored_relation_overview,
+            selected_relation_overview=selected_relation_overview,
+        )
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}()"
