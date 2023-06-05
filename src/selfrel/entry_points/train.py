@@ -83,7 +83,6 @@ def train(
             percentage=down_sample_train, downsample_train=True, downsample_dev=False, downsample_test=False
         )
 
-    # Load support dataset and potential pre-computed annotated support dataset
     support_dataset: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(support_dataset_path, persist=False)
 
     # Step 2: Make the label dictionary and infer entity-pair labels from the corpus
