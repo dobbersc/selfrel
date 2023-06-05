@@ -9,7 +9,7 @@ from tqdm import tqdm
 from selfrel.utils.copy import deepcopy_flair_sentence
 from selfrel.utils.inspect_relations import build_relation_overview
 
-__all__ = ["SelectionStrategy", "DFSelectionStrategy", "PredictionConfidence", "TotalOccurrence"]
+__all__ = ["SelectionStrategy", "PredictionConfidence", "TotalOccurrence"]
 
 
 class SelectionStrategy(ABC):
@@ -30,20 +30,6 @@ class SelectionStrategy(ABC):
 
         return sentence
 
-    @abstractmethod
-    def select_relations(
-        self,
-        sentences: Sequence[Sentence],
-        entity_label_types: Optional[Union[set[Optional[str]], str]],
-        relation_label_type: str,
-    ) -> Iterator[Sentence]:
-        pass
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}()"
-
-
-class DFSelectionStrategy(SelectionStrategy, ABC):
     @abstractmethod
     def compute_score(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
         pass
@@ -79,8 +65,11 @@ class DFSelectionStrategy(SelectionStrategy, ABC):
                     sentence=sentence, relations=selected_relations, relation_label_type=relation_label_type
                 )
 
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}()"
 
-class PredictionConfidence(DFSelectionStrategy):
+
+class PredictionConfidence(SelectionStrategy):
     def __init__(self, min_confidence: float = 0.8, top_k: Optional[int] = None) -> None:
         self.min_confidence = min_confidence
         self.top_k = top_k
@@ -98,7 +87,7 @@ class PredictionConfidence(DFSelectionStrategy):
         return f"{type(self).__name__}(min_confidence={self.min_confidence!r}, top_k={self.top_k!r})"
 
 
-class TotalOccurrence(DFSelectionStrategy):
+class TotalOccurrence(SelectionStrategy):
     def __init__(self, min_occurrence: int = 2, distinct: bool = True, top_k: Optional[int] = None) -> None:
         self.min_occurrence = min_occurrence
         self.distinct = distinct

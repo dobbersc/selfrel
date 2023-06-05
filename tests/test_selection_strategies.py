@@ -5,14 +5,15 @@ import pandas as pd
 import pytest
 from flair.data import Sentence
 
-from selfrel.selection_strategies import DFSelectionStrategy, PredictionConfidence, SelectionStrategy, TotalOccurrence
+from selfrel.selection_strategies import PredictionConfidence, SelectionStrategy, TotalOccurrence
 from selfrel.utils.inspect_relations import build_relation_overview
 
 
 def test_prediction_confidence(prediction_confidence_sentences: list[Sentence]) -> None:
     """
-    Tests the PredictionConfidence selection strategy
-    including the underlying DFSelectionStrategy abstract class.
+    Tests the PredictionConfidence selection strategy `select_relations` method.
+    For all further selection strategies, we test the `compute_score` and `select_rows` methods
+    since the underlying `select_relation` is the same for all selection strategies.
     """
     sentences: list[Sentence] = prediction_confidence_sentences
     selection_strategy: SelectionStrategy = PredictionConfidence(min_confidence=0.8, top_k=2)
@@ -42,18 +43,15 @@ def test_prediction_confidence(prediction_confidence_sentences: list[Sentence]) 
     ] == [("Berlin", "Germany", "located_in", 0.9), ("Hamburg", "Germany", "located_in", 0.9)]
 
 
-# For all further selection strategies inheriting from DFSelectionStrategy,
-# we test the `compute_score` and `select_rows` functions.
-
-
 def assert_scores_and_selected_indices(
-    selection_strategy: DFSelectionStrategy,
+    selection_strategy: SelectionStrategy,
     relation_overview: pd.DataFrame,
     score_name: str,
     expected_scores: Sequence[Any],
     expected_scores_indices: Sequence[tuple[int, int]],
     expected_selected_indices: Sequence[tuple[int, int]],
 ) -> None:
+    """Utility function to assert the correctness of the `compute_score` and `select_rows` methods."""
     scored_relation_overview: pd.DataFrame = selection_strategy.compute_score(relation_overview)
     expected_score_series: pd.Series[Any] = pd.Series(
         expected_scores,
