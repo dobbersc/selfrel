@@ -1,0 +1,165 @@
+# global.columns = ID FORM POS:TOKEN NER:SPAN POS:TOKEN_SCORE NER:SPAN_SCORE MISC
+# text = Larry Page and Sergey Brin founded Google .
+# relations = 7;7;1;2;founded_by;1.0|7;7;4;5;founded_by;1.0
+1	Larry	PROPN	B-PER	1.0	1.0	_
+2	Page	PROPN	E-PER	1.0	1.0	_
+3	and	CCONJ	O	1.0	_	_
+4	Sergey	PROPN	B-PER	1.0	1.0	_
+5	Brin	PROPN	E-PER	1.0	1.0	_
+6	founded	VERB	O	1.0	_	_
+7	Google	PROPN	S-ORG	1.0	1.0	_
+8	.	PUNCT	O	1.0	_	SpaceAfter=No
+
+# text = Larry Page and Sergey Brin founded Google .
+# relations = 7;7;1;2;founded_by;1.0|7;7;4;5;founded_by;1.0
+1	Larry	PROPN	B-PER	1.0	1.0	_
+2	Page	PROPN	E-PER	1.0	1.0	_
+3	and	CCONJ	O	1.0	_	_
+4	Sergey	PROPN	B-PER	1.0	1.0	_
+5	Brin	PROPN	E-PER	1.0	1.0	_
+6	founded	VERB	O	1.0	_	_
+7	Google	PROPN	S-ORG	1.0	1.0	_
+8	.	PUNCT	O	1.0	_	SpaceAfter=No
+
+# text = Larry Page and Sergey Brin founded Google .
+# relations = 7;7;1;2;founded_by;1.0|7;7;4;5;founded_by;1.0
+1	Larry	PROPN	B-PER	1.0	1.0	_
+2	Page	PROPN	E-PER	1.0	1.0	_
+3	and	CCONJ	O	1.0	_	_
+4	Sergey	PROPN	B-PER	1.0	1.0	_
+5	Brin	PROPN	E-PER	1.0	1.0	_
+6	founded	VERB	O	1.0	_	_
+7	Google	PROPN	S-ORG	1.0	1.0	_
+8	.	PUNCT	O	1.0	_	SpaceAfter=No
+
+# text = Konrad Zuse was born in Berlin on 22 June 1910 .
+# relations = 6;6;1;2;place_of_birth;1.0
+1	Konrad	PROPN	B-PER	1.0	1.0	_
+2	Zuse	PROPN	E-PER	1.0	1.0	_
+3	was	AUX	O	1.0	_	_
+4	born	VERB	O	1.0	_	_
+5	in	ADP	O	1.0	_	_
+6	Berlin	PROPN	S-LOC	1.0	1.0	_
+7	on	ADP	O	1.0	_	_
+8	22	NUM	B-DATE	1.0	1.0	_
+9	June	PROPN	I-DATE	1.0	1.0	_
+10	1910	NUM	E-DATE	1.0	1.0	_
+11	.	PUNCT	O	1.0	_	SpaceAfter=No
+
+# text = Konrad Zuse was born in Berlin on 22 June 1910 .
+# relations = 6;6;1;2;place_of_birth;1.0
+1	Konrad	PROPN	B-PER	1.0	1.0	_
+2	Zuse	PROPN	E-PER	1.0	1.0	_
+3	was	AUX	O	1.0	_	_
+4	born	VERB	O	1.0	_	_
+5	in	ADP	O	1.0	_	_
+6	Berlin	PROPN	S-LOC	1.0	1.0	_
+7	on	ADP	O	1.0	_	_
+8	22	NUM	B-DATE	1.0	1.0	_
+9	June	PROPN	I-DATE	1.0	1.0	_
+10	1910	NUM	E-DATE	1.0	1.0	_
+11	.	PUNCT	O	1.0	_	SpaceAfter=No
+
+# text = Konrad Zuse was born in Berlin on 22 June 1910 .
+# relations = 6;6;1;2;place_of_birth;1.0
+1	Konrad	PROPN	B-PER	1.0	1.0	_
+2	Zuse	PROPN	E-PER	1.0	1.0	_
+3	was	AUX	O	1.0	_	_
+4	born	VERB	O	1.0	_	_
+5	in	ADP	O	1.0	_	_
+6	Berlin	PROPN	S-LOC	1.0	1.0	_
+7	on	ADP	O	1.0	_	_
+8	22	NUM	B-DATE	1.0	1.0	_
+9	June	PROPN	I-DATE	1.0	1.0	_
+10	1910	NUM	E-DATE	1.0	1.0	_
+11	.	PUNCT	O	1.0	_	SpaceAfter=No
+
+# text = Joseph Weizenbaum , a professor at MIT , was born in Berlin , Germany .
+# relations = 12;12;1;2;place_of_birth;1.0|14;14;1;2;place_of_birth;1.0
+1	Joseph	PROPN	B-PER	1.0	1.0	_
+2	Weizenbaum	PROPN	E-PER	1.0	1.0	_
+3	,	PUNCT	O	1.0	_	_
+4	a	DET	O	1.0	_	_
+5	professor	NOUN	O	1.0	_	_
+6	at	ADP	O	1.0	_	_
+7	MIT	PROPN	S-ORG	1.0	1.0	_
+8	,	PUNCT	O	1.0	_	_
+9	was	AUX	O	1.0	_	_
+10	born	VERB	O	1.0	_	_
+11	in	ADP	O	1.0	_	_
+12	Berlin	PROPN	S-LOC	1.0	1.0	_
+13	,	PUNCT	O	1.0	_	_
+14	Germany	PROPN	S-LOC	1.0	1.0	_
+15	.	PUNCT	O	1.0	_	SpaceAfter=No
+
+# text = Joseph Weizenbaum , a professor at MIT , was born in Berlin , Germany .
+# relations = 12;12;1;2;place_of_birth;1.0|14;14;1;2;place_of_birth;1.0
+1	Joseph	PROPN	B-PER	1.0	1.0	_
+2	Weizenbaum	PROPN	E-PER	1.0	1.0	_
+3	,	PUNCT	O	1.0	_	_
+4	a	DET	O	1.0	_	_
+5	professor	NOUN	O	1.0	_	_
+6	at	ADP	O	1.0	_	_
+7	MIT	PROPN	S-ORG	1.0	1.0	_
+8	,	PUNCT	O	1.0	_	_
+9	was	AUX	O	1.0	_	_
+10	born	VERB	O	1.0	_	_
+11	in	ADP	O	1.0	_	_
+12	Berlin	PROPN	S-LOC	1.0	1.0	_
+13	,	PUNCT	O	1.0	_	_
+14	Germany	PROPN	S-LOC	1.0	1.0	_
+15	.	PUNCT	O	1.0	_	SpaceAfter=No
+
+# text = Joseph Weizenbaum , a professor at MIT , was born in Berlin , Germany .
+# relations = 12;12;1;2;place_of_birth;1.0|14;14;1;2;place_of_birth;1.0
+1	Joseph	PROPN	B-PER	1.0	1.0	_
+2	Weizenbaum	PROPN	E-PER	1.0	1.0	_
+3	,	PUNCT	O	1.0	_	_
+4	a	DET	O	1.0	_	_
+5	professor	NOUN	O	1.0	_	_
+6	at	ADP	O	1.0	_	_
+7	MIT	PROPN	S-ORG	1.0	1.0	_
+8	,	PUNCT	O	1.0	_	_
+9	was	AUX	O	1.0	_	_
+10	born	VERB	O	1.0	_	_
+11	in	ADP	O	1.0	_	_
+12	Berlin	PROPN	S-LOC	1.0	1.0	_
+13	,	PUNCT	O	1.0	_	_
+14	Germany	PROPN	S-LOC	1.0	1.0	_
+15	.	PUNCT	O	1.0	_	SpaceAfter=No
+
+# text = Joseph Weizenbaum , a professor at MIT , was born in Berlin , Germany .
+# relations = 12;12;1;2;place_of_birth;1.0|14;14;1;2;place_of_birth;1.0
+1	Joseph	PROPN	B-PER	1.0	1.0	_
+2	Weizenbaum	PROPN	E-PER	1.0	1.0	_
+3	,	PUNCT	O	1.0	_	_
+4	a	DET	O	1.0	_	_
+5	professor	NOUN	O	1.0	_	_
+6	at	ADP	O	1.0	_	_
+7	MIT	PROPN	S-ORG	1.0	1.0	_
+8	,	PUNCT	O	1.0	_	_
+9	was	AUX	O	1.0	_	_
+10	born	VERB	O	1.0	_	_
+11	in	ADP	O	1.0	_	_
+12	Berlin	PROPN	S-LOC	1.0	1.0	_
+13	,	PUNCT	O	1.0	_	_
+14	Germany	PROPN	S-LOC	1.0	1.0	_
+15	.	PUNCT	O	1.0	_	SpaceAfter=No
+
+# text = Joseph Weizenbaum , a professor at MIT , was born in Berlin , Germany .
+# relations = 12;12;1;2;place_of_birth;1.0|14;14;1;2;place_of_birth;1.0
+1	Joseph	PROPN	B-PER	1.0	1.0	_
+2	Weizenbaum	PROPN	E-PER	1.0	1.0	_
+3	,	PUNCT	O	1.0	_	_
+4	a	DET	O	1.0	_	_
+5	professor	NOUN	O	1.0	_	_
+6	at	ADP	O	1.0	_	_
+7	MIT	PROPN	S-ORG	1.0	1.0	_
+8	,	PUNCT	O	1.0	_	_
+9	was	AUX	O	1.0	_	_
+10	born	VERB	O	1.0	_	_
+11	in	ADP	O	1.0	_	_
+12	Berlin	PROPN	S-LOC	1.0	1.0	_
+13	,	PUNCT	O	1.0	_	_
+14	Germany	PROPN	S-LOC	1.0	1.0	_
+15	.	PUNCT	O	1.0	_	SpaceAfter=No

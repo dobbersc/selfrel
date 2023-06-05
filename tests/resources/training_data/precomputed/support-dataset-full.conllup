@@ -1,0 +1,34 @@
+# global.columns = ID FORM POS:TOKEN NER:SPAN POS:TOKEN_SCORE NER:SPAN_SCORE MISC
+# text = Larry Page and Sergey Brin founded Google .
+# relations = 7;7;1;2;founded_by;0.9942882061004639|7;7;4;5;founded_by;0.994301438331604
+1	Larry	PROPN	B-PER	1.0	1.0	_
+2	Page	PROPN	E-PER	1.0	1.0	_
+3	and	CCONJ	O	1.0	_	_
+4	Sergey	PROPN	B-PER	1.0	1.0	_
+5	Brin	PROPN	E-PER	1.0	1.0	_
+6	founded	VERB	O	1.0	_	_
+7	Google	PROPN	S-ORG	1.0	1.0	_
+8	.	PUNCT	O	1.0	_	SpaceAfter=No
+
+# text = Larry Page and Sergey Brin founded Google .
+# relations = 7;7;1;2;founded_by;0.9942882061004639|7;7;4;5;founded_by;0.994301438331604
+1	Larry	PROPN	B-PER	1.0	1.0	_
+2	Page	PROPN	E-PER	1.0	1.0	_
+3	and	CCONJ	O	1.0	_	_
+4	Sergey	PROPN	B-PER	1.0	1.0	_
+5	Brin	PROPN	E-PER	1.0	1.0	_
+6	founded	VERB	O	1.0	_	_
+7	Google	PROPN	S-ORG	1.0	1.0	_
+8	.	PUNCT	O	1.0	_	SpaceAfter=No
+
+# text = Larry Page and Sergey Brin founded Google .
+# relations = 7;7;1;2;founded_by;0.9942882061004639|7;7;4;5;founded_by;0.994301438331604
+1	Larry	PROPN	B-PER	1.0	1.0	_
+2	Page	PROPN	E-PER	1.0	1.0	_
+3	and	CCONJ	O	1.0	_	_
+4	Sergey	PROPN	B-PER	1.0	1.0	_
+5	Brin	PROPN	E-PER	1.0	1.0	_
+6	founded	VERB	O	1.0	_	_
+7	Google	PROPN	S-ORG	1.0	1.0	_
+8	.	PUNCT	O	1.0	_	SpaceAfter=No
+
