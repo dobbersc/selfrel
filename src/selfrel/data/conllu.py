@@ -28,6 +28,7 @@ def _serialized_conllu_plus_sentence_iter(
         disable=not show_progress_bar,
     ) as progress_bar:
         global_columns: str = fp.readline()
+        progress_bar.update(len(global_columns.encode("utf-8")))
         if not global_columns.startswith("# global.columns"):
             msg = "Missing CoNLL-U Plus required 'global.columns'"
             raise ValueError(msg)
@@ -41,14 +42,14 @@ def _serialized_conllu_plus_sentence_iter(
             # Therefore, a blank line ends the current CoNLL-U sentence.
             if line == "\n":
                 sentence = "".join(sentence_lines)
-                progress_bar.update(len(sentence.encode("utf-8")))
                 yield f"{global_columns}{sentence}"
+                progress_bar.update(len(sentence.encode("utf-8")))
                 sentence_lines = []
 
         if sentence_lines:
             sentence = "".join(sentence_lines)
-            progress_bar.update(len(sentence.encode("utf-8")))
             yield f"{global_columns}{sentence}"
+            progress_bar.update(len(sentence.encode("utf-8")))
 
 
 class CoNLLUPlusDataset(Dataset[SentenceT], Sequence[Sentence]):
