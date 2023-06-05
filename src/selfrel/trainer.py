@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Optional, Union
 
 import more_itertools
+import pandas as pd
 from flair.data import Corpus, Sentence
 from flair.models import RelationClassifier
 from flair.models.relation_classifier_model import EncodedSentence
@@ -16,7 +17,7 @@ from tqdm import tqdm
 from selfrel.data import CoNLLUPlusDataset
 from selfrel.data.serialization import LabelTypes, export_to_conllu
 from selfrel.predictor import PredictorPool
-from selfrel.selection_strategies import PredictionConfidence, SelectionStrategy
+from selfrel.selection_strategies import PredictionConfidence, SelectionReport, SelectionStrategy
 from selfrel.utils.copy import deepcopy_flair_model
 
 __all__ = ["SelfTrainer"]
@@ -105,26 +106,37 @@ class SelfTrainer:
         return CoNLLUPlusDataset(output_path, persist=False)
 
     def _select_support_datapoints(
-        self, dataset: CoNLLUPlusDataset[Sentence], selection_strategy: SelectionStrategy, output_path: Path
+        self,
+        dataset: CoNLLUPlusDataset[Sentence],
+        selection_strategy: SelectionStrategy,
+        dataset_output_path: Path,
+        relation_overview_output_dir: Path,
+        precomputed_relation_overview: Optional[pd.DataFrame],
     ) -> CoNLLUPlusDataset[Sentence]:
         with dataset.dataset_path.open("r", encoding="utf-8") as dataset_file:
             global_label_types: LabelTypes = LabelTypes.from_conllu_file(dataset_file)
 
-        selected_sentences: Iterator[Sentence] = selection_strategy.select_relations(
+        selection: SelectionReport = selection_strategy.select_relations(
             dataset,
             entity_label_types=set(self._model.entity_label_types.keys()),
             relation_label_type=self._model.label_type,
+            precomputed_relation_overview=precomputed_relation_overview,
         )
 
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        with output_path.open("w", encoding="utf-8") as output_file:
-            export_to_conllu(
-                output_file,
-                sentences=selected_sentences,
-                global_label_types=global_label_types,
-            )
+        # Export relation overview artifacts
+        relation_overview_output_dir.mkdir(parents=True, exist_ok=True)
+        selection.relation_overview.to_parquet(relation_overview_output_dir / "relation-overview.parquet")
+        selection.scored_relation_overview.to_parquet(relation_overview_output_dir / "scored-relation-overview.parquet")
+        selection.selected_relation_overview.to_parquet(
+            relation_overview_output_dir / "selected-relation-overview.parquet"
+        )
 
-        return CoNLLUPlusDataset(output_path, persist=False)
+        # Export dataset
+        dataset_output_path.parent.mkdir(parents=True, exist_ok=True)
+        with dataset_output_path.open("w", encoding="utf-8") as output_file:
+            export_to_conllu(output_file, sentences=selection, global_label_types=global_label_types)
+
+        return CoNLLUPlusDataset(dataset_output_path, persist=False)
 
     def _encode_support_dataset(
         self, dataset: CoNLLUPlusDataset[Sentence], output_path: Path
@@ -151,12 +163,17 @@ class SelfTrainer:
         base_path: Union[str, Path],
         self_training_iterations: int = 1,
         selection_strategy: Optional[SelectionStrategy] = None,
-        overwrite_annotated_support_datasets: Sequence[Optional[CoNLLUPlusDataset]] = (),
+        precomputed_annotated_support_datasets: Sequence[Union[str, Path, None]] = (),
+        precomputed_relation_overviews: Sequence[Union[str, Path, None]] = (),
         **kwargs: Any,
     ) -> RelationClassifier:
-        # Pad "overwrite_annotated_support_datasets" with "None" values to match the number of self-training iterations
-        overwrite_annotated_support_datasets = tuple(
-            more_itertools.padded(overwrite_annotated_support_datasets, n=self_training_iterations)
+        # Pad `precomputed_annotated_support_datasets` and `precomputed_relation_overviews` with `None` values
+        # to match the number of self-training iterations
+        precomputed_annotated_support_datasets = tuple(
+            more_itertools.padded(precomputed_annotated_support_datasets, n=self_training_iterations)
+        )
+        precomputed_relation_overviews = tuple(
+            more_itertools.padded(precomputed_relation_overviews, n=self_training_iterations)
         )
 
         # Create output folder
@@ -175,28 +192,40 @@ class SelfTrainer:
         for self_training_iteration in range(1, self_training_iterations + 1):
             logger.info("Self-training iteration: %s", self_training_iteration)
             iteration_base_path: Path = base_path / f"iteration-{self_training_iteration}"
+            support_datasets_dir: Path = iteration_base_path / "support-datasets"
+            relation_overviews_dir: Path = iteration_base_path / "relation-overviews"
 
-            # Predict support dataset
+            # Get optional pre-computed annotated support dataset. Otherwise, predict support dataset.
             annotated_support_dataset: CoNLLUPlusDataset[Sentence]
-            output_path: Path = iteration_base_path / "support-dataset-full.conllup"
-            if (overwrite := overwrite_annotated_support_datasets[self_training_iteration - 1]) is None:
+            output_path: Path = support_datasets_dir / "support-dataset-full.conllup"
+            if (dataset_path := precomputed_annotated_support_datasets[self_training_iteration - 1]) is None:
                 annotated_support_dataset = self._annotate_support_dataset(teacher_model, output_path=output_path)
             else:
-                logger.info("Overwriting annotated support dataset with %s", repr(str(overwrite.dataset_path)))
+                logger.info("Using pre-computed annotated support dataset from %s", repr(str(dataset_path)))
                 output_path.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy(overwrite.dataset_path, output_path)
-                annotated_support_dataset = overwrite
+                shutil.copy(dataset_path, output_path)
+                annotated_support_dataset = CoNLLUPlusDataset(output_path, persist=False)
+
+            # Get optional pre-computed relation overview for the selection strategy
+            precomputed_relation_overview: Optional[pd.DataFrame]
+            if (relation_overview_path := precomputed_relation_overviews[self_training_iteration - 1]) is not None:
+                logger.info("Using pre-computed relation overview from %s", repr(str(relation_overview_path)))
+                precomputed_relation_overview = pd.read_parquet(relation_overview_path)
+            else:
+                precomputed_relation_overview = None
 
             # Select confident data points
             annotated_support_dataset = self._select_support_datapoints(
                 annotated_support_dataset,
                 selection_strategy=selection_strategy,
-                output_path=iteration_base_path / "support-dataset-selection.conllup",
+                dataset_output_path=support_datasets_dir / "support-dataset-selection.conllup",
+                relation_overview_output_dir=relation_overviews_dir,
+                precomputed_relation_overview=precomputed_relation_overview,
             )
 
             # Encode annotated support dataset
             encoded_support_dataset: CoNLLUPlusDataset[EncodedSentence] = self._encode_support_dataset(
-                annotated_support_dataset, output_path=iteration_base_path / "support-dataset-encoded.conllup"
+                annotated_support_dataset, output_path=support_datasets_dir / "support-dataset-encoded.conllup"
             )
             logger.info("Augmented training data with %s data points", len(encoded_support_dataset))
 

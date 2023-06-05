@@ -3,7 +3,7 @@ import logging
 import sys
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any, Final, Literal, Optional, Union, cast
+from typing import Any, Final, Literal, Optional, Union
 
 import flair
 from flair.data import Corpus, Sentence
@@ -59,7 +59,8 @@ def train(
     min_confidence: Optional[float] = None,
     min_occurrence: Optional[int] = None,
     top_k: Optional[int] = None,
-    overwrite_annotated_support_datasets: Sequence[Union[str, Path, CoNLLUPlusDataset[Sentence], None]] = (),
+    precomputed_annotated_support_datasets: Sequence[Union[str, Path, None]] = (),
+    precomputed_relation_overviews: Sequence[Union[str, Path, None]] = (),
     exclude_labels_from_evaluation: Optional[list[str]] = None,
     num_actors: int = 1,
     num_cpus: Optional[float] = None,
@@ -84,15 +85,6 @@ def train(
 
     # Load support dataset and potential pre-computed annotated support dataset
     support_dataset: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(support_dataset_path, persist=False)
-    overwrite_annotated_support_datasets = cast(
-        Sequence[Optional[CoNLLUPlusDataset[Sentence]]],
-        [
-            dataset_or_path
-            if isinstance(dataset_or_path, CoNLLUPlusDataset) or dataset_or_path is None
-            else CoNLLUPlusDataset(dataset_or_path)
-            for dataset_or_path in overwrite_annotated_support_datasets
-        ],
-    )
 
     # Step 2: Make the label dictionary and infer entity-pair labels from the corpus
     label_dictionary = corpus.make_label_dictionary("relation")
@@ -162,7 +154,8 @@ def train(
         base_path,
         self_training_iterations=self_training_iterations,
         selection_strategy=strategy,
-        overwrite_annotated_support_datasets=overwrite_annotated_support_datasets,
+        precomputed_annotated_support_datasets=precomputed_annotated_support_datasets,
+        precomputed_relation_overviews=precomputed_relation_overviews,
         max_epochs=max_epochs,
         learning_rate=learning_rate,
         mini_batch_size=batch_size,
