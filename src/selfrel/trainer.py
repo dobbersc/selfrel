@@ -197,7 +197,7 @@ class SelfTrainer:
 
             # Get optional pre-computed annotated support dataset. Otherwise, predict support dataset.
             annotated_support_dataset: CoNLLUPlusDataset[Sentence]
-            output_path: Path = support_datasets_dir / "support-dataset-full.conllup"
+            output_path: Path = support_datasets_dir / "support-dataset.conllup"
             if (dataset_path := precomputed_annotated_support_datasets[self_training_iteration - 1]) is None:
                 annotated_support_dataset = self._annotate_support_dataset(teacher_model, output_path=output_path)
             else:
@@ -218,14 +218,14 @@ class SelfTrainer:
             annotated_support_dataset = self._select_support_datapoints(
                 annotated_support_dataset,
                 selection_strategy=selection_strategy,
-                dataset_output_path=support_datasets_dir / "support-dataset-selection.conllup",
+                dataset_output_path=support_datasets_dir / "selected-support-dataset.conllup",
                 relation_overview_output_dir=relation_overviews_dir,
                 precomputed_relation_overview=precomputed_relation_overview,
             )
 
             # Encode annotated support dataset
             encoded_support_dataset: CoNLLUPlusDataset[EncodedSentence] = self._encode_support_dataset(
-                annotated_support_dataset, output_path=support_datasets_dir / "support-dataset-encoded.conllup"
+                annotated_support_dataset, output_path=support_datasets_dir / "encoded-support-dataset.conllup"
             )
             logger.info("Augmented training data with %s data points", len(encoded_support_dataset))
 

@@ -66,11 +66,11 @@ class TestSelfTrainerArtifacts:
             RelationClassifier.load(base_path / f"iteration-{iteration}" / "final-model.pt")
 
         # Test support dataset artifacts
-        support_dataset_full = CoNLLUPlusDataset(support_dataset_dir / "support-dataset-full.conllup")
+        support_dataset_full = CoNLLUPlusDataset(support_dataset_dir / "support-dataset.conllup")
         assert len(support_dataset_full) == 3  # Three sentences
-        support_dataset_selection = CoNLLUPlusDataset(support_dataset_dir / "support-dataset-selection.conllup")
+        support_dataset_selection = CoNLLUPlusDataset(support_dataset_dir / "selected-support-dataset.conllup")
         assert len(support_dataset_selection) == 3  # All sentences are selected
-        support_dataset_encoded = CoNLLUPlusDataset(support_dataset_dir / "support-dataset-encoded.conllup")
+        support_dataset_encoded = CoNLLUPlusDataset(support_dataset_dir / "encoded-support-dataset.conllup")
         assert len(support_dataset_encoded) == 6  # Two relations for each sentence
 
         # Test relation overview artifacts
@@ -100,7 +100,7 @@ class TestSelfTrainerArtifacts:
             max_epochs=2,
             self_training_iterations=1,
             selection_strategy=PredictionConfidence(min_confidence=0.8),
-            precomputed_annotated_support_datasets=[precomputed_dir / "support-dataset-full.conllup"],
+            precomputed_annotated_support_datasets=[precomputed_dir / "support-dataset.conllup"],
             precomputed_relation_overviews=[precomputed_dir / "relation-overview.parquet"],
             main_evaluation_metric=("macro avg", "f1-score"),
         )
