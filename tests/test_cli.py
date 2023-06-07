@@ -18,7 +18,7 @@ class TestingEntryPointParameters(ABC):
     entry_point: str
     requires_ray: bool
     custom_optional_arguments: str
-    expected_call_arguments: str
+    expected_call_arguments: dict[str, Any]
 
 
 class ExportCCNews(TestingEntryPointParameters):

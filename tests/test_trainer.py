@@ -66,19 +66,29 @@ class TestSelfTrainerArtifacts:
             RelationClassifier.load(base_path / f"iteration-{iteration}" / "final-model.pt")
 
         # Test support dataset artifacts
-        support_dataset_full = CoNLLUPlusDataset(support_dataset_dir / "annotated-support-dataset.conllup")
+        support_dataset_full: CoNLLUPlusDataset = CoNLLUPlusDataset(
+            support_dataset_dir / "annotated-support-dataset.conllup"
+        )
         assert len(support_dataset_full) == 3  # Three sentences
-        support_dataset_selection = CoNLLUPlusDataset(support_dataset_dir / "selected-support-dataset.conllup")
+        support_dataset_selection: CoNLLUPlusDataset = CoNLLUPlusDataset(
+            support_dataset_dir / "selected-support-dataset.conllup"
+        )
         assert len(support_dataset_selection) == 3  # All sentences are selected
-        support_dataset_encoded = CoNLLUPlusDataset(support_dataset_dir / "encoded-support-dataset.conllup")
+        support_dataset_encoded: CoNLLUPlusDataset = CoNLLUPlusDataset(
+            support_dataset_dir / "encoded-support-dataset.conllup"
+        )
         assert len(support_dataset_encoded) == 6  # Two relations for each sentence
 
         # Test relation overview artifacts
-        relation_overview = pd.read_parquet(relation_overview_dir / "relation-overview.parquet")
+        relation_overview: pd.DataFrame = pd.read_parquet(relation_overview_dir / "relation-overview.parquet")
         assert len(relation_overview.index) == 6
-        scored_relation_overview = pd.read_parquet(relation_overview_dir / "scored-relation-overview.parquet")
+        scored_relation_overview: pd.DataFrame = pd.read_parquet(
+            relation_overview_dir / "scored-relation-overview.parquet"
+        )
         assert len(scored_relation_overview.index) == 6
-        selected_relation_overview = pd.read_parquet(relation_overview_dir / "selected-relation-overview.parquet")
+        selected_relation_overview: pd.DataFrame = pd.read_parquet(
+            relation_overview_dir / "selected-relation-overview.parquet"
+        )
         assert len(selected_relation_overview.index) == 6
 
     def test_standard(self, self_trainer: SelfTrainer, tmp_path: Path) -> None:
