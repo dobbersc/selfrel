@@ -197,7 +197,7 @@ class SelfTrainer:
 
             # Get optional pre-computed annotated support dataset. Otherwise, predict support dataset.
             annotated_support_dataset: CoNLLUPlusDataset[Sentence]
-            output_path: Path = support_datasets_dir / "support-dataset.conllup"
+            output_path: Path = support_datasets_dir / "annotated-support-dataset.conllup"
             if (dataset_path := precomputed_annotated_support_datasets[self_training_iteration - 1]) is None:
                 annotated_support_dataset = self._annotate_support_dataset(teacher_model, output_path=output_path)
             else:
