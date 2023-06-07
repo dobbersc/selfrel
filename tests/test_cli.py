@@ -17,6 +17,7 @@ from selfrel.utils.iteration import iter_subclasses
 class TestingEntryPointParameters(ABC):
     entry_point: str
     requires_ray: bool
+    required_arguments: str
     custom_optional_arguments: str
     expected_call_arguments: dict[str, Any]
 
@@ -83,6 +84,64 @@ class Annotate(TestingEntryPointParameters):
         "num_cpus": 16,
         "num_gpus": 1,
         "buffer_size": 4,
+    }
+
+
+class Train(TestingEntryPointParameters):
+    entry_point: str = "selfrel.entry_points.train.train"
+    requires_ray: bool = True
+    required_arguments: str = "train conll04 --support-dataset support-dataset.conllup"
+    custom_optional_arguments: str = (
+        "--base-path base "
+        "--down-sample-train 0.1 "
+        "--transformer distilbert-base-uncased "
+        "--max-epochs 3 "
+        "--learning-rate 4e-5 "
+        "--batch-size 16 "
+        "--no-cross-augmentation "
+        "--no-entity-pair-label-filter "
+        "--encoding-strategy typed-entity-marker "
+        "--self-training-iterations 2 "
+        "--selection-strategy total-occurrence "
+        "--min-confidence 0.8 "
+        "--min-occurrence 2 "
+        "--top-k 1000 "
+        "--precomputed-annotated-support-datasets dataset-1.conllup None "
+        "--precomputed-relation-overviews relations-1.parquet None "
+        "--num-actors 4 "
+        "--num-cpus 16 "
+        "--num-gpus 1 "
+        "--buffer-size 8 "
+        "--prediction-batch-size 64 "
+        "--exclude-labels-from-evaluation no_relation "
+        "--seed 8 "
+    )
+    expected_call_arguments: str = {
+        "corpus_name": "conll04",
+        "support_dataset": Path("support-dataset.conllup"),
+        "base_path": Path("base"),
+        "down_sample_train": 0.1,
+        "transformer": "distilbert-base-uncased",
+        "max_epochs": 3,
+        "learning_rate": 4e-5,
+        "batch_size": 16,
+        "cross_augmentation": False,
+        "entity_pair_label_filter": False,
+        "encoding_strategy": "typed-entity-marker",
+        "self_training_iterations": 2,
+        "selection_strategy": "total-occurrence",
+        "min_confidence": 0.8,
+        "min_occurrence": 2,
+        "top_k": 1000,
+        "precomputed_annotated_support_datasets": [Path("dataset-1.conllup"), None],
+        "precomputed_relation_overviews": [Path("relations-1.parquet"), None],
+        "num_actors": 4,
+        "num_cpus": 16.0,
+        "num_gpus": 1.0,
+        "buffer_size": 8,
+        "prediction_batch_size": 64,
+        "exclude_labels_from_evaluation": ["no_relation"],
+        "seed": 8,
     }
 
 
