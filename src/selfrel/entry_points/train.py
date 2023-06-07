@@ -7,7 +7,7 @@ from typing import Any, Final, Literal, Optional, Union
 
 import flair
 from flair.data import Corpus, Sentence
-from flair.datasets import RE_ENGLISH_CONLL04, DataLoader
+from flair.datasets import RE_ENGLISH_CONLL04
 from flair.embeddings import TransformerDocumentEmbeddings
 from flair.models import RelationClassifier
 
@@ -37,9 +37,9 @@ def _load_corpus(corpus_name: str) -> Corpus[Sentence]:
 
 def train(
     corpus_name: Literal["conll04"],
-    support_dataset_path: Union[str, Path],
-    down_sample_train: Optional[float] = None,
+    support_dataset: Union[str, Path, CoNLLUPlusDataset[Sentence]],
     base_path: Union[str, Path] = Path(),
+    down_sample_train: Optional[float] = None,
     transformer: str = "bert-base-uncased",
     max_epochs: int = 10,
     learning_rate: float = 5e-5,
@@ -61,12 +61,12 @@ def train(
     top_k: Optional[int] = None,
     precomputed_annotated_support_datasets: Sequence[Union[str, Path, None]] = (),
     precomputed_relation_overviews: Sequence[Union[str, Path, None]] = (),
-    exclude_labels_from_evaluation: Optional[list[str]] = None,
     num_actors: int = 1,
     num_cpus: Optional[float] = None,
-    num_gpus: Optional[float] = 1,
+    num_gpus: Optional[float] = 1.0,
     buffer_size: Optional[int] = None,
     prediction_batch_size: int = 32,
+    exclude_labels_from_evaluation: Optional[list[str]] = None,
     seed: Optional[int] = None,
 ) -> None:
     hyperparameters: dict[str, Any] = locals()
@@ -83,16 +83,16 @@ def train(
             percentage=down_sample_train, downsample_train=True, downsample_dev=False, downsample_test=False
         )
 
-    support_dataset: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(support_dataset_path, persist=False)
+    support_dataset = (
+        support_dataset
+        if isinstance(support_dataset, CoNLLUPlusDataset)
+        else CoNLLUPlusDataset(support_dataset, persist=False)
+    )
 
     # Step 2: Make the label dictionary and infer entity-pair labels from the corpus
     label_dictionary = corpus.make_label_dictionary("relation")
     entity_pair_labels: Optional[set[tuple[str, str]]] = (
-        infer_entity_pair_labels(
-            [batch[0] for batch in iter(DataLoader(corpus.train, batch_size=1))],
-            relation_label_type="relation",
-            entity_label_types="ner",
-        )
+        infer_entity_pair_labels(corpus.train[:], relation_label_type="relation", entity_label_types="ner")
         if entity_pair_label_filter
         else None
     )
@@ -145,7 +145,7 @@ def train(
         strategy = (
             TotalOccurrence(top_k=top_k) if min_occurrence is None else TotalOccurrence(min_occurrence, top_k=top_k)
         )
-    else:
+    else:  # pragma: no cover
         msg = f"Specified invalid selection strategy {selection_strategy!r}"  # type: ignore[unreachable]
         raise ValueError(msg)
 

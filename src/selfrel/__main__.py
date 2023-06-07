@@ -6,7 +6,7 @@ import importlib_resources
 from importlib_resources.abc import Traversable
 
 import selfrel
-from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter, none_or_str
+from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter, none_or_path
 
 entrypoint_descriptions: Traversable = importlib_resources.files("selfrel.entry_points.descriptions")
 
@@ -62,10 +62,10 @@ def call_train(args: argparse.Namespace) -> None:
 
     ray.init()
     train(
-        args.corpus,
-        args.support_dataset,
-        down_sample_train=args.down_sample_train,
+        corpus_name=args.corpus,
+        support_dataset=args.support_dataset,
         base_path=args.base_path,
+        down_sample_train=args.down_sample_train,
         transformer=args.transformer,
         max_epochs=args.max_epochs,
         learning_rate=args.learning_rate,
@@ -80,12 +80,12 @@ def call_train(args: argparse.Namespace) -> None:
         top_k=args.top_k,
         precomputed_annotated_support_datasets=args.precomputed_annotated_support_datasets,
         precomputed_relation_overviews=args.precomputed_relation_overviews,
-        exclude_labels_from_evaluation=args.exclude_labels_from_evaluation,
         num_actors=args.num_actors,
         num_cpus=args.num_cpus,
         num_gpus=args.num_gpus,
         buffer_size=args.buffer_size,
         prediction_batch_size=args.prediction_batch_size,
+        exclude_labels_from_evaluation=args.exclude_labels_from_evaluation,
         seed=args.seed,
     )
 
@@ -239,8 +239,8 @@ def add_train(subparsers) -> None:
 
     train.add_argument("corpus", choices=["conll04"], help="TODO")
     train.add_argument("--support-dataset", type=Path, required=True, help="TODO")
-    train.add_argument("--down-sample-train", type=float, default=None, help="TODO")
     train.add_argument("--base-path", type=Path, default=Path(), help="TODO")
+    train.add_argument("--down-sample-train", type=float, default=None, help="TODO")
     train.add_argument("--transformer", default="bert-base-uncased", help="TODO")
     train.add_argument("--max-epochs", type=int, default=10, help="TODO")
     train.add_argument("--learning-rate", type=float, default=5e-5, help="TODO")
@@ -275,8 +275,10 @@ def add_train(subparsers) -> None:
     train.add_argument("--min-confidence", type=float, default=None, help="TODO")
     train.add_argument("--min-occurrence", type=int, default=None, help="TODO")
     train.add_argument("--top-k", type=int, default=None, help="TODO")
-    train.add_argument("--precomputed-annotated-support-datasets", nargs="*", default=(), type=none_or_str, help="TODO")
-    train.add_argument("--precomputed-relation-overviews", nargs="*", default=(), type=none_or_str, help="TODO")
+    train.add_argument(
+        "--precomputed-annotated-support-datasets", nargs="*", default=(), type=none_or_path, help="TODO"
+    )
+    train.add_argument("--precomputed-relation-overviews", nargs="*", default=(), type=none_or_path, help="TODO")
     train.add_argument("--num-actors", type=int, default=1, help="TODO")
     train.add_argument("--num-cpus", type=float, default=None, help="TODO")
     train.add_argument("--num-gpus", type=float, default=1.0, help="TODO")
