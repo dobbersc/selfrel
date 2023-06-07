@@ -1,5 +1,6 @@
 import importlib
 import inspect
+import platform
 import subprocess
 from pathlib import Path
 from typing import Any, Callable, Final
@@ -168,4 +169,7 @@ def test_entry_point() -> None:
 
 def test_version() -> None:
     result: str = subprocess.check_output(["selfrel", "--version"]).decode("utf-8")  # noqa: S603, S607
-    assert result == f"selfrel {selfrel.__version__}\n"
+    if platform.system() == "Windows":
+        assert result == f"selfrel {selfrel.__version__}\r\n"
+    else:
+        assert result == f"selfrel {selfrel.__version__}\n"
