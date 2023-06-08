@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 @pytest.mark.parametrize("persist", [True, False])
 def test_conllu_plus_dataset(persist: bool, resources_dir: Path) -> None:
     dataset: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(
-        resources_dir / "cc-news-short.conllup", dataset_name="cc-news", persist=persist
+        resources_dir / "cc_news" / "cc-news-short.conllup", dataset_name="cc-news", persist=persist
     )
     original_texts: list[str] = [
         "The New York City Ballet Board of Directors announced on Saturday the interim team that has been appointed to run the artistic side of the company during ballet master in chief Peter Martins' leave of absence.",  # noqa: E501
@@ -21,7 +21,7 @@ def test_conllu_plus_dataset(persist: bool, resources_dir: Path) -> None:
     ]
 
     # Test properties
-    assert dataset.dataset_path == resources_dir / "cc-news-short.conllup"
+    assert dataset.dataset_path == resources_dir / "cc_news" / "cc-news-short.conllup"
     assert dataset.dataset_name == "cc-news"
     assert dataset.is_persistent == persist
 
