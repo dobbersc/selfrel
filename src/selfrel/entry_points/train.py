@@ -7,7 +7,7 @@ from typing import Any, Final, Literal, Optional, Union
 
 import flair
 from flair.data import Corpus, Sentence
-from flair.datasets import RE_ENGLISH_CONLL04
+from flair.datasets import RE_ENGLISH_CONLL04, DataLoader
 from flair.embeddings import TransformerDocumentEmbeddings
 from flair.models import RelationClassifier
 
@@ -92,7 +92,11 @@ def train(
     # Step 2: Make the label dictionary and infer entity-pair labels from the corpus
     label_dictionary = corpus.make_label_dictionary("relation")
     entity_pair_labels: Optional[set[tuple[str, str]]] = (
-        infer_entity_pair_labels(corpus.train[:], relation_label_type="relation", entity_label_types="ner")
+        infer_entity_pair_labels(
+            (batch[0] for batch in DataLoader(corpus.train, batch_size=1)),
+            relation_label_type="relation",
+            entity_label_types="ner",
+        )
         if entity_pair_label_filter
         else None
     )
