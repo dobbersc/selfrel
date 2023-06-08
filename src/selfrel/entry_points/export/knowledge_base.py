@@ -9,10 +9,9 @@ from importlib_resources.abc import Traversable
 from tqdm import tqdm
 
 from selfrel.data import CoNLLUPlusDataset
+from selfrel.utils.sqlite3 import register_log
 
 __all__ = ["export_knowledge_base", "create_knowledge_base", "update_relation_metrics", "update_relation_overview"]
-
-from selfrel.utils.sqlite3 import register_log
 
 knowledge_base_sql: Traversable = importlib_resources.files("selfrel.entry_points.export.knowledge_base_schema")
 
@@ -56,8 +55,10 @@ def create_knowledge_base(
             entity_id: int = _get_entity_id(cursor, text=entity.text, label=entity_label.value)
 
             cursor.execute(
-                "INSERT INTO sentence_entities(sentence_id, entity_id, confidence) VALUES(?, ?, ?)",
-                (sentence_id, entity_id, entity_label.score),
+                "INSERT INTO sentence_entities(sentence_id, entity_id, start_position, confidence) "
+                "VALUES(?, ?, ?, ?)",
+                # In SQLite, strings are indexed starting with 1.
+                (sentence_id, entity_id, entity.start_position + 1, entity_label.score),
             )
 
         # Insert relation annotations
@@ -78,8 +79,18 @@ def create_knowledge_base(
             relation_id: int = _get_relation_id(cursor, head_id=head_id, tail_id=tail_id, label=relation_label.value)
 
             cursor.execute(
-                "INSERT INTO sentence_relations(sentence_id, relation_id, confidence) VALUES(?, ?, ?)",
-                (sentence_id, relation_id, relation.get_label(relation_label_type).score),
+                "INSERT INTO sentence_relations(sentence_id, relation_id, "
+                "                               head_start_position, tail_start_position, "
+                "                               confidence) "
+                "VALUES(?, ?, ?, ?, ?)",
+                # In SQLite, strings are indexed starting with 1.
+                (
+                    sentence_id,
+                    relation_id,
+                    relation.first.start_position + 1,
+                    relation.second.start_position + 1,
+                    relation.get_label(relation_label_type).score,
+                ),
             )
 
     # Create indices after inserting

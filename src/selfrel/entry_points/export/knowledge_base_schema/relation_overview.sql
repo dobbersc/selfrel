@@ -9,8 +9,12 @@ CREATE TABLE relation_overview
     sentence_text        TEXT    NOT NULL,
     head_text            TEXT    NOT NULL,
     tail_text            TEXT    NOT NULL,
+    head_start_position  INTEGER NOT NULL,
+    tail_start_position  INTEGER NOT NULL,
     head_label           TEXT    NOT NULL,
     tail_label           TEXT    NOT NULL,
+    head_confidence      REAL    NOT NULL,
+    tail_confidence      REAL    NOT NULL,
     label                TEXT    NOT NULL,
     confidence           REAL    NOT NULL,
     occurrence           INTEGER NOT NULL,
@@ -27,15 +31,19 @@ CREATE TABLE relation_overview
 
 INSERT INTO relation_overview
 SELECT sentence_relation_id,
-       sentence_id,
+       sentence.sentence_id,
        relation_id,
        relation.head_id,
        relation.tail_id,
-       sentence.text sentence_text,
-       head.text     head_text,
-       tail.text     tail_text,
-       head.label    head_label,
-       tail.label    tail_label,
+       sentence.text      sentence_text,
+       head.text          head_text,
+       tail.text          tail_text,
+       sr.head_start_position,
+       sr.tail_start_position,
+       head.label         head_label,
+       tail.label         tail_label,
+       se_head.confidence head_confidence,
+       se_tail.confidence tail_confidence,
        relation.label,
        sr.confidence,
        occurrence,
@@ -47,7 +55,15 @@ FROM sentence_relations sr
          JOIN relations relation USING (relation_id)
          JOIN relation_metrics USING (relation_id)
          JOIN entities head ON head.entity_id = relation.head_id
-         JOIN entities tail ON tail.entity_id = relation.tail_id;
+         JOIN entities tail ON tail.entity_id = relation.tail_id
+         JOIN sentence_entities se_head
+              ON se_head.sentence_id = sentence.sentence_id
+                  AND se_head.entity_id = head.entity_id
+                  AND se_head.start_position = sr.head_start_position
+         JOIN sentence_entities se_tail
+              ON se_tail.sentence_id = sentence.sentence_id
+                  AND se_tail.entity_id = tail.entity_id
+                  AND se_tail.start_position = sr.tail_start_position;
 
 
 -- Create INDEX on each foreign key
@@ -65,6 +81,10 @@ CREATE INDEX relation_overview_head_text_idx ON relation_overview (head_text);
 CREATE INDEX relation_overview_tail_text_idx ON relation_overview (tail_text);
 CREATE INDEX relation_overview_head_label_idx ON relation_overview (head_label);
 CREATE INDEX relation_overview_tail_label_idx ON relation_overview (tail_label);
+CREATE INDEX relation_overview_head_confidence_idx ON relation_overview (head_confidence);
+CREATE INDEX relation_overview_tail_confidence_idx ON relation_overview (tail_confidence);
+CREATE INDEX relation_overview_head_start_position_idx ON relation_overview (head_start_position);
+CREATE INDEX relation_overview_tail_start_position_idx ON relation_overview (tail_start_position);
 
 -- Create INDEX on relation properties
 CREATE INDEX relation_overview_label_idx ON relation_overview (label);

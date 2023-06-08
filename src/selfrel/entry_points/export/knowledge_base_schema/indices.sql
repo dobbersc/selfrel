@@ -1,4 +1,4 @@
---- Create INDEX for each foreign key
+--- Create INDEX for each foreign key constraint
 
 CREATE INDEX relations_head_id_fkey ON relations (head_id);
 CREATE INDEX relations_tail_id_fkey ON relations (tail_id);

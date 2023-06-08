@@ -35,7 +35,9 @@ CREATE TABLE sentence_entities
     sentence_entity_id INTEGER PRIMARY KEY,
     sentence_id        INTEGER NOT NULL,
     entity_id          INTEGER NOT NULL,
+    start_position     INTEGER NOT NULL,
     confidence         REAL    NOT NULL,
+    UNIQUE (sentence_id, entity_id, start_position),
     FOREIGN KEY (sentence_id) REFERENCES sentences (sentence_id),
     FOREIGN KEY (entity_id) REFERENCES entities (entity_id)
 );
@@ -47,7 +49,10 @@ CREATE TABLE sentence_relations
     sentence_relation_id INTEGER PRIMARY KEY,
     sentence_id          INTEGER NOT NULL,
     relation_id          INTEGER NOT NULL,
+    head_start_position  INTEGER NOT NULL,
+    tail_start_position  INTEGER NOT NULL,
     confidence           REAL    NOT NULL,
+    UNIQUE (sentence_id, relation_id, head_start_position, tail_start_position),
     FOREIGN KEY (sentence_id) REFERENCES sentences (sentence_id),
     FOREIGN KEY (relation_id) REFERENCES relations (relation_id)
 );

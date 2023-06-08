@@ -2,7 +2,9 @@ import contextlib
 import sqlite3
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
+import pandas as pd
 import pytest
 from flair.data import Sentence
 
@@ -70,38 +72,38 @@ class TestTables:
     def test_sentence_entities(self, knowledge_base: sqlite3.Cursor) -> None:
         assert knowledge_base.execute("SELECT * FROM sentence_entities ORDER BY sentence_entity_id").fetchall() == [
             # Sentence 1: "Berlin is the capital of Germany."
-            (1, 1, 1, 1.0),  # Berlin
-            (2, 1, 2, 1.0),  # Germany,
+            (1, 1, 1, 1, 1.0),  # Berlin
+            (2, 1, 2, 26, 1.0),  # Germany,
             # Sentence 2: "Berlin is the capital of Germany."
-            (3, 2, 1, 1.0),  # Berlin
-            (4, 2, 2, 1.0),  # Germany
+            (3, 2, 1, 1, 1.0),  # Berlin
+            (4, 2, 2, 26, 1.0),  # Germany
             # Sentence 3: "Albert Einstein was born in Ulm, Germany."
-            (5, 3, 3, 1.0),  # Albert Einstein
-            (6, 3, 4, 1.0),  # Ulm
-            (7, 3, 2, 1.0),  # Germany
+            (5, 3, 3, 1, 1.0),  # Albert Einstein
+            (6, 3, 4, 29, 1.0),  # Ulm
+            (7, 3, 2, 34, 1.0),  # Germany
             # Sentence 4: "Ulm, located in Germany, is the birthplace of Albert Einstein."
-            (8, 4, 4, 1.0),  # Ulm
-            (9, 4, 2, 1.0),  # Germany
-            (10, 4, 3, 1.0),  # Albert Einstein
+            (8, 4, 4, 1, 1.0),  # Ulm
+            (9, 4, 2, 17, 1.0),  # Germany
+            (10, 4, 3, 47, 1.0),  # Albert Einstein
             # Sentence 5: "Amazon was founded by Jeff Bezos."
-            (11, 5, 5, 1.0),  # Amazon
-            (12, 5, 6, 1.0),  # Jeff Bezos
+            (11, 5, 5, 1, 1.0),  # Amazon
+            (12, 5, 6, 23, 1.0),  # Jeff Bezos
         ]
 
     def test_sentence_relations(self, knowledge_base: sqlite3.Cursor) -> None:
         assert knowledge_base.execute("SELECT * FROM sentence_relations ORDER BY sentence_relation_id").fetchall() == [
             # Sentence 1: "Berlin is the capital of Germany."
-            (1, 1, 1, 1.0),  # Berlin -> Germany
+            (1, 1, 1, 1, 26, 1.0),  # Berlin -> Germany
             # Sentence 2: "Berlin is the capital of Germany."
-            (2, 2, 1, 1.0),  # Berlin -> Germany
+            (2, 2, 1, 1, 26, 1.0),  # Berlin -> Germany
             # Sentence 3: "Albert Einstein was born in Ulm, Germany."
-            (3, 3, 2, 1.0),  # Albert Einstein -> Ulm
-            (4, 3, 3, 1.0),  # Ulm -> Germany
+            (3, 3, 2, 1, 29, 1.0),  # Albert Einstein -> Ulm
+            (4, 3, 3, 29, 34, 1.0),  # Ulm -> Germany
             # Sentence 4: "Ulm, located in Germany, is the birthplace of Albert Einstein."
-            (5, 4, 2, 1.0),  # Albert Einstein -> Ulm
-            (6, 4, 3, 1.0),  # Ulm -> Germany
+            (5, 4, 2, 47, 1, 1.0),  # Albert Einstein -> Ulm
+            (6, 4, 3, 1, 17, 1.0),  # Ulm -> Germany
             # Sentence 5: "Amazon was founded by Jeff Bezos."
-            (7, 5, 4, 1.0),  # Amazon -> Jeff Bezos
+            (7, 5, 4, 1, 23, 1.0),  # Amazon -> Jeff Bezos
         ]
 
 
@@ -137,17 +139,13 @@ class TestRelationMetrics:
         ]
 
 
-def test_relation_overview(knowledge_base: sqlite3.Cursor) -> None:
-    assert knowledge_base.execute(
-        "SELECT sentence_relation_id, sentence_id, relation_id, head_id, tail_id "
-        "FROM relation_overview "
-        "ORDER BY sentence_relation_id"
-    ).fetchall() == [
-        (1, 1, 1, 1, 2),
-        (2, 2, 1, 1, 2),
-        (3, 3, 2, 3, 4),
-        (4, 3, 3, 4, 2),
-        (5, 4, 2, 3, 4),
-        (6, 4, 3, 4, 2),
-        (7, 5, 4, 5, 6),
-    ]
+def test_relation_overview(knowledge_base: sqlite3.Cursor, resources_dir: Path) -> None:
+    result: list[tuple[Any, ...]] = knowledge_base.execute(
+        "SELECT * FROM relation_overview ORDER BY sentence_relation_id"
+    ).fetchall()
+
+    expected: list[tuple[Any, ...]] = list(
+        pd.read_csv(resources_dir / "knowledge_base" / "relation-overview.tsv", sep="\t").itertuples(index=False)
+    )
+
+    assert result == expected
