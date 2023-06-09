@@ -11,7 +11,13 @@ from tqdm import tqdm
 from selfrel.data import CoNLLUPlusDataset
 from selfrel.utils.sqlite3 import register_log
 
-__all__ = ["export_knowledge_base", "create_knowledge_base", "update_relation_metrics", "update_relation_overview"]
+__all__ = [
+    "export_knowledge_base",
+    "create_knowledge_base",
+    "update_in_between_texts",
+    "update_relation_metrics",
+    "update_relation_overview",
+]
 
 knowledge_base_sql: Traversable = importlib_resources.files("selfrel.entry_points.export.knowledge_base_schema")
 
@@ -98,6 +104,11 @@ def create_knowledge_base(
     cursor.executescript(indices.read_text(encoding="utf-8"))
 
 
+def update_in_between_texts(cursor: sqlite3.Cursor) -> None:
+    sql: Traversable = knowledge_base_sql / "in_between_texts.sql"
+    cursor.executescript(sql.read_text(encoding="utf-8"))
+
+
 def update_relation_metrics(cursor: sqlite3.Cursor) -> None:
     sql: Traversable = knowledge_base_sql / "relation_metrics.sql"
     cursor.executescript(sql.read_text(encoding="utf-8"))
@@ -132,10 +143,13 @@ def export_knowledge_base(
         relation_label_type=relation_label_type,
     )
 
-    print("Building 'relation_metrics' table...")
-    update_relation_metrics(cursor)
-
     if create_relation_overview:
+        print("Building 'in_between_texts' table...")
+        update_in_between_texts(cursor)
+
+        print("Building 'relation_metrics' table...")
+        update_relation_metrics(cursor)
+
         print("Building 'relation_overview' table...")
         update_relation_overview(cursor)
 

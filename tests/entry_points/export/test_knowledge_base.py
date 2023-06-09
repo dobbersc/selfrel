@@ -139,6 +139,23 @@ class TestRelationMetrics:
         ]
 
 
+def test_in_between_texts(knowledge_base: sqlite3.Cursor) -> None:
+    assert knowledge_base.execute("SELECT * FROM in_between_texts ORDER BY sentence_relation_id").fetchall() == [
+        # Sentence 1: "Berlin is the capital of Germany."
+        (1, "is the capital of"),  # Berlin -> Germany
+        # Sentence 2: "Berlin is the capital of Germany."
+        (2, "is the capital of"),  # Berlin -> Germany
+        # Sentence 3: "Albert Einstein was born in Ulm, Germany."
+        (3, "was born in"),  # Albert Einstein -> Ulm
+        (4, ","),  # Ulm -> Germany
+        # Sentence 4: "Ulm, located in Germany, is the birthplace of Albert Einstein."
+        (5, ", located in Germany, is the birthplace of"),  # Albert Einstein -> Ulm
+        (6, ", located in"),  # Ulm -> Germany
+        # Sentence 5: "Amazon was founded by Jeff Bezos."
+        (7, "was founded by"),  # Amazon -> Jeff Bezos
+    ]
+
+
 def test_relation_overview(knowledge_base: sqlite3.Cursor, resources_dir: Path) -> None:
     result: list[tuple[Any, ...]] = knowledge_base.execute(
         "SELECT * FROM relation_overview ORDER BY sentence_relation_id"
