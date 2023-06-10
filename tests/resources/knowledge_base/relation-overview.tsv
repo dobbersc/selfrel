@@ -1,8 +1,8 @@
-sentence_relation_id	sentence_id	relation_id	head_id	tail_id	sentence_text	head_text	tail_text	head_start_position	tail_start_position	head_label	tail_label	head_confidence	tail_confidence	label	confidence	occurrence	distinct_occurrence	entropy	distinct_entropy
-1	1	1	1	2	Berlin is the capital of Germany.	Berlin	Germany	1	26	LOC	LOC	1	1	capital_of	1	2	1	0	0
-2	2	1	1	2	Berlin is the capital of Germany.	Berlin	Germany	1	26	LOC	LOC	1	1	capital_of	1	2	1	0	0
-3	3	2	3	4	Albert Einstein was born in Ulm, Germany.	Albert Einstein	Ulm	1	29	PER	LOC	1	1	born_in	1	2	2	0	0
-4	3	3	4	2	Albert Einstein was born in Ulm, Germany.	Ulm	Germany	29	34	LOC	LOC	1	1	located_in	1	2	2	0	0
-5	4	2	3	4	Ulm, located in Germany, is the birthplace of Albert Einstein.	Albert Einstein	Ulm	47	1	PER	LOC	1	1	born_in	1	2	2	0	0
-6	4	3	4	2	Ulm, located in Germany, is the birthplace of Albert Einstein.	Ulm	Germany	1	17	LOC	LOC	1	1	located_in	1	2	2	0	0
-7	5	4	5	6	Amazon was founded by Jeff Bezos.	Amazon	Jeff Bezos	1	23	ORG	PER	1	1	founded_by	1	1	1	0	0
+sentence_relation_id	sentence_id	relation_id	head_id	tail_id	sentence_text	in_between_text	head_start_position	tail_start_position	head_text	tail_text	head_label	tail_label	head_confidence	tail_confidence	label	confidence	occurrence	occurrence_distinct_sentences	occurrence_distinct_in_between_texts	entropy	entropy_distinct_sentences	entropy_distinct_in_between_texts
+1	1	1	1	2	Berlin is the capital of Germany.	is the capital of	1	26	Berlin	Germany	LOC	LOC	1	1	capital_of	1	2	1	1	0	0	0
+2	2	1	1	2	Berlin is the capital of Germany.	is the capital of	1	26	Berlin	Germany	LOC	LOC	1	1	capital_of	1	2	1	1	0	0	0
+3	3	2	3	4	Albert Einstein was born in Ulm, Germany.	was born in	1	29	Albert Einstein	Ulm	PER	LOC	1	1	born_in	1	2	2	2	0	0	0
+4	3	3	4	2	Albert Einstein was born in Ulm, Germany.	,	29	34	Ulm	Germany	LOC	LOC	1	1	located_in	1	2	2	2	0	0	0
+5	4	2	3	4	Ulm, located in Germany, is the birthplace of Albert Einstein.	, located in Germany, is the birthplace of	47	1	Albert Einstein	Ulm	PER	LOC	1	1	born_in	1	2	2	2	0	0	0
+6	4	3	4	2	Ulm, located in Germany, is the birthplace of Albert Einstein.	, located in	1	17	Ulm	Germany	LOC	LOC	1	1	located_in	1	2	2	2	0	0	0
+7	5	4	5	6	Amazon was founded by Jeff Bezos.	was founded by	1	23	Amazon	Jeff Bezos	ORG	PER	1	1	founded_by	1	1	1	1	0	0	0

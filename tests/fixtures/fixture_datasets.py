@@ -101,3 +101,37 @@ def entropy_sentences() -> list[Sentence]:
         Relation(first=head, second=tail).add_label("relation", value=sentence[1].text)
 
     return sentences
+
+
+@pytest.fixture()
+def distinct_in_between_texts_sentences() -> list[Sentence]:
+    """
+    List of sentences with relation annotations useful for testing distinct in-between texts entropy calculations.
+    Each sentence has a unique text with re-occurring in-between texts.
+    In total, the sentences contain the following relations:
+
+    | Relation Candidate   | In-Between Text | Relation    | Occurrence |
+    |----------------------| ----------------|-------------|------------|
+    | AP News -> New York  | IN-BETWEEN-1    | based_in    | 10         |
+    |                      |                 | no_relation | 0          |
+    | AP News -> New York  | IN-BETWEEN-2    | based_in    | 2          |
+    |                      |                 | no_relation | 3          |
+    """
+    sentences: list[Sentence] = [
+        *[Sentence(f"AP News IN-BETWEEN-1 News York - S{i}", use_tokenizer=SpaceTokenizer()) for i in range(10)],
+        *[Sentence(f"AP News IN-BETWEEN-2 News York - S{i}", use_tokenizer=SpaceTokenizer()) for i in range(5)],
+    ]
+
+    for sentence in sentences[:12]:
+        head, tail = sentence[:2], sentence[3:5]
+        head.add_label("ner", value="HEAD")
+        tail.add_label("ner", value="TAIL")
+        Relation(first=head, second=tail).add_label("relation", value="located_in")
+
+    for sentence in sentences[12:15]:
+        head, tail = sentence[:2], sentence[3:5]
+        head.add_label("ner", value="HEAD")
+        tail.add_label("ner", value="TAIL")
+        Relation(first=head, second=tail).add_label("relation", value="no_relation")
+
+    return sentences

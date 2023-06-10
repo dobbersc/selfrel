@@ -40,6 +40,17 @@ def entropy_knowledge_base(entropy_sentences: list[Sentence], tmp_path: Path) ->
         yield cursor
 
 
+@pytest.fixture()
+def distinct_in_between_texts_knowledge_base(
+    distinct_in_between_texts_sentences: list[Sentence], tmp_path: Path
+) -> Iterator[sqlite3.Cursor]:
+    """The knowledge base used for the distinct in-between texts entropy relation calculation test."""
+    database_path: Path = tmp_path / "knowledge-base.db"
+    export_knowledge_base(distinct_in_between_texts_sentences, out=database_path)
+    with get_cursor(database_path) as cursor:
+        yield cursor
+
+
 class TestTables:
     def test_sentences(self, knowledge_base: sqlite3.Cursor) -> None:
         assert knowledge_base.execute("SELECT * FROM sentences ORDER BY sentence_id").fetchall() == [
@@ -118,14 +129,24 @@ class TestRelationMetrics:
             (4, 1),  # Amazon          ---founded_by--> Jeff
         ]
 
-    def test_distinct_occurrence(self, knowledge_base: sqlite3.Cursor) -> None:
+    def test_occurrence_distinct_sentences(self, knowledge_base: sqlite3.Cursor) -> None:
         assert knowledge_base.execute(
-            "SELECT relation_id, distinct_occurrence FROM relation_metrics ORDER BY relation_id"
+            "SELECT relation_id, occurrence_distinct_sentences FROM relation_metrics ORDER BY relation_id"
         ).fetchall() == [
             (1, 1),  # Berlin          ---capital_of--> Germany
             (2, 2),  # Albert Einstein ---born_in-----> Ulm
             (3, 2),  # Ulm             ---located_in--> Germany
             (4, 1),  # Amazon          ---founded_by--> Jeff
+        ]
+
+    def test_occurrence_distinct_in_between_texts(
+        self, distinct_in_between_texts_knowledge_base: sqlite3.Cursor
+    ) -> None:
+        assert distinct_in_between_texts_knowledge_base.execute(
+            "SELECT relation_id, occurrence_distinct_in_between_texts FROM relation_metrics ORDER BY relation_id"
+        ).fetchall() == [
+            (1, 2),  # AP News ---based_in-----> New York
+            (2, 1),  # AP News ---no_relation--> New York
         ]
 
     def test_entropy(self, entropy_knowledge_base: sqlite3.Cursor) -> None:
@@ -137,6 +158,11 @@ class TestRelationMetrics:
             (3, 0.97),
             (4, 0.97),
         ]
+
+    def test_entropy_distinct_in_between_texts(self, distinct_in_between_texts_knowledge_base: sqlite3.Cursor) -> None:
+        assert distinct_in_between_texts_knowledge_base.execute(
+            "SELECT relation_id, round(entropy_distinct_in_between_texts, 2) FROM relation_metrics ORDER BY relation_id"
+        ).fetchall() == [(1, 0.92), (2, 0.92)]
 
 
 def test_in_between_texts(knowledge_base: sqlite3.Cursor) -> None:
@@ -161,8 +187,9 @@ def test_relation_overview(knowledge_base: sqlite3.Cursor, resources_dir: Path) 
         "SELECT * FROM relation_overview ORDER BY sentence_relation_id"
     ).fetchall()
 
+    relation_overview_path: Path = resources_dir / "knowledge_base" / "relation-overview.tsv"
     expected: list[tuple[Any, ...]] = list(
-        pd.read_csv(resources_dir / "knowledge_base" / "relation-overview.tsv", sep="\t").itertuples(index=False)
+        pd.read_csv(relation_overview_path, sep="\t").itertuples(index=False, name=None)
     )
 
     assert result == expected
