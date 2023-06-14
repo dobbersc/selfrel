@@ -43,6 +43,10 @@ def test_build_relation_overview(sentences_with_relation_annotations: list[Sente
                 dtype="category",
             ),
             "confidence": (1.0,) * 7,
+            "head_start_position": (0, 0, 0, 28, 46, 0, 0),
+            "head_end_position": (6, 6, 15, 31, 61, 3, 6),
+            "tail_start_position": (25, 25, 28, 33, 0, 16, 22),
+            "tail_end_position": (32, 32, 31, 40, 3, 23, 32),
         },
         index=index,
     )

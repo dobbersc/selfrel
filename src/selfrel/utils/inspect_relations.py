@@ -62,6 +62,10 @@ def build_relation_overview(
     tail_labels: list[str] = []
     labels: list[str] = []
     confidences: list[float] = []
+    head_start_positions: list[int] = []
+    head_end_positions: list[int] = []
+    tail_start_positions: list[int] = []
+    tail_end_positions: list[int] = []
 
     for sentence_index, sentence in enumerate(
         tqdm(sentences, desc="Building Relation Overview", disable=not show_progress_bar)
@@ -87,6 +91,11 @@ def build_relation_overview(
             head_labels.append(head_label)
             tail_labels.append(tail_label)
 
+            head_start_positions.append(relation.first.start_position)
+            head_end_positions.append(relation.first.end_position)
+            tail_start_positions.append(relation.second.start_position)
+            tail_end_positions.append(relation.second.end_position)
+
     index: pd.MultiIndex = pd.MultiIndex.from_arrays(
         (sentence_indices, relation_indices),
         names=("sentence_index", "relation_index"),
@@ -100,6 +109,10 @@ def build_relation_overview(
             "tail_label": pd.Series(tail_labels, index=index, dtype="category"),
             "label": pd.Series(labels, index=index, dtype="category"),
             "confidence": confidences,
+            "head_start_position": head_start_positions,
+            "head_end_position": head_end_positions,
+            "tail_start_position": tail_start_positions,
+            "tail_end_position": tail_end_positions,
         },
         index=index,
     )
