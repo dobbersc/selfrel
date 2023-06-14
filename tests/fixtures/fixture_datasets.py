@@ -116,10 +116,15 @@ def distinct_in_between_texts_sentences() -> list[Sentence]:
     |                      |                 | no_relation | 0          |
     | AP News -> New York  | IN-BETWEEN-2    | based_in    | 2          |
     |                      |                 | no_relation | 3          |
+    | Berlin -> Germany    | IN-BETWEEN-3    | located_in  | 2          |
+    | Berlin -> Germany    | IN-BETWEEN-4    | located_in  | 3          |
+
     """
     sentences: list[Sentence] = [
         *[Sentence(f"AP News IN-BETWEEN-1 News York - S{i}", use_tokenizer=SpaceTokenizer()) for i in range(10)],
         *[Sentence(f"AP News IN-BETWEEN-2 News York - S{i}", use_tokenizer=SpaceTokenizer()) for i in range(5)],
+        *[Sentence(f"Berlin IN-BETWEEN-3 Germany - S{i}", use_tokenizer=SpaceTokenizer()) for i in range(2)],
+        *[Sentence(f"Berlin IN-BETWEEN-4 Germany - S{i}", use_tokenizer=SpaceTokenizer()) for i in range(3)],
     ]
 
     for sentence in sentences[:12]:
@@ -133,5 +138,11 @@ def distinct_in_between_texts_sentences() -> list[Sentence]:
         head.add_label("ner", value="HEAD")
         tail.add_label("ner", value="TAIL")
         Relation(first=head, second=tail).add_label("relation", value="no_relation")
+
+    for sentence in sentences[15:20]:
+        head, tail = sentence[:1], sentence[2:3]
+        head.add_label("ner", value="HEAD")
+        tail.add_label("ner", value="TAIL")
+        Relation(first=head, second=tail).add_label("relation", value="located_in")
 
     return sentences

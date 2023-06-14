@@ -147,6 +147,7 @@ class TestRelationMetrics:
         ).fetchall() == [
             (1, 2),  # AP News ---based_in-----> New York
             (2, 1),  # AP News ---no_relation--> New York
+            (3, 2),  # Berlin  ---located_in---> Germany
         ]
 
     def test_entropy(self, entropy_knowledge_base: sqlite3.Cursor) -> None:
@@ -162,7 +163,7 @@ class TestRelationMetrics:
     def test_entropy_distinct_in_between_texts(self, distinct_in_between_texts_knowledge_base: sqlite3.Cursor) -> None:
         assert distinct_in_between_texts_knowledge_base.execute(
             "SELECT relation_id, round(entropy_distinct_in_between_texts, 2) FROM relation_metrics ORDER BY relation_id"
-        ).fetchall() == [(1, 0.92), (2, 0.92)]
+        ).fetchall() == [(1, 0.92), (2, 0.92), (3, 0)]
 
 
 def test_in_between_texts(knowledge_base: sqlite3.Cursor) -> None:
