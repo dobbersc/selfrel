@@ -68,7 +68,7 @@ class SelectionStrategy(ABC):
                 sentence: Sentence = sentences[sentence_index]
                 relations: list[Relation] = sentence.get_relations(relation_label_type)
                 selected_relations: list[Relation] = [
-                    relations[relation_index] for relation_index in group.reset_index()["relation_index"]
+                    relations[relation_index] for relation_index in group.index.get_level_values("relation_index")
                 ]
 
                 yield cls._create_sentence_with_relations(
