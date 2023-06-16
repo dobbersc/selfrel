@@ -39,6 +39,8 @@ warn_unreachable = true
 warn_unused_configs = true
 show_error_codes = true
 
+plugins = "numpy.typing.mypy_plugin"
+
 [[tool.mypy.overrides]]
 # For argparse subparsers
 module = "selfrel.__main__"
@@ -58,6 +60,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "pandas.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "scipy.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
