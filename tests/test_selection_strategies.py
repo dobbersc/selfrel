@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from flair.data import Sentence
 
-from selfrel.selection_strategies import PredictionConfidence, SelectionStrategy, TotalOccurrence
+from selfrel.selection_strategies import Occurrence, PredictionConfidence, SelectionStrategy
 from selfrel.utils.inspect_relations import build_relation_overview
 
 
@@ -69,41 +69,67 @@ def assert_scores_and_selected_indices(
 
 
 @pytest.fixture()
-def total_occurrence_relation_overview(sentences_with_relation_annotations: list[Sentence]) -> pd.DataFrame:
+def occurrence_relation_overview(sentences_with_relation_annotations: list[Sentence]) -> pd.DataFrame:
     sentences: list[Sentence] = sentences_with_relation_annotations
     return build_relation_overview(sentences, entity_label_types="ner", relation_label_type="relation")
 
 
-class TestTotalOccurrence:
-    def test_distinct(self, total_occurrence_relation_overview: pd.DataFrame) -> None:
-        selection_strategy: TotalOccurrence = TotalOccurrence(min_occurrence=2, distinct=True)
-        assert_scores_and_selected_indices(
-            selection_strategy=selection_strategy,
-            relation_overview=total_occurrence_relation_overview,
-            score_name="occurrence",
-            expected_scores=(1, 1, 2, 2, 2, 2, 1),
-            expected_scores_indices=((0, 0), (1, 0), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0)),
-            expected_selected_indices=((2, 0), (2, 1), (3, 0), (3, 1)),
-        )
+@pytest.fixture()
+def distinct_in_between_texts_relation_overview(distinct_in_between_texts_sentences: list[Sentence]) -> pd.DataFrame:
+    sentences: list[Sentence] = distinct_in_between_texts_sentences
+    return build_relation_overview(sentences, entity_label_types="ner", relation_label_type="relation")
 
-    def test_not_distinct(self, total_occurrence_relation_overview: pd.DataFrame) -> None:
-        selection_strategy: TotalOccurrence = TotalOccurrence(min_occurrence=2, distinct=False)
+
+@pytest.fixture()
+def entropy_relation_overview(entropy_sentences: list[Sentence]) -> pd.DataFrame:
+    sentences: list[Sentence] = entropy_sentences
+    return build_relation_overview(sentences, entity_label_types="ner", relation_label_type="relation")
+
+
+class TestOccurrence:
+    def test_distinct_none(self, occurrence_relation_overview: pd.DataFrame) -> None:
+        selection_strategy: Occurrence = Occurrence(min_occurrence=2, distinct=None)
         assert_scores_and_selected_indices(
             selection_strategy=selection_strategy,
-            relation_overview=total_occurrence_relation_overview,
+            relation_overview=occurrence_relation_overview,
             score_name="occurrence",
             expected_scores=(2, 2, 2, 2, 2, 2, 1),
             expected_scores_indices=((0, 0), (1, 0), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0)),
             expected_selected_indices=((0, 0), (1, 0), (2, 0), (2, 1), (3, 0), (3, 1)),
         )
 
-    def test_top_k(self, total_occurrence_relation_overview: pd.DataFrame) -> None:
-        selection_strategy: TotalOccurrence = TotalOccurrence(min_occurrence=1, distinct=True, top_k=5)
+    def test_distinct_sentence(self, occurrence_relation_overview: pd.DataFrame) -> None:
+        selection_strategy: Occurrence = Occurrence(min_occurrence=2, distinct="sentence")
         assert_scores_and_selected_indices(
             selection_strategy=selection_strategy,
-            relation_overview=total_occurrence_relation_overview,
+            relation_overview=occurrence_relation_overview,
+            score_name="occurrence",
+            expected_scores=(1, 1, 2, 2, 2, 2, 1),
+            expected_scores_indices=((0, 0), (1, 0), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0)),
+            expected_selected_indices=((2, 0), (2, 1), (3, 0), (3, 1)),
+        )
+
+    def test_distinct_in_between_text(self, distinct_in_between_texts_relation_overview: pd.DataFrame) -> None:
+        selection_strategy: Occurrence = Occurrence(min_occurrence=2, distinct="in-between-text")
+        assert_scores_and_selected_indices(
+            selection_strategy=selection_strategy,
+            relation_overview=distinct_in_between_texts_relation_overview,
+            score_name="occurrence",
+            expected_scores=(2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2),
+            expected_scores_indices=tuple((i, 0) for i in range(20)),
+            expected_selected_indices=tuple((i, 0) for i in range(12)) + tuple((i, 0) for i in range(15, 20)),
+        )
+
+    def test_top_k(self, occurrence_relation_overview: pd.DataFrame) -> None:
+        selection_strategy: Occurrence = Occurrence(min_occurrence=1, distinct="sentence", top_k=5)
+        assert_scores_and_selected_indices(
+            selection_strategy=selection_strategy,
+            relation_overview=occurrence_relation_overview,
             score_name="occurrence",
             expected_scores=(1, 1, 2, 2, 2, 2, 1),
             expected_scores_indices=((0, 0), (1, 0), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0)),
             expected_selected_indices=((2, 0), (2, 1), (3, 0), (3, 1), (0, 0)),
         )
+
+
+# TODO: Test the other selection strategies and the top_k and label_distribution parameters

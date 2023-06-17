@@ -12,7 +12,7 @@ from flair.embeddings import TransformerDocumentEmbeddings
 from flair.models import RelationClassifier
 
 from selfrel.data import CoNLLUPlusDataset
-from selfrel.selection_strategies import PredictionConfidence, SelectionStrategy, TotalOccurrence
+from selfrel.selection_strategies import Entropy, Occurrence, PredictionConfidence, SelectionStrategy
 from selfrel.trainer import SelfTrainer
 from selfrel.utils.inspect_relations import infer_entity_pair_labels
 
@@ -35,6 +35,70 @@ def _load_corpus(corpus_name: str) -> Corpus[Sentence]:
         raise ValueError(msg) from e
 
 
+def infer_selection_strategy(
+    selection_strategy: Literal["prediction-confidence", "occurrence", "entropy"],
+    min_confidence: Optional[float],
+    min_occurrence: Optional[int],
+    max_occurrence: Optional[int],
+    distinct: Optional[Literal["sentence", "in-between-text"]],
+    base: Optional[int],
+    max_entropy: Optional[float],
+    top_k: Optional[int],
+    label_distribution: Optional[dict[str, float]],
+) -> SelectionStrategy:
+    strategy: SelectionStrategy
+    if selection_strategy == "prediction-confidence":
+        strategy = (
+            PredictionConfidence(top_k=top_k, label_distribution=label_distribution)
+            if min_confidence is None
+            else PredictionConfidence(
+                min_confidence=min_confidence,
+                top_k=top_k,
+                label_distribution=label_distribution,
+            )
+        )
+    elif selection_strategy == "occurrence":
+        strategy = (
+            Occurrence(distinct=distinct, top_k=top_k, label_distribution=label_distribution)
+            if min_occurrence is None
+            else Occurrence(
+                min_occurrence=min_occurrence,
+                distinct=distinct,
+                top_k=top_k,
+                label_distribution=label_distribution,
+            )
+        )
+    elif selection_strategy == "entropy":
+        strategy = (
+            Entropy(
+                base=base,
+                min_occurrence=min_occurrence,
+                max_occurrence=max_occurrence,
+                min_confidence=min_confidence,
+                distinct=distinct,
+                top_k=top_k,
+                label_distribution=label_distribution,
+            )
+            if max_entropy is None
+            else Entropy(
+                base=base,
+                max_entropy=max_entropy,
+                min_occurrence=min_occurrence,
+                max_occurrence=max_occurrence,
+                min_confidence=min_confidence,
+                distinct=distinct,
+                top_k=top_k,
+                label_distribution=label_distribution,
+            )
+        )
+
+    else:  # pragma: no cover
+        msg = f"Specified invalid selection strategy {selection_strategy!r}"  # type: ignore[unreachable]
+        raise ValueError(msg)
+
+    return strategy
+
+
 def train(
     corpus_name: Literal["conll04"],
     support_dataset: Union[str, Path, CoNLLUPlusDataset[Sentence]],
@@ -55,10 +119,15 @@ def train(
         "typed-entity-marker-punct",
     ] = "typed-entity-marker-punct",
     self_training_iterations: int = 1,
-    selection_strategy: Literal["prediction-confidence", "total-occurrence"] = "prediction-confidence",
+    selection_strategy: Literal["prediction-confidence", "occurrence", "entropy"] = "prediction-confidence",
     min_confidence: Optional[float] = None,
     min_occurrence: Optional[int] = None,
+    max_occurrence: Optional[int] = None,
+    distinct: Optional[Literal["sentence", "in-between-text"]] = None,
+    base: Optional[int] = None,
+    max_entropy: Optional[float] = None,
     top_k: Optional[int] = None,
+    label_distribution: Optional[dict[str, float]] = None,
     precomputed_annotated_support_datasets: Sequence[Union[str, Path, None]] = (),
     precomputed_relation_overviews: Sequence[Union[str, Path, None]] = (),
     num_actors: int = 1,
@@ -119,7 +188,7 @@ def train(
         allow_unk_tag=False,
     )
 
-    # Step 4: Initialize self-trainer
+    # Step 4: Initialize self-trainer and selection strategy
     trainer: SelfTrainer = SelfTrainer(
         model=model,
         corpus=corpus,
@@ -131,6 +200,18 @@ def train(
         prediction_batch_size=prediction_batch_size,
     )
 
+    strategy: SelectionStrategy = infer_selection_strategy(
+        selection_strategy=selection_strategy,
+        min_confidence=min_confidence,
+        min_occurrence=min_occurrence,
+        max_occurrence=max_occurrence,
+        distinct=distinct,
+        base=base,
+        max_entropy=max_entropy,
+        top_k=top_k,
+        label_distribution=label_distribution,
+    )
+
     logger.info("-" * 100)
     logger.info("Parameters:")
     for parameter, parameter_value in hyperparameters.items():
@@ -138,21 +219,6 @@ def train(
     logger.info("-" * 100)
 
     # Step 5: Run self-trainer
-    strategy: SelectionStrategy
-    if selection_strategy == "prediction-confidence":
-        strategy = (
-            PredictionConfidence(top_k=top_k)
-            if min_confidence is None
-            else PredictionConfidence(min_confidence, top_k=top_k)
-        )
-    elif selection_strategy == "total-occurrence":
-        strategy = (
-            TotalOccurrence(top_k=top_k) if min_occurrence is None else TotalOccurrence(min_occurrence, top_k=top_k)
-        )
-    else:  # pragma: no cover
-        msg = f"Specified invalid selection strategy {selection_strategy!r}"  # type: ignore[unreachable]
-        raise ValueError(msg)
-
     trainer.train(
         base_path,
         self_training_iterations=self_training_iterations,
@@ -164,4 +230,5 @@ def train(
         mini_batch_size=batch_size,
         main_evaluation_metric=("macro avg", "f1-score"),
         exclude_labels=[] if exclude_labels_from_evaluation is None else exclude_labels_from_evaluation,
+        use_final_model_for_eval=False,
     )

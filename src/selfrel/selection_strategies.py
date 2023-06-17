@@ -1,15 +1,34 @@
+import logging
+import math
+import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Final, Literal, Optional, Union, cast
 
+import numpy as np
 import pandas as pd
+import scipy as sp
 from flair.data import Label, Relation, Sentence
 from tqdm import tqdm
 
 from selfrel.utils.copy import deepcopy_flair_sentence
 from selfrel.utils.inspect_relations import build_relation_overview
 
-__all__ = ["SelectionReport", "SelectionStrategy", "PredictionConfidence", "TotalOccurrence"]
+if TYPE_CHECKING:
+    import numpy.typing as npt
+    from pandas.core.groupby.generic import DataFrameGroupBy
+
+
+__all__ = ["SelectionReport", "SelectionStrategy", "PredictionConfidence", "Occurrence", "Entropy"]
+
+RELATION_IDENTIFIER: Final[list[str]] = ["head_text", "tail_text", "head_label", "tail_label", "label"]
+ENTITY_PAIR_IDENTIFIER: Final[list[str]] = ["head_text", "tail_text", "head_label", "tail_label"]
+
+logger: logging.Logger = logging.getLogger("flair")
+
+
+def relation_label_counts(relation_overview: pd.DataFrame) -> "pd.Series[int]":
+    return relation_overview.groupby("label")["label"].count().sort_values().rename("label_counts")
 
 
 class SelectionReport(Iterator[Sentence]):
@@ -25,6 +44,9 @@ class SelectionReport(Iterator[Sentence]):
         self.scored_relation_overview = scored_relation_overview
         self.selected_relation_overview = selected_relation_overview
 
+    def selected_relation_label_counts(self) -> "pd.Series[int]":
+        return relation_label_counts(self.selected_relation_overview)
+
     def __next__(self) -> Sentence:
         return next(self.sentences)
 
@@ -37,6 +59,62 @@ class SelectionStrategy(ABC):
     @abstractmethod
     def select_rows(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
         pass
+
+    @staticmethod
+    def _select_top_rows(
+        relation_overview: pd.DataFrame,
+        score_column: str,
+        ascending: bool = True,
+        top_k: Optional[int] = None,
+        label_distribution: Optional[dict[str, float]] = None,
+    ) -> pd.DataFrame:
+        if top_k is None and label_distribution is None:
+            return relation_overview
+
+        selected: pd.DataFrame
+        if label_distribution is None:
+            assert top_k is not None
+
+            # Select top-k data points
+            if ascending:
+                selected = relation_overview.nsmallest(top_k, columns=score_column, keep="all").head(top_k)
+            else:
+                selected = relation_overview.nlargest(top_k, columns=score_column, keep="all").head(top_k)
+
+            # Check expected correctness
+            if (total_selected_data_points := relation_label_counts(selected).sum()) < top_k:
+                warnings.warn(
+                    f"Not enough data points are available to select the top {top_k} data points. "
+                    f"Proceeding with the top {total_selected_data_points} data points.",
+                    stacklevel=3,  # Direct to call of `select_rows`
+                )
+
+        else:
+            # Normalize the label distribution if its weights don't sum to 1
+            weights: npt.NDArray[np.float_] = np.fromiter(label_distribution.values(), dtype=float)
+            weights = weights / weights.sum()
+            label_distribution: dict[str, float] = dict(zip(label_distribution.keys(), weights))
+
+            # Select top-k data points under the specified label distribution
+            total_data_points: int = len(relation_overview.index) if top_k is None else top_k
+            selection_mask: pd.Series[bool] = relation_overview.groupby("label", sort=False)[score_column].transform(
+                lambda label_group: label_group.rank(method="first", ascending=ascending)
+                <= label_distribution.get(cast(str, label_group.name), 0.0) * total_data_points
+            )
+            selected = relation_overview[selection_mask]
+
+            # Check expected correctness
+            for label, count in relation_label_counts(selected).items():
+                expected_count: int = math.floor(label_distribution.get(cast(str, label), 0.0) * total_data_points)
+                if count < expected_count:
+                    warnings.warn(
+                        f"Not enough data points of label {label!r} are available to select "
+                        f"the top {expected_count} data points unter its specified label weight. "
+                        f"Proceeding with the top {count} data points.",
+                        stacklevel=3,  # Direct to call of `select_rows`
+                    )
+
+        return selected
 
     @staticmethod
     def _create_sentence_with_relations(
@@ -93,6 +171,7 @@ class SelectionStrategy(ABC):
 
         scored_relation_overview: pd.DataFrame = self.compute_score(relation_overview)
         selected_relation_overview: pd.DataFrame = self.select_rows(scored_relation_overview)
+        # TODO: We could transfer this function to the SelectionReport class
         selected_sentences: Iterator[Sentence] = self._create_sentences_with_selected_relations(
             sentences, selected_relation_overview, relation_label_type
         )
@@ -105,48 +184,148 @@ class SelectionStrategy(ABC):
         )
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}()"
+        attributes: list[str] = [f"{attribute}={value!r}" for attribute, value in self.__dict__.items()]
+        return f"{type(self).__name__}({', '.join(attributes)})"
 
 
 class PredictionConfidence(SelectionStrategy):
-    def __init__(self, min_confidence: float = 0.8, top_k: Optional[int] = None) -> None:
+    def __init__(
+        self,
+        min_confidence: float = 0.8,
+        top_k: Optional[int] = None,
+        label_distribution: Optional[dict[str, float]] = None,
+    ) -> None:
         self.min_confidence = min_confidence
         self.top_k = top_k
+        self.label_distribution = label_distribution
 
     def compute_score(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
         return relation_overview
 
     def select_rows(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
         selected: pd.DataFrame = relation_overview[relation_overview.confidence >= self.min_confidence]
-        if self.top_k is not None:
-            return selected.nlargest(self.top_k, columns="confidence", keep="all").head(self.top_k)
-        return selected
+        return self._select_top_rows(
+            selected,
+            score_column="confidence",
+            ascending=False,
+            top_k=self.top_k,
+            label_distribution=self.label_distribution,
+        )
 
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}(min_confidence={self.min_confidence!r}, top_k={self.top_k!r})"
 
-
-class TotalOccurrence(SelectionStrategy):
-    def __init__(self, min_occurrence: int = 2, distinct: bool = True, top_k: Optional[int] = None) -> None:
+class Occurrence(SelectionStrategy):
+    def __init__(
+        self,
+        min_occurrence: int = 2,
+        distinct: Optional[Literal["sentence", "in-between-text"]] = None,
+        top_k: Optional[int] = None,
+        label_distribution: Optional[dict[str, float]] = None,
+    ) -> None:
         self.min_occurrence = min_occurrence
         self.distinct = distinct
         self.top_k = top_k
+        self.label_distribution = label_distribution
 
     def compute_score(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
-        relation_identifier: list[str] = ["head_text", "tail_text", "head_label", "tail_label", "label"]
-        occurrences: pd.Series[int] = relation_overview.groupby(relation_identifier)["sentence_text"].transform(
-            "nunique" if self.distinct else "count"
-        )
+        if "occurrence" in relation_overview:
+            logger.info("Using pre-computed 'occurrence' column")
+            return relation_overview
+
+        relation_groups: DataFrameGroupBy = relation_overview.groupby(RELATION_IDENTIFIER, sort=False)
+
+        occurrences: pd.Series[int]
+        if self.distinct is None:
+            occurrences = relation_groups["sentence_text"].transform("count")
+
+        elif self.distinct == "sentence":
+            occurrences = relation_groups["sentence_text"].transform("nunique")
+
+        elif self.distinct == "in-between-text":
+
+            def get_in_between_text(row: "pd.Series[object]") -> str:
+                text: str = row["sentence_text"][row["head_end_position"] : row["tail_start_position"]].strip()
+                return text
+
+            in_between_text: pd.Series[str] = (
+                relation_overview[["sentence_text", "head_end_position", "tail_start_position"]]
+                .apply(get_in_between_text, axis=1)
+                .astype("string")
+            )
+            relation_overview = relation_overview.assign(in_between_text=in_between_text)
+            relation_groups = relation_overview.groupby(RELATION_IDENTIFIER, sort=False)
+            occurrences = relation_groups["in_between_text"].transform("nunique")
+
+        else:  # pragma: no cover
+            msg = (  # type: ignore[unreachable]
+                f"Provided invalid value for 'distinct': {self.distinct!r}. "
+                f"Expected 'None', 'sentence' or 'in-between-text'."
+            )
+            raise ValueError(msg)
+
         return relation_overview.assign(occurrence=occurrences)
 
     def select_rows(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
         selected: pd.DataFrame = relation_overview[relation_overview.occurrence >= self.min_occurrence]
-        if self.top_k is not None:
-            return selected.nlargest(self.top_k, columns="occurrence", keep="all").head(self.top_k)
-        return selected
+        return self._select_top_rows(
+            selected,
+            score_column="occurrence",
+            ascending=False,
+            top_k=self.top_k,
+            label_distribution=self.label_distribution,
+        )
 
-    def __repr__(self) -> str:
-        return (
-            f"{type(self).__name__}("
-            f"min_occurrence={self.min_occurrence!r}, distinct={self.distinct}, top_k={self.top_k!r})"
+
+class Entropy(SelectionStrategy):
+    def __init__(
+        self,
+        base: Optional[float] = None,
+        max_entropy: float = 0.5,
+        min_occurrence: Optional[int] = None,
+        max_occurrence: Optional[int] = None,
+        min_confidence: Optional[float] = None,
+        distinct: Optional[Literal["sentence", "in-between-text"]] = None,
+        top_k: Optional[int] = None,
+        label_distribution: Optional[dict[str, float]] = None,
+    ) -> None:
+        self.base = base
+        self.max_entropy = max_entropy
+        self.min_occurrence = min_occurrence
+        self.max_occurrence = max_occurrence
+        self.min_confidence = min_confidence
+        self.distinct = distinct
+        self.top_k = top_k
+        self.label_distribution = label_distribution
+
+    def compute_score(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
+        if "entropy" in relation_overview:
+            logger.info("Using pre-computed 'entropy' column")
+            return relation_overview
+
+        relation_overview = Occurrence(distinct=self.distinct).compute_score(relation_overview)
+        entropies: pd.DataFrame = (
+            relation_overview.drop_duplicates(RELATION_IDENTIFIER)  # type: ignore[call-overload]
+            .groupby(ENTITY_PAIR_IDENTIFIER, sort=False, observed=True)["occurrence"]
+            .aggregate(entropy=lambda x: sp.stats.entropy(x, base=self.base))
+        )
+        return relation_overview.join(entropies, on=entropies.index.names)
+
+    def select_rows(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
+        max_entity_pair_occurrences: pd.Series[int] = relation_overview.groupby(
+            ENTITY_PAIR_IDENTIFIER, sort=False, observed=True
+        )["occurrence"].transform("max")
+        selected: pd.DataFrame = relation_overview[max_entity_pair_occurrences == relation_overview["occurrence"]]
+
+        selected = selected[
+            (selected["entropy"] <= self.max_entropy)
+            & (selected["occurrence"] >= self.min_occurrence if self.min_occurrence is not None else True)
+            & (selected["occurrence"] <= self.max_occurrence if self.max_occurrence is not None else True)
+            & (selected["confidence"] >= self.min_confidence if self.min_confidence is not None else True)
+        ]
+
+        return self._select_top_rows(
+            selected,
+            score_column="entropy",
+            ascending=True,
+            top_k=self.top_k,
+            label_distribution=self.label_distribution,
         )

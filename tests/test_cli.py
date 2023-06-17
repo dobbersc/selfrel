@@ -33,7 +33,7 @@ class ExportCCNews(TestingEntryPointParameters):
         "--max-sentence-length 100 "
         "--processes 4"
     )
-    expected_call_arguments: str = {
+    expected_call_arguments: dict[str, Any] = {
         "out_dir": Path("out-dir"),
         "export_metadata": False,
         "dataset_slice": ":100",
@@ -49,7 +49,7 @@ class ExportKnowledgeBase(TestingEntryPointParameters):
     custom_optional_arguments: str = (
         "--out kb.db --entity-label-type ner --relation-label-type relation --no-create-relation-overview"
     )
-    expected_call_arguments: str = {
+    expected_call_arguments: dict[str, Any] = {
         "dataset": Path("dataset.conllup"),
         "out": Path("kb.db"),
         "entity_label_type": "ner",
@@ -73,7 +73,7 @@ class Annotate(TestingEntryPointParameters):
         "--num-gpus 1 "
         "--buffer-size 4"
     )
-    expected_call_arguments: str = {
+    expected_call_arguments: dict[str, Any] = {
         "dataset_path": Path("dataset.conllup"),
         "out": Path("dataset-annotated.conllup"),
         "model": "ner",
@@ -102,10 +102,15 @@ class Train(TestingEntryPointParameters):
         "--no-entity-pair-label-filter "
         "--encoding-strategy typed-entity-marker "
         "--self-training-iterations 2 "
-        "--selection-strategy total-occurrence "
+        "--selection-strategy entropy "
         "--min-confidence 0.8 "
         "--min-occurrence 2 "
+        "--max-occurrence 10 "
+        "--distinct sentence "
+        "--base 2 "
+        "--max-entropy 0.2 "
         "--top-k 1000 "
+        "--label-distribution no_relation=0.7 located_in=0.3 "
         "--precomputed-annotated-support-datasets dataset-1.conllup None "
         "--precomputed-relation-overviews relations-1.parquet None "
         "--num-actors 4 "
@@ -116,7 +121,7 @@ class Train(TestingEntryPointParameters):
         "--exclude-labels-from-evaluation no_relation "
         "--seed 8 "
     )
-    expected_call_arguments: str = {
+    expected_call_arguments: dict[str, Any] = {
         "corpus_name": "conll04",
         "support_dataset": Path("support-dataset.conllup"),
         "base_path": Path("base"),
@@ -129,10 +134,15 @@ class Train(TestingEntryPointParameters):
         "entity_pair_label_filter": False,
         "encoding_strategy": "typed-entity-marker",
         "self_training_iterations": 2,
-        "selection_strategy": "total-occurrence",
+        "selection_strategy": "entropy",
         "min_confidence": 0.8,
         "min_occurrence": 2,
+        "max_occurrence": 10,
+        "distinct": "sentence",
+        "base": 2.0,
+        "max_entropy": 0.2,
         "top_k": 1000,
+        "label_distribution": {"no_relation": 0.7, "located_in": 0.3},
         "precomputed_annotated_support_datasets": [Path("dataset-1.conllup"), None],
         "precomputed_relation_overviews": [Path("relations-1.parquet"), None],
         "num_actors": 4,

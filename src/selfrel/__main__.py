@@ -6,7 +6,7 @@ import importlib_resources
 from importlib_resources.abc import Traversable
 
 import selfrel
-from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter, none_or_path
+from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter, StoreDictKeyPair, none_or_path
 
 entrypoint_descriptions: Traversable = importlib_resources.files("selfrel.entry_points.descriptions")
 
@@ -77,7 +77,12 @@ def call_train(args: argparse.Namespace) -> None:
         selection_strategy=args.selection_strategy,
         min_confidence=args.min_confidence,
         min_occurrence=args.min_occurrence,
+        max_occurrence=args.max_occurrence,
+        distinct=args.distinct,
+        base=args.base,
+        max_entropy=args.max_entropy,
         top_k=args.top_k,
+        label_distribution=args.label_distribution,
         precomputed_annotated_support_datasets=args.precomputed_annotated_support_datasets,
         precomputed_relation_overviews=args.precomputed_relation_overviews,
         num_actors=args.num_actors,
@@ -268,13 +273,26 @@ def add_train(subparsers) -> None:
     )
     train.add_argument(
         "--selection-strategy",
-        choices=["prediction-confidence", "total-occurrence"],
+        choices=["prediction-confidence", "occurrence", "entropy"],
         default="prediction-confidence",
         help="TODO",
     )
     train.add_argument("--min-confidence", type=float, default=None, help="TODO")
     train.add_argument("--min-occurrence", type=int, default=None, help="TODO")
+    train.add_argument("--max-occurrence", type=int, default=None, help="TODO")
+    train.add_argument("--distinct", choices=["sentence", "in-between-text"], default=None, help="TODO")
+    train.add_argument("--base", type=float, default=None, help="TODO")
+    train.add_argument("--max-entropy", type=float, default=None, help="TODO")
     train.add_argument("--top-k", type=int, default=None, help="TODO")
+    train.add_argument(
+        "--label-distribution",
+        action=StoreDictKeyPair,
+        value_type=float,
+        nargs="+",
+        default=None,
+        metavar="LABEL=WEIGHT",
+        help="TODO",
+    )
     train.add_argument(
         "--precomputed-annotated-support-datasets", nargs="*", default=(), type=none_or_path, help="TODO"
     )
