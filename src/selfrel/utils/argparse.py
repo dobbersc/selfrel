@@ -3,7 +3,7 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any, Optional, TypeVar, Union
 
-__all__ = ["RawTextArgumentDefaultsHelpFormatter", "none_or_str", "none_or_path"]
+__all__ = ["RawTextArgumentDefaultsHelpFormatter", "StoreDictKeyPair", "none_or_str", "none_or_path"]
 
 
 T = TypeVar("T")
@@ -14,6 +14,7 @@ class RawTextArgumentDefaultsHelpFormatter(RawTextHelpFormatter, ArgumentDefault
 
 
 class StoreDictKeyPair(Action):
+    # noinspection PyShadowingBuiltins
     def __init__(
         self,
         option_strings: Sequence[str],
@@ -37,7 +38,7 @@ class StoreDictKeyPair(Action):
             nargs=nargs,
             const=const,
             default=default,
-            type=None,
+            type=None,  # str
             required=required,
             help=help,
             metavar=metavar,
