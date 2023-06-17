@@ -22,7 +22,7 @@ from selfrel.utils.copy import deepcopy_flair_model
 
 __all__ = ["SelfTrainer"]
 
-logger = logging.getLogger("flair")
+logger: logging.Logger = logging.getLogger("flair")
 
 
 @contextlib.contextmanager
@@ -121,6 +121,12 @@ class SelfTrainer:
             entity_label_types=set(self._model.entity_label_types.keys()),
             relation_label_type=self._model.label_type,
             precomputed_relation_overview=precomputed_relation_overview,
+        )
+
+        # Log label distribution
+        label_counts: pd.Series[int] = selection.selected_relation_label_counts()
+        logger.info(
+            "\nSelected %s data points with label distribution:\n%s", label_counts.sum(), label_counts.to_string()
         )
 
         # Export relation overview artifacts
@@ -227,7 +233,6 @@ class SelfTrainer:
             encoded_support_dataset: CoNLLUPlusDataset[EncodedSentence] = self._encode_support_dataset(
                 annotated_support_dataset, output_path=support_datasets_dir / "encoded-support-dataset.conllup"
             )
-            logger.info("Augmented training data with %s data points", len(encoded_support_dataset))
 
             # Train student model on encoded augmented corpus
             assert self._encoded_corpus.train
