@@ -3,7 +3,7 @@ import math
 import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
-from typing import TYPE_CHECKING, Final, Literal, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Final, Literal, Optional, Union, cast
 
 import numpy as np
 import pandas as pd
@@ -16,7 +16,6 @@ from selfrel.utils.inspect_relations import build_relation_overview
 
 if TYPE_CHECKING:
     import numpy.typing as npt
-    from pandas.core.groupby.generic import DataFrameGroupBy
 
 
 __all__ = ["SelectionReport", "SelectionStrategy", "PredictionConfidence", "Occurrence", "Entropy"]
@@ -93,19 +92,21 @@ class SelectionStrategy(ABC):
             # Normalize the label distribution if its weights don't sum to 1
             weights: npt.NDArray[np.float_] = np.fromiter(label_distribution.values(), dtype=float)
             weights = weights / weights.sum()
-            label_distribution: dict[str, float] = dict(zip(label_distribution.keys(), weights))
+            normalized_label_distribution: dict[str, float] = dict(zip(label_distribution.keys(), weights))
 
             # Select top-k data points under the specified label distribution
             total_data_points: int = len(relation_overview.index) if top_k is None else top_k
             selection_mask: pd.Series[bool] = relation_overview.groupby("label", sort=False)[score_column].transform(
                 lambda label_group: label_group.rank(method="first", ascending=ascending)
-                <= label_distribution.get(cast(str, label_group.name), 0.0) * total_data_points
+                <= normalized_label_distribution.get(cast(str, label_group.name), 0.0) * total_data_points
             )
             selected = relation_overview[selection_mask]
 
             # Check expected correctness
             for label, count in relation_label_counts(selected).items():
-                expected_count: int = math.floor(label_distribution.get(cast(str, label), 0.0) * total_data_points)
+                expected_count: int = math.floor(
+                    normalized_label_distribution.get(cast(str, label), 0.0) * total_data_points
+                )
                 if count < expected_count:
                     warnings.warn(
                         f"Not enough data points of label {label!r} are available to select "
@@ -231,7 +232,7 @@ class Occurrence(SelectionStrategy):
             logger.info("Using pre-computed 'occurrence' column")
             return relation_overview
 
-        relation_groups: DataFrameGroupBy = relation_overview.groupby(RELATION_IDENTIFIER, sort=False)
+        relation_groups = relation_overview.groupby(RELATION_IDENTIFIER, sort=False)
 
         occurrences: pd.Series[int]
         if self.distinct is None:
@@ -242,7 +243,7 @@ class Occurrence(SelectionStrategy):
 
         elif self.distinct == "in-between-text":
 
-            def get_in_between_text(row: "pd.Series[object]") -> str:
+            def get_in_between_text(row: "pd.Series[Any]") -> str:
                 text: str = row["sentence_text"][row["head_end_position"] : row["tail_start_position"]].strip()
                 return text
 
