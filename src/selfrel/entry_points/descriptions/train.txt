@@ -1,0 +1,1 @@
+Trains a relation classification model using self-training.

@@ -245,17 +245,58 @@ def add_train(subparsers) -> None:
     )
     train.set_defaults(func=call_train)
 
-    train.add_argument("corpus", choices=["conll04"], help="TODO")
-    train.add_argument("--support-dataset", type=Path, required=True, help="TODO")
-    train.add_argument("--base-path", type=Path, default=Path(), help="TODO")
-    train.add_argument("--down-sample-train", type=float, default=None, help="TODO")
-    train.add_argument("--train-with-dev", action=argparse.BooleanOptionalAction, default=False, help="TODO")
-    train.add_argument("--transformer", default="bert-base-uncased", help="TODO")
-    train.add_argument("--max-epochs", type=int, default=10, help="TODO")
-    train.add_argument("--learning-rate", type=float, default=5e-5, help="TODO")
-    train.add_argument("--batch-size", type=int, default=32, help="TODO")
-    train.add_argument("--cross-augmentation", action=argparse.BooleanOptionalAction, default=True, help="TODO")
-    train.add_argument("--entity-pair-label-filter", action=argparse.BooleanOptionalAction, default=True, help="TODO")
+    train.add_argument(
+        "corpus",
+        choices=["conll04"],
+        help="The identifier of the gold-annotated corpus. Currently, only CoNLL04 is supported.",
+    )
+    train.add_argument(
+        "--support-dataset",
+        type=Path,
+        required=True,
+        help="The path to the support dataset, i.e. the (large) unlabelled corpus.",
+    )
+    train.add_argument("--base-path", type=Path, default=Path(), help="The base directory for training artefacts.")
+    train.add_argument(
+        "--down-sample-train",
+        type=float,
+        default=None,
+        help=(
+            "This is a proportion to uniformly down-sample the training data on sentence-level. "
+            "E.g. '0.1' down-samples the training data to 10%%."  # Double '%' to escape formatted string
+        ),
+    )
+    train.add_argument(
+        "--train-with-dev",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="If set, the data from dev split will be added to the training data.",
+    )
+    train.add_argument(
+        "--transformer",
+        default="bert-base-uncased",
+        help="The huggingface identifier of the underlying transformer architecture.",
+    )
+    train.add_argument("--max-epochs", type=int, default=10, help="The maximum number of epochs to train.")
+    train.add_argument("--learning-rate", type=float, default=5e-5, help="The learning rate of the optimizer.")
+    train.add_argument("--batch-size", type=int, default=32, help="Size of mini-batches during training.")
+    # TODO: Further explain cross augmentation
+    train.add_argument(
+        "--cross-augmentation",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="If set, apply cross augmentation on the training data.",
+    )
+    train.add_argument(
+        "--entity-pair-label-filter",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help=(
+            "If set, all valid relation entity pair combinations are inferred from the training data "
+            "and used as relation candidates. Otherwise, the relation candidate filter is disabled, "
+            "i.e. the model classifies the relation for each entity pair in the cross-product of all entity pairs."
+        ),
+    )
     train.add_argument(
         "--encoding-strategy",
         choices=[
@@ -267,19 +308,26 @@ def add_train(subparsers) -> None:
             "typed-entity-marker-punct",
         ],
         default="typed-entity-marker-punct",
-        help="TODO",
+        help=(
+            "The identifier of an encoding strategy controlling the encoding of the head and tail entities "
+            "in a sentence with a relation annotation. "
+            "For more information, see the encoding strategies defined in 'flair.models.relation_classifier_model'."
+        ),
     )
     train.add_argument(
         "--self-training-iterations",
         type=int,
         default=1,
-        help="TODO",
+        help="The number of self-training iterations.",
     )
     train.add_argument(
         "--selection-strategy",
         choices=["prediction-confidence", "occurrence", "entropy"],
         default="prediction-confidence",
-        help="TODO",
+        help=(
+            "The identifier of a self-training selection strategy. "
+            "For more information see the selection strategies defined in 'selfrel.selection_strategies'."
+        ),
     )
     train.add_argument("--min-confidence", type=float, default=None, help="TODO")
     train.add_argument("--min-occurrence", type=int, default=None, help="TODO")
