@@ -66,6 +66,7 @@ def call_train(args: argparse.Namespace) -> None:
         support_dataset=args.support_dataset,
         base_path=args.base_path,
         down_sample_train=args.down_sample_train,
+        train_with_dev=args.train_with_dev,
         transformer=args.transformer,
         max_epochs=args.max_epochs,
         learning_rate=args.learning_rate,
@@ -90,6 +91,8 @@ def call_train(args: argparse.Namespace) -> None:
         num_gpus=args.num_gpus,
         buffer_size=args.buffer_size,
         prediction_batch_size=args.prediction_batch_size,
+        evaluation_split=args.evaluation_split,
+        use_final_model_for_evaluation=args.use_final_model_for_evaluation,
         exclude_labels_from_evaluation=args.exclude_labels_from_evaluation,
         seed=args.seed,
     )
@@ -246,6 +249,7 @@ def add_train(subparsers) -> None:
     train.add_argument("--support-dataset", type=Path, required=True, help="TODO")
     train.add_argument("--base-path", type=Path, default=Path(), help="TODO")
     train.add_argument("--down-sample-train", type=float, default=None, help="TODO")
+    train.add_argument("--train-with-dev", action=argparse.BooleanOptionalAction, default=False, help="TODO")
     train.add_argument("--transformer", default="bert-base-uncased", help="TODO")
     train.add_argument("--max-epochs", type=int, default=10, help="TODO")
     train.add_argument("--learning-rate", type=float, default=5e-5, help="TODO")
@@ -302,6 +306,10 @@ def add_train(subparsers) -> None:
     train.add_argument("--num-gpus", type=float, default=1.0, help="TODO")
     train.add_argument("--buffer-size", type=int, default=None, help="TODO")
     train.add_argument("--prediction-batch-size", type=int, default=32, help="TODO")
+    train.add_argument("--evaluation-split", choices=["train", "dev", "test"], default="test", help="TODO")
+    train.add_argument(
+        "--use-final-model-for-evaluation", action=argparse.BooleanOptionalAction, default=True, help="TODO"
+    )
     train.add_argument("--exclude-labels-from-evaluation", nargs="*", default=None, help="TODO")
     train.add_argument("--seed", type=int, default=None, help="TODO")
 

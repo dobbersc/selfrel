@@ -104,6 +104,7 @@ def train(
     support_dataset: Union[str, Path, CoNLLUPlusDataset[Sentence]],
     base_path: Union[str, Path] = Path(),
     down_sample_train: Optional[float] = None,
+    train_with_dev: bool = False,
     transformer: str = "bert-base-uncased",
     max_epochs: int = 10,
     learning_rate: float = 5e-5,
@@ -135,6 +136,8 @@ def train(
     num_gpus: Optional[float] = 1.0,
     buffer_size: Optional[int] = None,
     prediction_batch_size: int = 32,
+    evaluation_split: Literal["train", "dev", "test"] = "test",
+    use_final_model_for_evaluation: bool = True,
     exclude_labels_from_evaluation: Optional[list[str]] = None,
     seed: Optional[int] = None,
 ) -> None:
@@ -149,7 +152,19 @@ def train(
     corpus: Corpus[Sentence] = _load_corpus(corpus_name)
     if down_sample_train is not None:
         corpus.downsample(
-            percentage=down_sample_train, downsample_train=True, downsample_dev=False, downsample_test=False
+            percentage=down_sample_train,
+            downsample_train=True,
+            downsample_dev=train_with_dev,
+            downsample_test=False,
+        )
+    if evaluation_split in ["train", "dev"]:
+        corpus = Corpus(
+            train=corpus.train,
+            dev=corpus.dev,
+            test=getattr(corpus, evaluation_split),
+            # Keep original corpus structure
+            name=corpus.name,
+            sample_missing_splits=False,
         )
 
     support_dataset = (
@@ -228,7 +243,9 @@ def train(
         max_epochs=max_epochs,
         learning_rate=learning_rate,
         mini_batch_size=batch_size,
+        train_with_dev=train_with_dev,
         main_evaluation_metric=("macro avg", "f1-score"),
         exclude_labels=[] if exclude_labels_from_evaluation is None else exclude_labels_from_evaluation,
-        use_final_model_for_eval=False,
+        eval_batch_size=prediction_batch_size,
+        use_final_model_for_eval=use_final_model_for_evaluation,
     )

@@ -94,6 +94,7 @@ class Train(TestingEntryPointParameters):
     custom_optional_arguments: str = (
         "--base-path base "
         "--down-sample-train 0.1 "
+        "--train-with-dev "
         "--transformer distilbert-base-uncased "
         "--max-epochs 3 "
         "--learning-rate 4e-5 "
@@ -118,6 +119,8 @@ class Train(TestingEntryPointParameters):
         "--num-gpus 1 "
         "--buffer-size 8 "
         "--prediction-batch-size 64 "
+        "--evaluation-split dev "
+        "--no-use-final-model-for-evaluation "
         "--exclude-labels-from-evaluation no_relation "
         "--seed 8 "
     )
@@ -126,6 +129,7 @@ class Train(TestingEntryPointParameters):
         "support_dataset": Path("support-dataset.conllup"),
         "base_path": Path("base"),
         "down_sample_train": 0.1,
+        "train_with_dev": True,
         "transformer": "distilbert-base-uncased",
         "max_epochs": 3,
         "learning_rate": 4e-5,
@@ -150,6 +154,8 @@ class Train(TestingEntryPointParameters):
         "num_gpus": 1.0,
         "buffer_size": 8,
         "prediction_batch_size": 64,
+        "evaluation_split": "dev",
+        "use_final_model_for_evaluation": False,
         "exclude_labels_from_evaluation": ["no_relation"],
         "seed": 8,
     }
