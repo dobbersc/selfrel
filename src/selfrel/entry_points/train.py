@@ -120,6 +120,7 @@ def train(
         "typed-entity-marker-punct",
     ] = "typed-entity-marker-punct",
     self_training_iterations: int = 1,
+    reinitialize: bool = True,
     selection_strategy: Literal["prediction-confidence", "occurrence", "entropy"] = "prediction-confidence",
     min_confidence: Optional[float] = None,
     min_occurrence: Optional[int] = None,
@@ -151,7 +152,7 @@ def train(
     # A corpus for training the relation extractor requires annotated entities and relations.
     corpus: Corpus[Sentence] = _load_corpus(corpus_name)
     if down_sample_train is not None:
-        corpus.downsample(
+        corpus = corpus.downsample(
             percentage=down_sample_train,
             downsample_train=True,
             downsample_dev=train_with_dev,
@@ -238,6 +239,7 @@ def train(
         base_path,
         self_training_iterations=self_training_iterations,
         selection_strategy=strategy,
+        reinitialize=reinitialize,
         precomputed_annotated_support_datasets=precomputed_annotated_support_datasets,
         precomputed_relation_overviews=precomputed_relation_overviews,
         max_epochs=max_epochs,

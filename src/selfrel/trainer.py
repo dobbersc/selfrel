@@ -1,4 +1,5 @@
 import contextlib
+import copy
 import logging
 import shutil
 from collections.abc import Iterator, Sequence
@@ -18,7 +19,6 @@ from selfrel.data import CoNLLUPlusDataset
 from selfrel.data.serialization import LabelTypes, export_to_conllu
 from selfrel.predictor import PredictorPool
 from selfrel.selection_strategies import PredictionConfidence, SelectionReport, SelectionStrategy
-from selfrel.utils.copy import deepcopy_flair_model
 
 __all__ = ["SelfTrainer"]
 
@@ -50,8 +50,9 @@ class SelfTrainer:
             raise ValueError(msg)
 
         self._model = model
+        self._initial_state_dict = copy.deepcopy(self._model.state_dict())
 
-        self.corpus = corpus
+        self._corpus = corpus
         self._encoded_corpus: Corpus[EncodedSentence] = model.transform_corpus(corpus)
 
         self._support_dataset = support_dataset
@@ -62,11 +63,15 @@ class SelfTrainer:
         self.buffer_size = num_actors if buffer_size is None else buffer_size
         self.prediction_batch_size = prediction_batch_size
 
-    def _train_model(self, base_path: Path, corpus: Corpus[Sentence], **kwargs: Any) -> RelationClassifier:
-        trained_model: RelationClassifier = deepcopy_flair_model(self._model)
-        trainer: ModelTrainer = ModelTrainer(model=trained_model, corpus=corpus)
+    def _train_model(
+        self, base_path: Path, corpus: Corpus[Sentence], reinitialize: bool = True, **kwargs: Any
+    ) -> RelationClassifier:
+        if reinitialize:
+            self._model.load_state_dict(self._initial_state_dict)
+
+        trainer: ModelTrainer = ModelTrainer(model=self._model, corpus=corpus)
         trainer.fine_tune(base_path, **kwargs)
-        return trained_model
+        return self._model
 
     def _annotate_support_dataset(self, teacher: RelationClassifier, output_path: Path) -> CoNLLUPlusDataset[Sentence]:
         # Initialize predictor pool
@@ -169,10 +174,11 @@ class SelfTrainer:
         base_path: Union[str, Path],
         self_training_iterations: int = 1,
         selection_strategy: Optional[SelectionStrategy] = None,
+        reinitialize: bool = True,
         precomputed_annotated_support_datasets: Sequence[Union[str, Path, None]] = (),
         precomputed_relation_overviews: Sequence[Union[str, Path, None]] = (),
         **kwargs: Any,
-    ) -> RelationClassifier:
+    ) -> None:
         # Pad `precomputed_annotated_support_datasets` and `precomputed_relation_overviews` with `None` values
         # to match the number of self-training iterations
         precomputed_annotated_support_datasets = tuple(
@@ -192,7 +198,7 @@ class SelfTrainer:
         # Train initial teacher model on transformed corpus
         logger.info("Training initial teacher model")
         teacher_model: RelationClassifier = self._train_model(
-            base_path=base_path / "iteration-0", corpus=self._encoded_corpus, **kwargs
+            base_path=base_path / "iteration-0", corpus=self._encoded_corpus, reinitialize=False, **kwargs
         )
 
         for self_training_iteration in range(1, self_training_iterations + 1):
@@ -243,10 +249,10 @@ class SelfTrainer:
             )
 
             student_model: RelationClassifier = self._train_model(
-                base_path=iteration_base_path, corpus=encoded_augmented_corpus, **kwargs
+                base_path=iteration_base_path, corpus=encoded_augmented_corpus, reinitialize=reinitialize, **kwargs
             )
 
             # Set student as new teacher model
             teacher_model = student_model
 
-        return teacher_model
+            # --- FINISHED SELF-TRAINING ITERATION ---

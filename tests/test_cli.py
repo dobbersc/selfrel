@@ -103,6 +103,7 @@ class Train(TestingEntryPointParameters):
         "--no-entity-pair-label-filter "
         "--encoding-strategy typed-entity-marker "
         "--self-training-iterations 2 "
+        "--no-reinitialize "
         "--selection-strategy entropy "
         "--min-confidence 0.8 "
         "--min-occurrence 2 "
@@ -138,6 +139,7 @@ class Train(TestingEntryPointParameters):
         "entity_pair_label_filter": False,
         "encoding_strategy": "typed-entity-marker",
         "self_training_iterations": 2,
+        "reinitialize": False,
         "selection_strategy": "entropy",
         "min_confidence": 0.8,
         "min_occurrence": 2,

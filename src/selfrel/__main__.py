@@ -75,6 +75,7 @@ def call_train(args: argparse.Namespace) -> None:
         entity_pair_label_filter=args.entity_pair_label_filter,
         encoding_strategy=args.encoding_strategy,
         self_training_iterations=args.self_training_iterations,
+        reinitialize=args.reinitialize,
         selection_strategy=args.selection_strategy,
         min_confidence=args.min_confidence,
         min_occurrence=args.min_occurrence,
@@ -320,6 +321,7 @@ def add_train(subparsers) -> None:
         default=1,
         help="The number of self-training iterations.",
     )
+    train.add_argument("--reinitialize", action=argparse.BooleanOptionalAction, default=True, help="TODO")
     train.add_argument(
         "--selection-strategy",
         choices=["prediction-confidence", "occurrence", "entropy"],
