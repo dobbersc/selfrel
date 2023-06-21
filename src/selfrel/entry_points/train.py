@@ -119,6 +119,7 @@ def train(
         "typed-entity-marker",
         "typed-entity-marker-punct",
     ] = "typed-entity-marker-punct",
+    zero_tag_value: str = "no_relation",
     self_training_iterations: int = 1,
     reinitialize: bool = True,
     selection_strategy: Literal["prediction-confidence", "occurrence", "entropy"] = "prediction-confidence",
@@ -197,10 +198,10 @@ def train(
         entity_label_types="ner",
         entity_pair_labels=entity_pair_labels,
         cross_augmentation=cross_augmentation,
-        zero_tag_value="no_relation",
         encoding_strategy=getattr(
             sys.modules["flair.models.relation_classifier_model"], encoding_strategy.title().replace("-", "")
         )(),
+        zero_tag_value=zero_tag_value,
         allow_unk_tag=False,
     )
 

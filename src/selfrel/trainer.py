@@ -46,6 +46,8 @@ class SelfTrainer:
         prediction_batch_size: int = 32,
     ) -> None:
         if model.zero_tag_value == "O":
+            # To extract negative data points we need explicit annotations for the "no_relation" label.
+            # Because Flair does not annotate "O" labels explicitly, we can't support these.
             msg = f"Relation classifiers with zero_tag_value={model.zero_tag_value!r} are currently not supported."
             raise ValueError(msg)
 

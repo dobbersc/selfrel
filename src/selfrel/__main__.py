@@ -73,6 +73,7 @@ def call_train(args: argparse.Namespace) -> None:
         batch_size=args.batch_size,
         cross_augmentation=args.cross_augmentation,
         entity_pair_label_filter=args.entity_pair_label_filter,
+        zero_tag_value=args.zero_tag_value,
         encoding_strategy=args.encoding_strategy,
         self_training_iterations=args.self_training_iterations,
         reinitialize=args.reinitialize,
@@ -315,6 +316,7 @@ def add_train(subparsers) -> None:
             "For more information, see the encoding strategies defined in 'flair.models.relation_classifier_model'."
         ),
     )
+    train.add_argument("--zero-tag-value", default="no_relation", help="TODO")
     train.add_argument(
         "--self-training-iterations",
         type=int,

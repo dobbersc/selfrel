@@ -102,6 +102,7 @@ class Train(TestingEntryPointParameters):
         "--no-cross-augmentation "
         "--no-entity-pair-label-filter "
         "--encoding-strategy typed-entity-marker "
+        "--zero-tag-value out "
         "--self-training-iterations 2 "
         "--no-reinitialize "
         "--selection-strategy entropy "
@@ -138,6 +139,7 @@ class Train(TestingEntryPointParameters):
         "cross_augmentation": False,
         "entity_pair_label_filter": False,
         "encoding_strategy": "typed-entity-marker",
+        "zero_tag_value": "out",
         "self_training_iterations": 2,
         "reinitialize": False,
         "selection_strategy": "entropy",
