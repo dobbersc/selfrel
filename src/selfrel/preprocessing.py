@@ -36,8 +36,7 @@ def preprocess(text: str, normalization: Optional[Literal["NFD", "NFC", "NFKD", 
     """
     if normalization is not None:
         text = unicodedata.normalize(normalization, text)
-    text = __PROBLEM_CHARACTERS_PATTERN.sub("", text)
-    return text
+    return __PROBLEM_CHARACTERS_PATTERN.sub("", text)
 
 
 def segment(document: str) -> Iterator[Iterator[list[segmenter.Token]]]:

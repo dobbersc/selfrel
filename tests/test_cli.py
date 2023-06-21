@@ -4,7 +4,7 @@ import platform
 import subprocess
 from abc import ABC
 from pathlib import Path
-from typing import Any, Callable, Final
+from typing import Any, Callable, ClassVar, Final
 
 import pytest
 from pytest_mock import MockerFixture
@@ -19,7 +19,7 @@ class TestingEntryPointParameters(ABC):
     requires_ray: bool
     required_arguments: str
     custom_optional_arguments: str
-    expected_call_arguments: dict[str, Any]
+    expected_call_arguments: ClassVar[dict[str, Any]]
 
 
 class ExportCCNews(TestingEntryPointParameters):
@@ -33,7 +33,7 @@ class ExportCCNews(TestingEntryPointParameters):
         "--max-sentence-length 100 "
         "--processes 4"
     )
-    expected_call_arguments: dict[str, Any] = {
+    expected_call_arguments: ClassVar[dict[str, Any]] = {
         "out_dir": Path("out-dir"),
         "export_metadata": False,
         "dataset_slice": ":100",
@@ -49,7 +49,7 @@ class ExportKnowledgeBase(TestingEntryPointParameters):
     custom_optional_arguments: str = (
         "--out kb.db --entity-label-type ner --relation-label-type relation --no-create-relation-overview"
     )
-    expected_call_arguments: dict[str, Any] = {
+    expected_call_arguments: ClassVar[dict[str, Any]] = {
         "dataset": Path("dataset.conllup"),
         "out": Path("kb.db"),
         "entity_label_type": "ner",
@@ -73,7 +73,7 @@ class Annotate(TestingEntryPointParameters):
         "--num-gpus 1 "
         "--buffer-size 4"
     )
-    expected_call_arguments: dict[str, Any] = {
+    expected_call_arguments: ClassVar[dict[str, Any]] = {
         "dataset_path": Path("dataset.conllup"),
         "out": Path("dataset-annotated.conllup"),
         "model": "ner",
@@ -126,7 +126,7 @@ class Train(TestingEntryPointParameters):
         "--exclude-labels-from-evaluation no_relation "
         "--seed 8 "
     )
-    expected_call_arguments: dict[str, Any] = {
+    expected_call_arguments: ClassVar[dict[str, Any]] = {
         "corpus_name": "conll04",
         "support_dataset": Path("support-dataset.conllup"),
         "base_path": Path("base"),

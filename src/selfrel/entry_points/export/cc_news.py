@@ -21,8 +21,7 @@ def get_cc_news(dataset_slice: Optional[str] = None) -> datasets.Dataset:
         "cc_news",
         split="train" if dataset_slice is None else f"train[{dataset_slice}]",
     )
-    dataset = dataset.add_column("article_id", range(1, len(dataset) + 1))
-    return dataset
+    return dataset.add_column("article_id", range(1, len(dataset) + 1))
 
 
 def export_metadata_to_json(articles: Iterable[dict[str, Any]], fp: TextIO, **kwargs: Any) -> None:
