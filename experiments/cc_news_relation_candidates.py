@@ -95,9 +95,7 @@ def select_conll04_relation_candidates(relation_candidates: pd.DataFrame) -> pd.
     )
 
     conll04_relation_candidates = relation_candidates.assign(relation=pd.Series(conll04_relations, copy=False))
-    conll04_relation_candidates = conll04_relation_candidates.dropna(subset="relation")
-
-    return conll04_relation_candidates
+    return conll04_relation_candidates.dropna(subset="relation")
 
 
 def plot_conll04_relation_candidates_distribution(
