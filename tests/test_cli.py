@@ -125,6 +125,7 @@ class Train(TestingEntryPointParameters):
         "--no-use-final-model-for-evaluation "
         "--exclude-labels-from-evaluation no_relation "
         "--seed 8 "
+        "--wandb-project test_cli"
     )
     expected_call_arguments: ClassVar[dict[str, Any]] = {
         "corpus_name": "conll04",
@@ -162,6 +163,7 @@ class Train(TestingEntryPointParameters):
         "use_final_model_for_evaluation": False,
         "exclude_labels_from_evaluation": ["no_relation"],
         "seed": 8,
+        "wandb_project": "test_cli",
     }
 
 

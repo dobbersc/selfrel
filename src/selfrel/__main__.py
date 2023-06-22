@@ -97,6 +97,7 @@ def call_train(args: argparse.Namespace) -> None:
         use_final_model_for_evaluation=args.use_final_model_for_evaluation,
         exclude_labels_from_evaluation=args.exclude_labels_from_evaluation,
         seed=args.seed,
+        wandb_project=args.wandb_project,
     )
 
 
@@ -258,7 +259,7 @@ def add_train(subparsers) -> None:
         required=True,
         help="The path to the support dataset, i.e. the (large) unlabelled corpus.",
     )
-    train.add_argument("--base-path", type=Path, default=Path(), help="The base directory for training artefacts.")
+    train.add_argument("--base-path", type=Path, default=None, help="The base directory for training artefacts. TODO")
     train.add_argument(
         "--down-sample-train",
         type=float,
@@ -364,6 +365,7 @@ def add_train(subparsers) -> None:
     )
     train.add_argument("--exclude-labels-from-evaluation", nargs="*", default=None, help="TODO")
     train.add_argument("--seed", type=int, default=None, help="TODO")
+    train.add_argument("--wandb-project", default=None, help="TODO")
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:

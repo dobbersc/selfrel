@@ -3,7 +3,7 @@ import logging
 import sys
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any, Final, Literal, Optional, Union
+from typing import TYPE_CHECKING, Any, Final, Literal, Optional, Union
 
 import flair
 from flair.data import Corpus, Sentence
@@ -15,6 +15,9 @@ from selfrel.data import CoNLLUPlusDataset
 from selfrel.selection_strategies import Entropy, Occurrence, PredictionConfidence, SelectionStrategy
 from selfrel.trainer import SelfTrainer
 from selfrel.utils.inspect_relations import infer_entity_pair_labels
+
+if TYPE_CHECKING:
+    from selfrel.callbacks.callback import Callback
 
 __all__ = ["train"]
 
@@ -102,7 +105,7 @@ def infer_selection_strategy(
 def train(
     corpus_name: Literal["conll04"],
     support_dataset: Union[str, Path, CoNLLUPlusDataset[Sentence]],
-    base_path: Union[str, Path] = Path(),
+    base_path: Optional[Union[str, Path]] = None,
     down_sample_train: Optional[float] = None,
     train_with_dev: bool = False,
     transformer: str = "bert-base-uncased",
@@ -142,8 +145,33 @@ def train(
     use_final_model_for_evaluation: bool = True,
     exclude_labels_from_evaluation: Optional[list[str]] = None,
     seed: Optional[int] = None,
+    wandb_project: Optional[str] = None,
 ) -> None:
     hyperparameters: dict[str, Any] = locals()
+    callbacks: list[Callback] = []
+
+    # Initialize wandb
+    if wandb_project is not None:
+        import wandb
+
+        from selfrel.callbacks.wandb import WandbLoggerCallback
+
+        run = wandb.init(project=wandb_project, config=hyperparameters)
+        callbacks.append(WandbLoggerCallback(run))
+        base_path = run.dir
+
+    # Set base path
+    if base_path is None:
+        base_path = Path()
+    base_path = Path(base_path).resolve()
+    hyperparameters["base_path"] = base_path
+
+    # Log hyperparameters
+    logger.info("-" * 100)
+    logger.info("Parameters:")
+    for parameter, parameter_value in hyperparameters.items():
+        logger.info(" - %s: %s", parameter, repr(parameter_value))
+    logger.info("-" * 100)
 
     if seed is not None:
         flair.set_seed(seed)
@@ -229,12 +257,6 @@ def train(
         label_distribution=label_distribution,
     )
 
-    logger.info("-" * 100)
-    logger.info("Parameters:")
-    for parameter, parameter_value in hyperparameters.items():
-        logger.info(" - %s: %s", parameter, repr(parameter_value))
-    logger.info("-" * 100)
-
     # Step 5: Run self-trainer
     trainer.train(
         base_path,
@@ -251,4 +273,5 @@ def train(
         exclude_labels=[] if exclude_labels_from_evaluation is None else exclude_labels_from_evaluation,
         eval_batch_size=prediction_batch_size,
         use_final_model_for_eval=use_final_model_for_evaluation,
+        callbacks=callbacks,
     )
