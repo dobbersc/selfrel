@@ -15,6 +15,7 @@ from flair.trainers import ModelTrainer
 from torch.utils.data import ConcatDataset
 from tqdm import tqdm
 
+from selfrel.callbacks.callback import Callback, CallbackSequence
 from selfrel.data import CoNLLUPlusDataset
 from selfrel.data.serialization import LabelTypes, export_to_conllu
 from selfrel.predictor import PredictorPool
@@ -179,8 +180,15 @@ class SelfTrainer:
         reinitialize: bool = True,
         precomputed_annotated_support_datasets: Sequence[Union[str, Path, None]] = (),
         precomputed_relation_overviews: Sequence[Union[str, Path, None]] = (),
+        callbacks: Union[Callback, CallbackSequence, Sequence[Callback]] = (),
         **kwargs: Any,
     ) -> None:
+        train_parameters: dict[str, Any] = locals()
+        train_parameters.pop("self")
+
+        callbacks = callbacks if isinstance(callbacks, CallbackSequence) else CallbackSequence(callbacks)
+        callbacks.setup(self, **train_parameters)
+
         # Pad `precomputed_annotated_support_datasets` and `precomputed_relation_overviews` with `None` values
         # to match the number of self-training iterations
         precomputed_annotated_support_datasets = tuple(
@@ -202,6 +210,7 @@ class SelfTrainer:
         teacher_model: RelationClassifier = self._train_model(
             base_path=base_path / "iteration-0", corpus=self._encoded_corpus, reinitialize=False, **kwargs
         )
+        callbacks.on_teacher_model_trained(self, teacher_model, self_training_iteration=0, **train_parameters)
 
         for self_training_iteration in range(1, self_training_iterations + 1):
             logger.info("Self-training iteration: %s", self_training_iteration)
@@ -253,8 +262,27 @@ class SelfTrainer:
             student_model: RelationClassifier = self._train_model(
                 base_path=iteration_base_path, corpus=encoded_augmented_corpus, reinitialize=reinitialize, **kwargs
             )
+            callbacks.on_student_model_trained(
+                self, student_model, self_training_iteration=self_training_iteration, **train_parameters
+            )
 
             # Set student as new teacher model
             teacher_model = student_model
+            if self_training_iteration != self_training_iterations:
+                callbacks.on_teacher_model_trained(
+                    self, teacher_model, self_training_iteration=self_training_iteration + 1, **train_parameters
+                )
 
             # --- FINISHED SELF-TRAINING ITERATION ---
+
+    @property
+    def model(self) -> RelationClassifier:
+        return self._model
+
+    @property
+    def corpus(self) -> Corpus[Sentence]:
+        return self._corpus
+
+    @property
+    def support_dataset(self) -> CoNLLUPlusDataset[Sentence]:
+        return self._support_dataset
