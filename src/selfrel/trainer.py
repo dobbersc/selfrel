@@ -1,5 +1,6 @@
 import contextlib
 import copy
+import inspect
 import logging
 import shutil
 from collections.abc import Iterator, Sequence
@@ -183,8 +184,12 @@ class SelfTrainer:
         callbacks: Union[Callback, CallbackSequence, Sequence[Callback]] = (),
         **kwargs: Any,
     ) -> None:
-        train_parameters: dict[str, Any] = locals()
-        train_parameters.pop("self")
+        local_variables: dict[str, Any] = locals()
+        train_parameters: dict[str, Any] = {
+            parameter: local_variables[parameter] for parameter in inspect.signature(self.train).parameters
+        }
+        train_parameters.pop("kwargs")
+        train_parameters |= kwargs
 
         callbacks = callbacks if isinstance(callbacks, CallbackSequence) else CallbackSequence(callbacks)
         callbacks.setup(self, **train_parameters)
