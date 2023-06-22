@@ -7,6 +7,8 @@ from flair.data import Corpus, Sentence
 from flair.models import RelationClassifier
 
 from selfrel.callbacks.callback import Callback
+from selfrel.data import CoNLLUPlusDataset
+from selfrel.selection_strategies import SelectionReport
 from selfrel.trainer import SelfTrainer
 
 if TYPE_CHECKING:
@@ -88,17 +90,16 @@ class WandbLoggerCallback(Callback):
 
             # Log metrics as table
             classification_report: pd.DataFrame = (
-                pd.DataFrame(result.classification_report).transpose().rename_axis("class").reset_index().round(4)
+                pd.DataFrame(result.classification_report)
+                .transpose()
+                .rename_axis("class")
+                .reset_index()
+                .sort_values("class")
+                .round(4)
             )
             classification_report = classification_report.assign(support=classification_report["support"].astype(int))
-            self.run.log(
-                {
-                    f"{split}/classification-report/{self_training_iteration}": wandb.Table(
-                        dataframe=classification_report
-                    )
-                },
-                step=self_training_iteration,
-            )
+            key: str = f"{split}/classification-report/iteration-{self_training_iteration}"
+            self.run.log({key: wandb.Table(dataframe=classification_report)}, step=self_training_iteration)
 
     def on_teacher_model_trained(
         self,
@@ -114,6 +115,33 @@ class WandbLoggerCallback(Callback):
                 self_training_iteration=self_training_iteration,
                 **train_parameters,
             )
+
+    def on_data_points_selected(
+        self,
+        self_trainer: "SelfTrainer",  # noqa: ARG002
+        annotated_support_dataset: CoNLLUPlusDataset[Sentence],  # noqa: ARG002
+        selection_report: SelectionReport,
+        self_training_iteration: int,
+        **train_parameters: Any,  # noqa: ARG002
+    ) -> None:
+        # Log selected data points and their distribution
+        relation_overview = wandb.Table(dataframe=selection_report.selected_relation_overview.reset_index())
+        distribution = wandb.Table(
+            dataframe=(
+                selection_report.selected_relation_label_counts()
+                .to_frame()
+                .reset_index()
+                .rename(columns={"label": "class", "label_counts": "count"})
+                .sort_values("class")
+            )
+        )
+        self.run.log(
+            {
+                f"selected-relation-overview/iteration-{self_training_iteration}": relation_overview,
+                f"selected-relations-distribution/iteration-{self_training_iteration}": distribution,
+            },
+            step=self_training_iteration,
+        )
 
     def on_student_model_trained(
         self,

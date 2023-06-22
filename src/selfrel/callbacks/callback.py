@@ -2,7 +2,11 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Union, overload
 
+from flair.data import Sentence
 from flair.models import RelationClassifier
+
+from selfrel.data import CoNLLUPlusDataset
+from selfrel.selection_strategies import SelectionReport
 
 if TYPE_CHECKING:
     # To avoid circular imports
@@ -21,6 +25,17 @@ class Callback(ABC):
         self,
         self_trainer: "SelfTrainer",
         teacher_model: RelationClassifier,
+        self_training_iteration: int,
+        **train_parameters: Any,
+    ) -> None:
+        pass
+
+    @abstractmethod
+    def on_data_points_selected(
+        self,
+        self_trainer: "SelfTrainer",
+        annotated_support_dataset: CoNLLUPlusDataset[Sentence],
+        selection_report: SelectionReport,
         self_training_iteration: int,
         **train_parameters: Any,
     ) -> None:
@@ -54,6 +69,19 @@ class CallbackSequence(Callback, Sequence[Callback]):
     ) -> None:
         for callback in self:
             callback.on_teacher_model_trained(self_trainer, teacher_model, self_training_iteration, **train_parameters)
+
+    def on_data_points_selected(
+        self,
+        self_trainer: "SelfTrainer",
+        annotated_support_dataset: CoNLLUPlusDataset[Sentence],
+        selection_report: SelectionReport,
+        self_training_iteration: int,
+        **train_parameters: Any,
+    ) -> None:
+        for callback in self:
+            callback.on_data_points_selected(
+                self_trainer, annotated_support_dataset, selection_report, self_training_iteration, **train_parameters
+            )
 
     def on_student_model_trained(
         self,

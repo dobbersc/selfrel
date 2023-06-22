@@ -121,7 +121,7 @@ class SelfTrainer:
         dataset_output_path: Path,
         relation_overview_output_dir: Path,
         precomputed_relation_overview: Optional[pd.DataFrame],
-    ) -> CoNLLUPlusDataset[Sentence]:
+    ) -> tuple[CoNLLUPlusDataset[Sentence], SelectionReport]:
         with dataset.dataset_path.open("r", encoding="utf-8") as dataset_file:
             global_label_types: LabelTypes = LabelTypes.from_conllu_file(dataset_file)
 
@@ -151,7 +151,7 @@ class SelfTrainer:
         with dataset_output_path.open("w", encoding="utf-8") as output_file:
             export_to_conllu(output_file, sentences=selection, global_label_types=global_label_types)
 
-        return CoNLLUPlusDataset(dataset_output_path, persist=False)
+        return CoNLLUPlusDataset(dataset_output_path, persist=False), selection
 
     def _encode_support_dataset(
         self, dataset: CoNLLUPlusDataset[Sentence], output_path: Path
@@ -243,12 +243,15 @@ class SelfTrainer:
                 precomputed_relation_overview = None
 
             # Select confident data points
-            annotated_support_dataset = self._select_support_datapoints(
+            annotated_support_dataset, selection_report = self._select_support_datapoints(
                 annotated_support_dataset,
                 selection_strategy=selection_strategy,
                 dataset_output_path=support_datasets_dir / "selected-support-dataset.conllup",
                 relation_overview_output_dir=relation_overviews_dir,
                 precomputed_relation_overview=precomputed_relation_overview,
+            )
+            callbacks.on_data_points_selected(
+                self, annotated_support_dataset, selection_report, self_training_iteration, **train_parameters
             )
 
             # Encode annotated support dataset
@@ -267,16 +270,12 @@ class SelfTrainer:
             student_model: RelationClassifier = self._train_model(
                 base_path=iteration_base_path, corpus=encoded_augmented_corpus, reinitialize=reinitialize, **kwargs
             )
-            callbacks.on_student_model_trained(
-                self, student_model, self_training_iteration=self_training_iteration, **train_parameters
-            )
+            callbacks.on_student_model_trained(self, student_model, self_training_iteration, **train_parameters)
 
             # Set student as new teacher model
             teacher_model = student_model
             if self_training_iteration != self_training_iterations:
-                callbacks.on_teacher_model_trained(
-                    self, teacher_model, self_training_iteration=self_training_iteration + 1, **train_parameters
-                )
+                callbacks.on_teacher_model_trained(self, teacher_model, self_training_iteration + 1, **train_parameters)
 
             # --- FINISHED SELF-TRAINING ITERATION ---
 
