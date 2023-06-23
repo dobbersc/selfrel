@@ -109,9 +109,9 @@ def train(
     down_sample_train: Optional[float] = None,
     train_with_dev: bool = False,
     transformer: str = "bert-base-uncased",
-    max_epochs: int = 10,
-    learning_rate: float = 5e-5,
-    batch_size: int = 32,
+    max_epochs: Union[int, Sequence[int]] = 10,
+    learning_rate: Union[float, Sequence[float]] = 5e-5,
+    batch_size: Union[int, Sequence[int]] = 32,
     cross_augmentation: bool = True,
     entity_pair_label_filter: bool = True,
     encoding_strategy: Literal[

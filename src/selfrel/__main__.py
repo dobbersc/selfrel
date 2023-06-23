@@ -280,9 +280,11 @@ def add_train(subparsers) -> None:
         default="bert-base-uncased",
         help="The huggingface identifier of the underlying transformer architecture.",
     )
-    train.add_argument("--max-epochs", type=int, default=10, help="The maximum number of epochs to train.")
-    train.add_argument("--learning-rate", type=float, default=5e-5, help="The learning rate of the optimizer.")
-    train.add_argument("--batch-size", type=int, default=32, help="Size of mini-batches during training.")
+    train.add_argument("--max-epochs", nargs="+", type=int, default=10, help="The maximum number of epochs to train.")
+    train.add_argument(
+        "--learning-rate", nargs="+", type=float, default=5e-5, help="The learning rate of the optimizer."
+    )
+    train.add_argument("--batch-size", nargs="+", type=int, default=32, help="Size of mini-batches during training.")
     # TODO: Further explain cross augmentation
     train.add_argument(
         "--cross-augmentation",

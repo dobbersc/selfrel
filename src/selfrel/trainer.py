@@ -5,7 +5,7 @@ import logging
 import shutil
 from collections.abc import Iterator, Sequence
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional, TypeVar, Union
 
 import more_itertools
 import pandas as pd
@@ -23,6 +23,8 @@ from selfrel.predictor import PredictorPool
 from selfrel.selection_strategies import PredictionConfidence, SelectionReport, SelectionStrategy
 
 __all__ = ["SelfTrainer"]
+
+T = TypeVar("T")
 
 logger: logging.Logger = logging.getLogger("flair")
 
@@ -173,9 +175,22 @@ class SelfTrainer:
 
         return CoNLLUPlusDataset(output_path, sentence_type=EncodedSentence, persist=False)
 
+    @staticmethod
+    def _pad_parameter_to_self_training_iterations(
+        parameter: Union[T, Sequence[T]], self_training_iterations: int
+    ) -> Sequence[T]:
+        """Pads the given training parameter with its last value to the number of self-training iterations."""
+        if isinstance(parameter, Sequence):
+            assert parameter
+            return tuple(more_itertools.padded(parameter, fillvalue=parameter[-1], n=self_training_iterations + 1))
+        return (parameter,) * (self_training_iterations + 1)
+
     def train(
         self,
         base_path: Union[str, Path],
+        max_epochs: Union[int, Sequence[int]] = 10,
+        learning_rate: Union[float, Sequence[float]] = 5e-5,
+        mini_batch_size: Union[int, Sequence[int]] = 32,
         self_training_iterations: int = 1,
         selection_strategy: Optional[SelectionStrategy] = None,
         reinitialize: bool = True,
@@ -194,8 +209,13 @@ class SelfTrainer:
         callbacks = callbacks if isinstance(callbacks, CallbackSequence) else CallbackSequence(callbacks)
         callbacks.setup(self, **train_parameters)
 
-        # Pad `precomputed_annotated_support_datasets` and `precomputed_relation_overviews` with `None` values
-        # to match the number of self-training iterations
+        # Pad parameters that support variable values per self-training iteration
+        max_epochs = self._pad_parameter_to_self_training_iterations(max_epochs, self_training_iterations)
+        learning_rate = self._pad_parameter_to_self_training_iterations(learning_rate, self_training_iterations)
+        mini_batch_size = self._pad_parameter_to_self_training_iterations(mini_batch_size, self_training_iterations)
+
+        # Pad `precomputed_annotated_support_datasets` and `precomputed_relation_overviews`
+        # with `None` values to the number of self-training iterations
         precomputed_annotated_support_datasets = tuple(
             more_itertools.padded(precomputed_annotated_support_datasets, n=self_training_iterations)
         )
@@ -213,7 +233,13 @@ class SelfTrainer:
         # Train initial teacher model on transformed corpus
         logger.info("Training initial teacher model")
         teacher_model: RelationClassifier = self._train_model(
-            base_path=base_path / "iteration-0", corpus=self._encoded_corpus, reinitialize=False, **kwargs
+            base_path=base_path / "iteration-0",
+            corpus=self._encoded_corpus,
+            reinitialize=False,
+            max_epochs=max_epochs[0],
+            learning_rate=learning_rate[0],
+            mini_batch_size=mini_batch_size[0],
+            **kwargs,
         )
         callbacks.on_teacher_model_trained(self, teacher_model, self_training_iteration=0, **train_parameters)
 
@@ -268,7 +294,13 @@ class SelfTrainer:
             )
 
             student_model: RelationClassifier = self._train_model(
-                base_path=iteration_base_path, corpus=encoded_augmented_corpus, reinitialize=reinitialize, **kwargs
+                base_path=iteration_base_path,
+                corpus=encoded_augmented_corpus,
+                reinitialize=reinitialize,
+                max_epochs=max_epochs[self_training_iteration],
+                learning_rate=learning_rate[self_training_iteration],
+                mini_batch_size=mini_batch_size[self_training_iteration],
+                **kwargs,
             )
             callbacks.on_student_model_trained(self, student_model, self_training_iteration, **train_parameters)
 
