@@ -92,27 +92,24 @@ class SelfTrainer:
         with self._support_dataset.dataset_path.open("r", encoding="utf-8") as dataset_file:
             global_label_types: LabelTypes = LabelTypes.from_conllu_file(dataset_file)
 
+        # Set-up annotation progress bar
+        sentences = tqdm(self._support_dataset, desc="Annotating Support Dataset", total=len(self._support_dataset))
+
         # Select sentences with NER annotations
-        sentences: Iterator[Sentence] = (
+        ner_sentences: Iterator[Sentence] = (
             sentence
-            for sentence in self._support_dataset
+            for sentence in sentences
             if any(label_type in sentence.annotation_layers for label_type in self._model.entity_label_types)
         )
 
         # Process dataset
         processed_sentences: Iterator[Sentence] = predictor_pool.predict(
-            sentences, mini_batch_size=self.prediction_batch_size, buffer_size=self.buffer_size
+            ner_sentences, mini_batch_size=self.prediction_batch_size, buffer_size=self.buffer_size
         )
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with output_path.open("w", encoding="utf-8") as output_file:
-            export_to_conllu(
-                output_file,
-                sentences=tqdm(
-                    processed_sentences, desc="Annotating Support Dataset", total=len(self._support_dataset)
-                ),
-                global_label_types=global_label_types,
-            )
+            export_to_conllu(output_file, sentences=processed_sentences, global_label_types=global_label_types)
 
         return CoNLLUPlusDataset(output_path, persist=False)
 
