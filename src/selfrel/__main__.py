@@ -6,7 +6,7 @@ import importlib_resources
 from importlib_resources.abc import Traversable
 
 import selfrel
-from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter, StoreDictKeyPair, none_or_path
+from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter, StoreDictKeyPair, none_or_path, none_or_str
 
 entrypoint_descriptions: Traversable = importlib_resources.files("selfrel.entry_points.descriptions")
 
@@ -84,6 +84,7 @@ def call_train(args: argparse.Namespace) -> None:
         distinct=args.distinct,
         base=args.base,
         max_entropy=args.max_entropy,
+        distinct_relations_by=args.distinct_relations_by,
         top_k=args.top_k,
         label_distribution=args.label_distribution,
         precomputed_annotated_support_datasets=args.precomputed_annotated_support_datasets,
@@ -342,6 +343,13 @@ def add_train(subparsers) -> None:
     train.add_argument("--distinct", choices=["sentence", "in-between-text"], default=None, help="TODO")
     train.add_argument("--base", type=float, default=None, help="TODO")
     train.add_argument("--max-entropy", type=float, default=None, help="TODO")
+    train.add_argument(
+        "--distinct-relations-by",
+        type=none_or_str,
+        choices=[None, "sentence", "in-between-text"],
+        default="sentence",
+        help="TODO",
+    )
     train.add_argument("--top-k", type=int, default=None, help="TODO")
     train.add_argument(
         "--label-distribution",

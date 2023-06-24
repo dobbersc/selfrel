@@ -131,7 +131,7 @@ def distinct_in_between_texts_sentences() -> list[Sentence]:
         head, tail = sentence[:2], sentence[3:5]
         head.add_label("ner", value="HEAD")
         tail.add_label("ner", value="TAIL")
-        Relation(first=head, second=tail).add_label("relation", value="located_in")
+        Relation(first=head, second=tail).add_label("relation", value="based_in")
 
     for sentence in sentences[12:15]:
         head, tail = sentence[:2], sentence[3:5]

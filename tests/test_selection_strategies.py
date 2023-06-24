@@ -16,7 +16,9 @@ def test_prediction_confidence(prediction_confidence_sentences: list[Sentence]) 
     since the underlying `select_relation` is the same for all selection strategies.
     """
     sentences: list[Sentence] = prediction_confidence_sentences
-    selection_strategy: SelectionStrategy = PredictionConfidence(min_confidence=0.8, top_k=2)
+    selection_strategy: SelectionStrategy = PredictionConfidence(
+        min_confidence=0.8, top_k=2, distinct_relations_by=None
+    )
 
     # TODO: Test `SelectionReport` correctness and `precomputed_relation_overview` parameter
     selected_sentences: list[Sentence] = list(
@@ -88,7 +90,7 @@ def entropy_relation_overview(entropy_sentences: list[Sentence]) -> pd.DataFrame
 
 class TestOccurrence:
     def test_distinct_none(self, occurrence_relation_overview: pd.DataFrame) -> None:
-        selection_strategy: Occurrence = Occurrence(min_occurrence=2, distinct=None)
+        selection_strategy: Occurrence = Occurrence(min_occurrence=2, distinct=None, distinct_relations_by=None)
         assert_scores_and_selected_indices(
             selection_strategy=selection_strategy,
             relation_overview=occurrence_relation_overview,
@@ -99,7 +101,7 @@ class TestOccurrence:
         )
 
     def test_distinct_sentence(self, occurrence_relation_overview: pd.DataFrame) -> None:
-        selection_strategy: Occurrence = Occurrence(min_occurrence=2, distinct="sentence")
+        selection_strategy: Occurrence = Occurrence(min_occurrence=2, distinct="sentence", distinct_relations_by=None)
         assert_scores_and_selected_indices(
             selection_strategy=selection_strategy,
             relation_overview=occurrence_relation_overview,
@@ -110,7 +112,9 @@ class TestOccurrence:
         )
 
     def test_distinct_in_between_text(self, distinct_in_between_texts_relation_overview: pd.DataFrame) -> None:
-        selection_strategy: Occurrence = Occurrence(min_occurrence=2, distinct="in-between-text")
+        selection_strategy: Occurrence = Occurrence(
+            min_occurrence=2, distinct="in-between-text", distinct_relations_by=None
+        )
         assert_scores_and_selected_indices(
             selection_strategy=selection_strategy,
             relation_overview=distinct_in_between_texts_relation_overview,
@@ -120,8 +124,36 @@ class TestOccurrence:
             expected_selected_indices=tuple((i, 0) for i in range(12)) + tuple((i, 0) for i in range(15, 20)),
         )
 
+    def test_distinct_relations_by_sentence(self, occurrence_relation_overview: pd.DataFrame):
+        selection_strategy: Occurrence = Occurrence(min_occurrence=2, distinct=None, distinct_relations_by="sentence")
+        assert_scores_and_selected_indices(
+            selection_strategy=selection_strategy,
+            relation_overview=occurrence_relation_overview,
+            score_name="occurrence",
+            expected_scores=(2, 2, 2, 2, 2, 2, 1),
+            expected_scores_indices=((0, 0), (1, 0), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0)),
+            expected_selected_indices=((0, 0), (2, 0), (2, 1), (3, 0), (3, 1)),
+        )
+
+    def test_distinct_relations_by_in_between_text(
+        self, distinct_in_between_texts_relation_overview: pd.DataFrame
+    ) -> None:
+        selection_strategy: Occurrence = Occurrence(
+            min_occurrence=2, distinct="in-between-text", distinct_relations_by="in-between-text"
+        )
+        assert_scores_and_selected_indices(
+            selection_strategy=selection_strategy,
+            relation_overview=distinct_in_between_texts_relation_overview,
+            score_name="occurrence",
+            expected_scores=(2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2),
+            expected_scores_indices=tuple((i, 0) for i in range(20)),
+            expected_selected_indices=((0, 0), (10, 0), (15, 0), (17, 0)),
+        )
+
     def test_top_k(self, occurrence_relation_overview: pd.DataFrame) -> None:
-        selection_strategy: Occurrence = Occurrence(min_occurrence=1, distinct="sentence", top_k=5)
+        selection_strategy: Occurrence = Occurrence(
+            min_occurrence=1, distinct="sentence", top_k=5, distinct_relations_by=None
+        )
         assert_scores_and_selected_indices(
             selection_strategy=selection_strategy,
             relation_overview=occurrence_relation_overview,

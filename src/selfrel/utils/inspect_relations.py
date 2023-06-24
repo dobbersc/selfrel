@@ -6,7 +6,7 @@ import pandas as pd
 from flair.data import Label, Relation, Sentence
 from tqdm import tqdm
 
-__all__ = ["inspect_relations", "infer_entity_pair_labels", "build_relation_overview"]
+__all__ = ["inspect_relations", "infer_entity_pair_labels", "build_relation_overview", "get_in_between_text"]
 
 
 def inspect_relations(
@@ -115,4 +115,12 @@ def build_relation_overview(
             "tail_end_position": tail_end_positions,
         },
         index=index,
+    )
+
+
+def get_in_between_text(relation_overview: pd.DataFrame) -> "pd.Series[str]":
+    return (  # type: ignore[no-any-return]
+        relation_overview[["sentence_text", "head_end_position", "tail_start_position"]]
+        .apply(lambda row: row["sentence_text"][row["head_end_position"] : row["tail_start_position"]].strip(), axis=1)
+        .astype("string")
     )

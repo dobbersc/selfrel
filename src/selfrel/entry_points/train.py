@@ -46,27 +46,37 @@ def infer_selection_strategy(
     distinct: Optional[Literal["sentence", "in-between-text"]],
     base: Optional[int],
     max_entropy: Optional[float],
+    distinct_relations_by: Optional[Literal["sentence", "in-between-text"]],
     top_k: Optional[int],
     label_distribution: Optional[dict[str, float]],
 ) -> SelectionStrategy:
     strategy: SelectionStrategy
     if selection_strategy == "prediction-confidence":
         strategy = (
-            PredictionConfidence(top_k=top_k, label_distribution=label_distribution)
+            PredictionConfidence(
+                distinct_relations_by=distinct_relations_by, top_k=top_k, label_distribution=label_distribution
+            )
             if min_confidence is None
             else PredictionConfidence(
                 min_confidence=min_confidence,
+                distinct_relations_by=distinct_relations_by,
                 top_k=top_k,
                 label_distribution=label_distribution,
             )
         )
     elif selection_strategy == "occurrence":
         strategy = (
-            Occurrence(distinct=distinct, top_k=top_k, label_distribution=label_distribution)
+            Occurrence(
+                distinct=distinct,
+                distinct_relations_by=distinct_relations_by,
+                top_k=top_k,
+                label_distribution=label_distribution,
+            )
             if min_occurrence is None
             else Occurrence(
                 min_occurrence=min_occurrence,
                 distinct=distinct,
+                distinct_relations_by=distinct_relations_by,
                 top_k=top_k,
                 label_distribution=label_distribution,
             )
@@ -79,6 +89,7 @@ def infer_selection_strategy(
                 max_occurrence=max_occurrence,
                 min_confidence=min_confidence,
                 distinct=distinct,
+                distinct_relations_by=distinct_relations_by,
                 top_k=top_k,
                 label_distribution=label_distribution,
             )
@@ -90,6 +101,7 @@ def infer_selection_strategy(
                 max_occurrence=max_occurrence,
                 min_confidence=min_confidence,
                 distinct=distinct,
+                distinct_relations_by=distinct_relations_by,
                 top_k=top_k,
                 label_distribution=label_distribution,
             )
@@ -132,6 +144,7 @@ def train(
     distinct: Optional[Literal["sentence", "in-between-text"]] = None,
     base: Optional[int] = None,
     max_entropy: Optional[float] = None,
+    distinct_relations_by: Optional[Literal["sentence", "in-between-text"]] = None,
     top_k: Optional[int] = None,
     label_distribution: Optional[dict[str, float]] = None,
     precomputed_annotated_support_datasets: Sequence[Union[str, Path, None]] = (),
@@ -253,6 +266,7 @@ def train(
         distinct=distinct,
         base=base,
         max_entropy=max_entropy,
+        distinct_relations_by=distinct_relations_by,
         top_k=top_k,
         label_distribution=label_distribution,
     )
@@ -274,4 +288,21 @@ def train(
         eval_batch_size=prediction_batch_size,
         use_final_model_for_eval=use_final_model_for_evaluation,
         callbacks=callbacks,
+    )
+
+
+if __name__ == "__main__":
+    train(
+        "conll04",
+        support_dataset="/glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/cc-news-ner.conllup",
+        precomputed_annotated_support_datasets=(
+            "/glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/conll04/seed_42/10_percent/prediction-confidence_min-confidence_0.8_top-k_3000/iteration-1/support-datasets/annotated-support-dataset.conllup",
+        ),
+        precomputed_relation_overviews=(
+            "/glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/scored-relation-overview.parquet",
+        ),
+        max_epochs=1,
+        distinct_relations_by="in-between-text",
+        top_k=3000,
+        seed=42,
     )

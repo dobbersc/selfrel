@@ -3,7 +3,7 @@ import math
 import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
-from typing import TYPE_CHECKING, Any, Final, Literal, Optional, Union, cast
+from typing import TYPE_CHECKING, Final, Literal, Optional, Union, cast
 
 import numpy as np
 import pandas as pd
@@ -12,7 +12,7 @@ from flair.data import Label, Relation, Sentence
 from tqdm import tqdm
 
 from selfrel.utils.copy import deepcopy_flair_sentence
-from selfrel.utils.inspect_relations import build_relation_overview
+from selfrel.utils.inspect_relations import build_relation_overview, get_in_between_text
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -58,6 +58,26 @@ class SelectionStrategy(ABC):
     @abstractmethod
     def select_rows(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
         pass
+
+    @staticmethod
+    def _select_distinct_relation_rows(
+        relation_overview: pd.DataFrame, distinct_relations_by: Literal["sentence", "in-between-text"] = "sentence"
+    ) -> pd.DataFrame:
+        if distinct_relations_by == "in-between-text" and "in_between_text" not in relation_overview:
+            relation_overview = relation_overview.assign(in_between_text=get_in_between_text(relation_overview))
+
+        if distinct_relations_by == "sentence":
+            return relation_overview.drop_duplicates(subset=[*RELATION_IDENTIFIER, "sentence_text"])
+
+        if distinct_relations_by == "in-between-text":
+            return relation_overview.drop_duplicates(subset=[*RELATION_IDENTIFIER, "in_between_text"])
+
+        # pragma: no cover
+        msg = (  # type: ignore[unreachable]
+            f"Provided invalid value for 'distinct_relations_by': {distinct_relations_by!r}. "
+            f"Expected 'sentence' or 'in-between-text'."
+        )
+        raise ValueError(msg)
 
     @staticmethod
     def _select_top_rows(
@@ -172,7 +192,6 @@ class SelectionStrategy(ABC):
 
         scored_relation_overview: pd.DataFrame = self.compute_score(relation_overview)
         selected_relation_overview: pd.DataFrame = self.select_rows(scored_relation_overview)
-        # TODO: We could transfer this function to the SelectionReport class
         selected_sentences: Iterator[Sentence] = self._create_sentences_with_selected_relations(
             sentences, selected_relation_overview, relation_label_type
         )
@@ -193,10 +212,12 @@ class PredictionConfidence(SelectionStrategy):
     def __init__(
         self,
         min_confidence: float = 0.8,
+        distinct_relations_by: Optional[Literal["sentence", "in-between-text"]] = "sentence",
         top_k: Optional[int] = None,
         label_distribution: Optional[dict[str, float]] = None,
     ) -> None:
         self.min_confidence = min_confidence
+        self.distinct_relations_by = distinct_relations_by
         self.top_k = top_k
         self.label_distribution = label_distribution
 
@@ -205,6 +226,8 @@ class PredictionConfidence(SelectionStrategy):
 
     def select_rows(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
         selected: pd.DataFrame = relation_overview[relation_overview.confidence >= self.min_confidence]
+        if self.distinct_relations_by is not None:
+            selected = self._select_distinct_relation_rows(selected, self.distinct_relations_by)
         return self._select_top_rows(
             selected,
             score_column="confidence",
@@ -219,11 +242,13 @@ class Occurrence(SelectionStrategy):
         self,
         min_occurrence: int = 2,
         distinct: Optional[Literal["sentence", "in-between-text"]] = None,
+        distinct_relations_by: Optional[Literal["sentence", "in-between-text"]] = "sentence",
         top_k: Optional[int] = None,
         label_distribution: Optional[dict[str, float]] = None,
     ) -> None:
         self.min_occurrence = min_occurrence
         self.distinct = distinct
+        self.distinct_relations_by = distinct_relations_by
         self.top_k = top_k
         self.label_distribution = label_distribution
 
@@ -242,17 +267,7 @@ class Occurrence(SelectionStrategy):
             occurrences = relation_groups["sentence_text"].transform("nunique")
 
         elif self.distinct == "in-between-text":
-
-            def get_in_between_text(row: "pd.Series[Any]") -> str:
-                text: str = row["sentence_text"][row["head_end_position"] : row["tail_start_position"]].strip()
-                return text
-
-            in_between_text: pd.Series[str] = (
-                relation_overview[["sentence_text", "head_end_position", "tail_start_position"]]
-                .apply(get_in_between_text, axis=1)
-                .astype("string")
-            )
-            relation_overview = relation_overview.assign(in_between_text=in_between_text)
+            relation_overview = relation_overview.assign(in_between_text=get_in_between_text(relation_overview))
             relation_groups = relation_overview.groupby(RELATION_IDENTIFIER, sort=False)
             occurrences = relation_groups["in_between_text"].transform("nunique")
 
@@ -267,6 +282,8 @@ class Occurrence(SelectionStrategy):
 
     def select_rows(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
         selected: pd.DataFrame = relation_overview[relation_overview.occurrence >= self.min_occurrence]
+        if self.distinct_relations_by is not None:
+            selected = self._select_distinct_relation_rows(selected, self.distinct_relations_by)
         return self._select_top_rows(
             selected,
             score_column="occurrence",
@@ -285,6 +302,7 @@ class Entropy(SelectionStrategy):
         max_occurrence: Optional[int] = None,
         min_confidence: Optional[float] = None,
         distinct: Optional[Literal["sentence", "in-between-text"]] = None,
+        distinct_relations_by: Optional[Literal["sentence", "in-between-text"]] = "sentence",
         top_k: Optional[int] = None,
         label_distribution: Optional[dict[str, float]] = None,
     ) -> None:
@@ -293,6 +311,7 @@ class Entropy(SelectionStrategy):
         self.min_occurrence = min_occurrence
         self.max_occurrence = max_occurrence
         self.min_confidence = min_confidence
+        self.distinct_relations_by = distinct_relations_by
         self.distinct = distinct
         self.top_k = top_k
         self.label_distribution = label_distribution
@@ -322,6 +341,9 @@ class Entropy(SelectionStrategy):
             & (selected["occurrence"] <= self.max_occurrence if self.max_occurrence is not None else True)
             & (selected["confidence"] >= self.min_confidence if self.min_confidence is not None else True)
         ]
+
+        if self.distinct_relations_by is not None:
+            selected = self._select_distinct_relation_rows(selected, self.distinct_relations_by)
 
         return self._select_top_rows(
             selected,
