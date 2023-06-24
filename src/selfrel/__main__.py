@@ -259,7 +259,7 @@ def add_train(subparsers) -> None:
         required=True,
         help="The path to the support dataset, i.e. the (large) unlabelled corpus.",
     )
-    train.add_argument("--base-path", type=Path, default=None, help="The base directory for training artefacts. TODO")
+    train.add_argument("--base-path", type=Path, default=None, help="The base directory for training artifacts. TODO")
     train.add_argument(
         "--down-sample-train",
         type=float,
