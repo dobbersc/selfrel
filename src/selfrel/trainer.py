@@ -134,7 +134,9 @@ class SelfTrainer:
         # Log label distribution
         label_counts: pd.Series[int] = selection.selected_relation_label_counts()
         logger.info(
-            "\nSelected %s data points with label distribution:\n%s", label_counts.sum(), label_counts.to_string()
+            "\nSelected %s data points with label distribution:\n%s",
+            label_counts.sum(),
+            label_counts.to_string(header=False),
         )
 
         # Export relation overview artifacts
