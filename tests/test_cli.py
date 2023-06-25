@@ -169,6 +169,31 @@ class Train(TestingEntryPointParameters):
     }
 
 
+class SweepInit(TestingEntryPointParameters):
+    entry_point: str = "selfrel.entry_points.sweep.init"
+    requires_ray: bool = False
+    required_arguments: str = "sweep init sweep_configuration.yaml"
+    custom_optional_arguments: str = "--entity dobbersc --project test"
+    expected_call_arguments: ClassVar[dict[str, Any]] = {
+        "configuration": Path("sweep_configuration.yaml"),
+        "entity": "dobbersc",
+        "project": "test",
+    }
+
+
+class SweepAgent(TestingEntryPointParameters):
+    entry_point: str = "selfrel.entry_points.sweep.agent"
+    requires_ray: bool = True
+    required_arguments: str = "sweep agent test ryayqwga"
+    custom_optional_arguments: str = "--entity dobbersc --count 25"
+    expected_call_arguments: ClassVar[dict[str, Any]] = {
+        "project": "test",
+        "sweep_id": "ryayqwga",
+        "entity": "dobbersc",
+        "count": 25,
+    }
+
+
 ENTRY_POINT_IDS: Final[tuple[str, ...]] = tuple(
     entry_point_parameters.__name__ for entry_point_parameters in iter_subclasses(TestingEntryPointParameters)
 )

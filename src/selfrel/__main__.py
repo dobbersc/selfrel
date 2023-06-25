@@ -102,6 +102,21 @@ def call_train(args: argparse.Namespace) -> None:
     )
 
 
+def call_sweep_init(args: argparse.Namespace) -> None:
+    from selfrel.entry_points.sweep import init
+
+    init(configuration=args.configuration, entity=args.entity, project=args.project)
+
+
+def call_sweep_agent(args: argparse.Namespace) -> None:
+    import ray
+
+    from selfrel.entry_points.sweep import agent
+
+    ray.init()
+    agent(project=args.project, sweep_id=args.sweep_id, entity=args.entity, count=args.count)
+
+
 def add_export_cc_news(export_subparsers) -> None:
     export_cc_news = export_subparsers.add_parser(
         "cc-news",
@@ -378,6 +393,41 @@ def add_train(subparsers) -> None:
     train.add_argument("--wandb-project", default=None, help="TODO")
 
 
+def add_sweep(subparsers) -> None:
+    sweep = subparsers.add_parser(
+        "sweep",
+        help="TODO",
+        description=(entrypoint_descriptions / "sweep.txt").read_text(encoding="utf-8"),
+        formatter_class=RawTextArgumentDefaultsHelpFormatter,
+    )
+    sweep_subparsers = sweep.add_subparsers(required=True)
+
+    # Add sweep init
+    init = sweep_subparsers.add_parser(
+        "init",
+        help="TODO",
+        description=(entrypoint_descriptions / "sweep.txt").read_text(encoding="utf-8"),
+        formatter_class=RawTextArgumentDefaultsHelpFormatter,
+    )
+    init.set_defaults(func=call_sweep_init)
+    init.add_argument("configuration", type=Path, help="TODO")
+    init.add_argument("--entity", default=None, help="TODO")
+    init.add_argument("--project", default=None, help="TODO")
+
+    # Add sweep agent
+    agent = sweep_subparsers.add_parser(
+        "agent",
+        help="TODO",
+        description=(entrypoint_descriptions / "sweep.txt").read_text(encoding="utf-8"),
+        formatter_class=RawTextArgumentDefaultsHelpFormatter,
+    )
+    agent.set_defaults(func=call_sweep_agent)
+    agent.add_argument("project", help="TODO")
+    agent.add_argument("sweep_id", help="TODO")
+    agent.add_argument("--entity", default=None, help="TODO")
+    agent.add_argument("--count", type=int, default=None, help="TODO")
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="selfrel", formatter_class=RawTextArgumentDefaultsHelpFormatter)
     parser.add_argument("--version", action="version", version=f"%(prog)s {selfrel.__version__}")
@@ -396,6 +446,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
     add_annotate(subparsers)
     add_train(subparsers)
+    add_sweep(subparsers)
 
     return parser.parse_args(argv)
 

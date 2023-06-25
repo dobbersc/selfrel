@@ -38,6 +38,22 @@ def _load_corpus(corpus_name: str) -> Corpus[Sentence]:
         raise ValueError(msg) from e
 
 
+def _init_wandb(project: str):  # type: ignore[no-untyped-def]
+    try:
+        import wandb
+    except ImportError as e:
+        msg = "Please install selfrel with the wandb option 'selfrel[wandb]' before tracking experiments with wandb."
+        raise ImportError(msg) from e
+
+    if wandb.run is None:
+        wandb.init(project=project)
+
+    run = wandb.run
+    assert run is not None
+
+    return run
+
+
 def infer_selection_strategy(
     selection_strategy: Literal["prediction-confidence", "occurrence", "entropy"],
     min_confidence: Optional[float],
@@ -144,7 +160,7 @@ def train(
     distinct: Optional[Literal["sentence", "in-between-text"]] = None,
     base: Optional[int] = None,
     max_entropy: Optional[float] = None,
-    distinct_relations_by: Optional[Literal["sentence", "in-between-text"]] = None,
+    distinct_relations_by: Optional[Literal["sentence", "in-between-text"]] = "sentence",
     top_k: Optional[int] = None,
     label_distribution: Optional[dict[str, float]] = None,
     precomputed_annotated_support_datasets: Sequence[Union[str, Path, None]] = (),
@@ -160,18 +176,20 @@ def train(
     seed: Optional[int] = None,
     wandb_project: Optional[str] = None,
 ) -> None:
+    """See `selfrel train --help`."""
     hyperparameters: dict[str, Any] = locals()
     callbacks: list[Callback] = []
 
     # Initialize wandb
     if wandb_project is not None:
-        import wandb
+        run = _init_wandb(project=wandb_project)
 
         from selfrel.callbacks.wandb import WandbLoggerCallback
 
-        run = wandb.init(project=wandb_project, config=hyperparameters)
         callbacks.append(WandbLoggerCallback(run))
-        base_path = run.dir
+
+        if base_path is None:
+            base_path = run.dir
 
     # Set base path
     if base_path is None:
@@ -180,12 +198,19 @@ def train(
     hyperparameters["base_path"] = base_path
 
     # Log hyperparameters
+    if wandb_project is not None:
+        import wandb
+
+        # Update hyperparameters that are not set, e.g. from a sweep configuration
+        wandb.config.update({k: hyperparameters[k] for k in set(hyperparameters) - set(wandb.config.keys())})
+
     logger.info("-" * 100)
     logger.info("Parameters:")
     for parameter, parameter_value in hyperparameters.items():
         logger.info(" - %s: %s", parameter, repr(parameter_value))
     logger.info("-" * 100)
 
+    # Set seed
     if seed is not None:
         flair.set_seed(seed)
 
@@ -288,21 +313,4 @@ def train(
         eval_batch_size=prediction_batch_size,
         use_final_model_for_eval=use_final_model_for_evaluation,
         callbacks=callbacks,
-    )
-
-
-if __name__ == "__main__":
-    train(
-        "conll04",
-        support_dataset="/glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/cc-news-ner.conllup",
-        precomputed_annotated_support_datasets=(
-            "/glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/conll04/seed_42/10_percent/prediction-confidence_min-confidence_0.8_top-k_3000/iteration-1/support-datasets/annotated-support-dataset.conllup",
-        ),
-        precomputed_relation_overviews=(
-            "/glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/scored-relation-overview.parquet",
-        ),
-        max_epochs=1,
-        distinct_relations_by="in-between-text",
-        top_k=3000,
-        seed=42,
     )
