@@ -316,7 +316,11 @@ class Entropy(SelectionStrategy):
         self.top_k = top_k
         self.label_distribution = label_distribution
 
-        if self.min_occurrence > self.max_occurrence:
+        if (
+            self.min_occurrence is not None
+            and self.max_occurrence is not None
+            and self.min_occurrence > self.max_occurrence
+        ):
             msg = f"Provided {min_occurrence=} > {max_occurrence=}"
             raise ValueError(msg)
 
