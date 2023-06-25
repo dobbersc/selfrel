@@ -96,7 +96,7 @@ class Train(TestingEntryPointParameters):
         "--down-sample-train 0.1 "
         "--train-with-dev "
         "--transformer distilbert-base-uncased "
-        "--max-epochs 3 "
+        "--max-epochs 10 3 "
         "--learning-rate 4e-5 "
         "--batch-size 16 "
         "--no-cross-augmentation "
@@ -112,7 +112,8 @@ class Train(TestingEntryPointParameters):
         "--distinct sentence "
         "--base 2 "
         "--max-entropy 0.2 "
-        "--top-k 1000 "
+        "--distinct-relations-by None "
+        "--top-k 25000 "
         "--label-distribution no_relation=0.7 located_in=0.3 "
         "--precomputed-annotated-support-datasets dataset-1.conllup None "
         "--precomputed-relation-overviews relations-1.parquet None "
@@ -134,9 +135,9 @@ class Train(TestingEntryPointParameters):
         "down_sample_train": 0.1,
         "train_with_dev": True,
         "transformer": "distilbert-base-uncased",
-        "max_epochs": 3,
-        "learning_rate": 4e-5,
-        "batch_size": 16,
+        "max_epochs": [10, 3],
+        "learning_rate": [4e-5],
+        "batch_size": [16],
         "cross_augmentation": False,
         "entity_pair_label_filter": False,
         "encoding_strategy": "typed-entity-marker",
@@ -150,7 +151,8 @@ class Train(TestingEntryPointParameters):
         "distinct": "sentence",
         "base": 2.0,
         "max_entropy": 0.2,
-        "top_k": 1000,
+        "distinct_relations_by": None,
+        "top_k": 25000,
         "label_distribution": {"no_relation": 0.7, "located_in": 0.3},
         "precomputed_annotated_support_datasets": [Path("dataset-1.conllup"), None],
         "precomputed_relation_overviews": [Path("relations-1.parquet"), None],
