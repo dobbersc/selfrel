@@ -124,7 +124,7 @@ class TestOccurrence:
             expected_selected_indices=tuple((i, 0) for i in range(12)) + tuple((i, 0) for i in range(15, 20)),
         )
 
-    def test_distinct_relations_by_sentence(self, occurrence_relation_overview: pd.DataFrame):
+    def test_distinct_relations_by_sentence(self, occurrence_relation_overview: pd.DataFrame) -> None:
         selection_strategy: Occurrence = Occurrence(min_occurrence=2, distinct=None, distinct_relations_by="sentence")
         assert_scores_and_selected_indices(
             selection_strategy=selection_strategy,
