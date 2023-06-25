@@ -316,6 +316,10 @@ class Entropy(SelectionStrategy):
         self.top_k = top_k
         self.label_distribution = label_distribution
 
+        if self.min_occurrence > self.max_occurrence:
+            msg = f"Provided {min_occurrence=} > {max_occurrence=}"
+            raise ValueError(msg)
+
     def compute_score(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
         if "entropy" in relation_overview:
             logger.info("Using pre-computed 'entropy' column")
