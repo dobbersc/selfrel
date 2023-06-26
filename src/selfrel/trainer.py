@@ -215,12 +215,13 @@ class SelfTrainer:
 
         # Pad `precomputed_annotated_support_datasets` and `precomputed_relation_overviews`
         # with `None` values to the number of self-training iterations
-        precomputed_annotated_support_datasets = tuple(
-            more_itertools.padded(precomputed_annotated_support_datasets, n=self_training_iterations)
-        )
-        precomputed_relation_overviews = tuple(
-            more_itertools.padded(precomputed_relation_overviews, n=self_training_iterations)
-        )
+        if self_training_iterations >= 1:
+            precomputed_annotated_support_datasets = tuple(
+                more_itertools.padded(precomputed_annotated_support_datasets, n=self_training_iterations)
+            )
+            precomputed_relation_overviews = tuple(
+                more_itertools.padded(precomputed_relation_overviews, n=self_training_iterations)
+            )
 
         # Create output folder
         base_path = Path(base_path)
