@@ -92,24 +92,28 @@ class TestSelfTrainerArtifacts:
         assert len(selected_relation_overview.index) == 6
 
     def test_standard(self, self_trainer: SelfTrainer, tmp_path: Path) -> None:
+        flair.set_seed(42)
+
         base_path: Path = tmp_path / "self-trainer"
         self_trainer.train(
             base_path,
             max_epochs=2,
             self_training_iterations=1,
-            selection_strategy=PredictionConfidence(min_confidence=0.8),
+            selection_strategy=PredictionConfidence(min_confidence=0.6, distinct_relations_by=None),
             main_evaluation_metric=("macro avg", "f1-score"),
         )
         self.assert_artifacts(base_path)
 
     def test_precomputed(self, self_trainer: SelfTrainer, tmp_path: Path, resources_dir: Path) -> None:
+        flair.set_seed(42)
+
         base_path: Path = tmp_path / "self-trainer"
         precomputed_dir: Path = resources_dir / "training_data" / "precomputed"
         self_trainer.train(
             base_path,
             max_epochs=2,
             self_training_iterations=1,
-            selection_strategy=PredictionConfidence(min_confidence=0.8),
+            selection_strategy=PredictionConfidence(min_confidence=0.6, distinct_relations_by=None),
             precomputed_annotated_support_datasets=[precomputed_dir / "annotated-support-dataset.conllup"],
             precomputed_relation_overviews=[precomputed_dir / "relation-overview.parquet"],
             main_evaluation_metric=("macro avg", "f1-score"),
