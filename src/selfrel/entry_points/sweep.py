@@ -1,3 +1,4 @@
+import traceback
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -23,7 +24,14 @@ def _submit_to_train() -> None:
     from selfrel.entry_points.train import train
 
     run = wandb.init()
-    train(**wandb.config, wandb_project=run.project)
+
+    # noinspection PyBroadException
+    try:
+        train(**wandb.config, wandb_project=run.project)
+    except Exception:
+        # Print the traceback to stderr, so wandb logs the exception (https://github.com/wandb/wandb/issues/2387)
+        traceback.print_exc()
+        raise
 
 
 def init(configuration: Union[str, Path], entity: Optional[str] = None, project: Optional[str] = None) -> str:
