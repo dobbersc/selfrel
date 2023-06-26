@@ -153,7 +153,7 @@ class SelfTrainer:
             export_to_conllu(output_file, sentences=selection, global_label_types=global_label_types)
 
         try:
-            selected_data_points = CoNLLUPlusDataset(dataset_output_path, persist=False)
+            selected_data_points: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(dataset_output_path, persist=False)
         except ValueError as e:
             msg = (
                 "Empty support dataset selection: "
