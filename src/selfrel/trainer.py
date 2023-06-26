@@ -152,7 +152,17 @@ class SelfTrainer:
         with dataset_output_path.open("w", encoding="utf-8") as output_file:
             export_to_conllu(output_file, sentences=selection, global_label_types=global_label_types)
 
-        return CoNLLUPlusDataset(dataset_output_path, persist=False), selection
+        try:
+            selected_data_points = CoNLLUPlusDataset(dataset_output_path, persist=False)
+        except ValueError as e:
+            msg = (
+                "Empty support dataset selection: "
+                "With the specified hyperparameters for the self-training selection strategy, "
+                "no data points were selected from the support dataset. "
+            )
+            raise ValueError(msg) from e
+
+        return selected_data_points, selection
 
     def _encode_support_dataset(
         self, dataset: CoNLLUPlusDataset[Sentence], output_path: Path
