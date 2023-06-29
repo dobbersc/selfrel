@@ -74,6 +74,8 @@ class TestSelfTrainerArtifacts:
         print("DEBUG: support_dataset_full")
         for sentence in support_dataset_full:
             print(sentence)
+            for relation in sentence.get_relations("relation"):
+                print(relation, relation.get_label("relation").score)
         assert len(support_dataset_full) == 3  # Three sentences
         support_dataset_selection: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(
             support_dataset_dir / "selected-support-dataset.conllup"
