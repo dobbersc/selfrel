@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import flair
 import pandas as pd
@@ -11,6 +12,9 @@ from flair.models import RelationClassifier
 from selfrel.data import CoNLLUPlusDataset
 from selfrel.selection_strategies import PredictionConfidence
 from selfrel.trainer import SelfTrainer
+
+if TYPE_CHECKING:
+    from flair.models.relation_classifier_model import EncodedSentence
 
 
 @pytest.fixture()
@@ -72,9 +76,12 @@ class TestSelfTrainerArtifacts:
             support_dataset_dir / "selected-support-dataset.conllup"
         )
         assert len(support_dataset_selection) == 3  # All sentences are selected
-        support_dataset_encoded: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(
+        support_dataset_encoded: CoNLLUPlusDataset[EncodedSentence] = CoNLLUPlusDataset(
             support_dataset_dir / "encoded-support-dataset.conllup"
         )
+        print("DEBUG")
+        for sentence in support_dataset_encoded:
+            print(sentence)
         assert len(support_dataset_encoded) == 6  # Two relations for each sentence
 
         # Test relation overview artifacts
