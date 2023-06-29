@@ -169,7 +169,7 @@ def train(
     num_cpus: Optional[float] = None,
     num_gpus: Optional[float] = 1.0,
     buffer_size: Optional[int] = None,
-    prediction_batch_size: int = 32,
+    eval_batch_size: int = 32,
     evaluation_split: Literal["train", "dev", "test"] = "test",
     use_final_model_for_evaluation: bool = True,
     exclude_labels_from_evaluation: Optional[list[str]] = None,
@@ -272,16 +272,7 @@ def train(
     )
 
     # Step 4: Initialize self-trainer and selection strategy
-    trainer: SelfTrainer = SelfTrainer(
-        model=model,
-        corpus=corpus,
-        support_dataset=support_dataset,
-        num_actors=num_actors,
-        num_cpus=num_cpus,
-        num_gpus=num_gpus,
-        buffer_size=buffer_size,
-        prediction_batch_size=prediction_batch_size,
-    )
+    trainer: SelfTrainer = SelfTrainer(model=model, corpus=corpus, support_dataset=support_dataset)
 
     strategy: SelectionStrategy = infer_selection_strategy(
         selection_strategy=selection_strategy,
@@ -299,18 +290,22 @@ def train(
     # Step 5: Run self-trainer
     trainer.train(
         base_path,
-        self_training_iterations=self_training_iterations,
-        selection_strategy=strategy,
-        reinitialize=reinitialize,
-        precomputed_annotated_support_datasets=precomputed_annotated_support_datasets,
-        precomputed_relation_overviews=precomputed_relation_overviews,
         max_epochs=max_epochs,
         learning_rate=learning_rate,
         mini_batch_size=batch_size,
+        self_training_iterations=self_training_iterations,
+        reinitialize=reinitialize,
+        selection_strategy=strategy,
+        num_actors=num_actors,
+        num_cpus=num_cpus,
+        num_gpus=num_gpus,
+        buffer_size=buffer_size,
+        eval_batch_size=eval_batch_size,
         train_with_dev=train_with_dev,
         main_evaluation_metric=("macro avg", "f1-score"),
         exclude_labels=[] if exclude_labels_from_evaluation is None else exclude_labels_from_evaluation,
-        eval_batch_size=prediction_batch_size,
         use_final_model_for_eval=use_final_model_for_evaluation,
+        precomputed_annotated_support_datasets=precomputed_annotated_support_datasets,
+        precomputed_relation_overviews=precomputed_relation_overviews,
         callbacks=callbacks,
     )

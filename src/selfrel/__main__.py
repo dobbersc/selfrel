@@ -93,7 +93,7 @@ def call_train(args: argparse.Namespace) -> None:
         num_cpus=args.num_cpus,
         num_gpus=args.num_gpus,
         buffer_size=args.buffer_size,
-        prediction_batch_size=args.prediction_batch_size,
+        eval_batch_size=args.eval_batch_size,
         evaluation_split=args.evaluation_split,
         use_final_model_for_evaluation=args.use_final_model_for_evaluation,
         exclude_labels_from_evaluation=args.exclude_labels_from_evaluation,
@@ -383,7 +383,7 @@ def add_train(subparsers) -> None:
     train.add_argument("--num-cpus", type=float, default=None, help="TODO")
     train.add_argument("--num-gpus", type=float, default=1.0, help="TODO")
     train.add_argument("--buffer-size", type=int, default=None, help="TODO")
-    train.add_argument("--prediction-batch-size", type=int, default=32, help="TODO")
+    train.add_argument("--eval-batch-size", type=int, default=32, help="TODO")
     train.add_argument("--evaluation-split", choices=["train", "dev", "test"], default="test", help="TODO")
     train.add_argument(
         "--use-final-model-for-evaluation", action=argparse.BooleanOptionalAction, default=True, help="TODO"

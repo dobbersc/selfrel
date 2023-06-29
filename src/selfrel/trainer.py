@@ -39,15 +39,7 @@ def _set_cross_augmentation(relation_classifier: RelationClassifier, cross_augme
 
 class SelfTrainer:
     def __init__(
-        self,
-        model: RelationClassifier,
-        corpus: Corpus[Sentence],
-        support_dataset: CoNLLUPlusDataset[Sentence],
-        num_actors: int = 1,
-        num_cpus: Optional[float] = None,
-        num_gpus: Optional[float] = 1.0,
-        buffer_size: Optional[int] = None,
-        prediction_batch_size: int = 32,
+        self, model: RelationClassifier, corpus: Corpus[Sentence], support_dataset: CoNLLUPlusDataset[Sentence]
     ) -> None:
         if model.zero_tag_value == "O":
             # To extract negative data points we need explicit annotations for the "no_relation" label.
@@ -63,12 +55,6 @@ class SelfTrainer:
 
         self._support_dataset = support_dataset
 
-        self.num_actors = num_actors
-        self.num_cpus = num_cpus
-        self.num_gpus = num_gpus
-        self.buffer_size = num_actors if buffer_size is None else buffer_size
-        self.prediction_batch_size = prediction_batch_size
-
     def _train_model(
         self, base_path: Path, corpus: Corpus[Sentence], reinitialize: bool = True, **kwargs: Any
     ) -> RelationClassifier:
@@ -79,13 +65,20 @@ class SelfTrainer:
         trainer.fine_tune(base_path, **kwargs)
         return self._model
 
-    def _annotate_support_dataset(self, teacher: RelationClassifier, output_path: Path) -> CoNLLUPlusDataset[Sentence]:
+    def _annotate_support_dataset(
+        self,
+        teacher: RelationClassifier,
+        output_path: Path,
+        prediction_batch_size: int,
+        buffer_size: Optional[int],
+        num_actors: int,
+        **actor_options: Any,
+    ) -> CoNLLUPlusDataset[Sentence]:
         # Initialize predictor pool
         predictor_pool: PredictorPool[Sentence] = PredictorPool(
             teacher,  # type: ignore[arg-type]
-            num_actors=self.num_actors,
-            num_cpus=self.num_cpus,
-            num_gpus=self.num_gpus,
+            num_actors=num_actors,
+            **actor_options,
         )
 
         # Get global label-types
@@ -104,7 +97,7 @@ class SelfTrainer:
 
         # Process dataset
         processed_sentences: Iterator[Sentence] = predictor_pool.predict(
-            ner_sentences, mini_batch_size=self.prediction_batch_size, buffer_size=self.buffer_size
+            ner_sentences, mini_batch_size=prediction_batch_size, buffer_size=buffer_size
         )
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -201,8 +194,13 @@ class SelfTrainer:
         learning_rate: Union[float, Sequence[float]] = 5e-5,
         mini_batch_size: Union[int, Sequence[int]] = 32,
         self_training_iterations: int = 1,
-        selection_strategy: Optional[SelectionStrategy] = None,
         reinitialize: bool = True,
+        selection_strategy: Optional[SelectionStrategy] = None,
+        num_actors: int = 1,
+        num_cpus: Optional[float] = None,
+        num_gpus: Optional[float] = 1.0,
+        buffer_size: Optional[int] = None,
+        eval_batch_size: int = 32,
         precomputed_annotated_support_datasets: Sequence[Union[str, Path, None]] = (),
         precomputed_relation_overviews: Sequence[Union[str, Path, None]] = (),
         callbacks: Union[Callback, CallbackSequence, Sequence[Callback]] = (),
@@ -263,7 +261,15 @@ class SelfTrainer:
             annotated_support_dataset: CoNLLUPlusDataset[Sentence]
             output_path: Path = support_datasets_dir / "annotated-support-dataset.conllup"
             if (dataset_path := precomputed_annotated_support_datasets[self_training_iteration - 1]) is None:
-                annotated_support_dataset = self._annotate_support_dataset(teacher_model, output_path=output_path)
+                annotated_support_dataset = self._annotate_support_dataset(
+                    teacher_model,
+                    output_path=output_path,
+                    prediction_batch_size=eval_batch_size,
+                    buffer_size=buffer_size,
+                    num_actors=num_actors,
+                    num_cpus=num_cpus,
+                    num_gpus=num_gpus,
+                )
             else:
                 logger.info("Using pre-computed annotated support dataset from %s", repr(str(dataset_path)))
                 output_path.parent.mkdir(parents=True, exist_ok=True)

@@ -46,9 +46,7 @@ def self_trainer(resources_dir: Path) -> SelfTrainer:
     )
 
     # Step 4: Initialize self-trainer
-    trainer: SelfTrainer = SelfTrainer(
-        model=model, corpus=corpus, support_dataset=support_dataset, num_gpus=1 if torch.cuda.is_available() else 0
-    )
+    trainer: SelfTrainer = SelfTrainer(model=model, corpus=corpus, support_dataset=support_dataset)
 
     return trainer
 
@@ -101,6 +99,7 @@ class TestSelfTrainerArtifacts:
             self_training_iterations=1,
             selection_strategy=PredictionConfidence(min_confidence=0.6, distinct_relations_by=None),
             main_evaluation_metric=("macro avg", "f1-score"),
+            num_gpus=1 if torch.cuda.is_available() else 0,
         )
         self.assert_artifacts(base_path)
 
@@ -117,5 +116,6 @@ class TestSelfTrainerArtifacts:
             precomputed_annotated_support_datasets=[precomputed_dir / "annotated-support-dataset.conllup"],
             precomputed_relation_overviews=[precomputed_dir / "relation-overview.parquet"],
             main_evaluation_metric=("macro avg", "f1-score"),
+            num_gpus=1 if torch.cuda.is_available() else 0,
         )
         self.assert_artifacts(base_path)

@@ -141,7 +141,7 @@ class PredictorPool(Generic[SentenceT]):
         model: Union[str, Path, Classifier[SentenceT], ray.ObjectRef],  # type: ignore[type-arg]
         num_actors: int,
         **actor_options: Any,
-    ):
+    ) -> None:
         """
         Initializes a :class:`PredictorPool`.
         :param model: The underlying model for the predictors

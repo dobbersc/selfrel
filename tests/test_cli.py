@@ -121,7 +121,7 @@ class Train(TestingEntryPointParameters):
         "--num-cpus 16 "
         "--num-gpus 1 "
         "--buffer-size 8 "
-        "--prediction-batch-size 64 "
+        "--eval-batch-size 64 "
         "--evaluation-split dev "
         "--no-use-final-model-for-evaluation "
         "--exclude-labels-from-evaluation no_relation "
@@ -160,7 +160,7 @@ class Train(TestingEntryPointParameters):
         "num_cpus": 16.0,
         "num_gpus": 1.0,
         "buffer_size": 8,
-        "prediction_batch_size": 64,
+        "eval_batch_size": 64,
         "evaluation_split": "dev",
         "use_final_model_for_evaluation": False,
         "exclude_labels_from_evaluation": ["no_relation"],

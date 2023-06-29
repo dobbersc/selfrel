@@ -65,7 +65,7 @@ class WandbLoggerCallback(Callback):
             result: Result = model.evaluate(
                 getattr(corpus, split),
                 gold_label_type=model.label_type,
-                mini_batch_size=train_parameters.get("eval_batch_size", 64),
+                mini_batch_size=train_parameters["eval_batch_size"],
                 **{
                     parameter: value
                     for parameter in (
