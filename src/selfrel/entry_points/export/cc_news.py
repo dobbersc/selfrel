@@ -108,17 +108,9 @@ def _article_to_conllu(article: str, article_id: int) -> tuple[tuple[str, ...], 
     return tuple(serialized_sentences), max(sentence_lengths)
 
 
-def _cc_news_to_conllu(
-    cc_news: datasets.Dataset,
-    max_sentence_length: Optional[int],
-    processes: int,
-    **kwargs: Any,
-) -> Iterator[str]:
+def _cc_news_to_conllu(cc_news: datasets.Dataset, max_sentence_length: Optional[int], processes: int) -> Iterator[str]:
     """Yields CoNLL-U serialized sentences from the CC-News dataset."""
-    kwargs.pop("n_jobs", None)
-    kwargs.pop("return_generator", None)
-
-    parallel = Parallel(processes, return_generator=True, **kwargs)
+    parallel = Parallel(processes, return_as="generator")
     articles: Iterator[tuple[tuple[str, ...], int]] = parallel(
         delayed(_article_to_conllu)(article["text"], article["article_id"])
         for article in tqdm(cc_news, desc="Submitting Articles", position=0)
@@ -140,7 +132,6 @@ def export_cc_news(
     dataset_slice: Optional[str] = None,
     max_sentence_length: Optional[int] = None,
     processes: int = 1,
-    **kwargs: Any,
 ) -> None:
     """See `selfrel export cc-news --help`. (Keyword arguments are passed to joblib Parallel.)"""
     out_dir = Path(out_dir)
@@ -153,7 +144,7 @@ def export_cc_news(
         output_file.write("# global.columns = ID FORM MISC\n")  # Write CoNLL-U Plus header
 
         for sentence_index, sentence in enumerate(
-            _cc_news_to_conllu(cc_news, max_sentence_length=max_sentence_length, processes=processes, **kwargs),
+            _cc_news_to_conllu(cc_news, max_sentence_length=max_sentence_length, processes=processes),
             start=1,
         ):
             output_file.write(f"# global_sentence_id = {sentence_index}\n")  # Minor hack for the global sentence ID
