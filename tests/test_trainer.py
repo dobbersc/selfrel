@@ -71,15 +71,21 @@ class TestSelfTrainerArtifacts:
         support_dataset_full: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(
             support_dataset_dir / "annotated-support-dataset.conllup"
         )
+        print("DEBUG: support_dataset_full")
+        for sentence in support_dataset_full:
+            print(sentence)
         assert len(support_dataset_full) == 3  # Three sentences
         support_dataset_selection: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(
             support_dataset_dir / "selected-support-dataset.conllup"
         )
+        print("DEBUG: support_dataset_selection")
+        for sentence in support_dataset_selection:
+            print(sentence)
         assert len(support_dataset_selection) == 3  # All sentences are selected
         support_dataset_encoded: CoNLLUPlusDataset[EncodedSentence] = CoNLLUPlusDataset(
             support_dataset_dir / "encoded-support-dataset.conllup"
         )
-        print("DEBUG")
+        print("DEBUG: support_dataset_encoded")
         for sentence in support_dataset_encoded:
             print(sentence)
         assert len(support_dataset_encoded) == 6  # Two relations for each sentence
