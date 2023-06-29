@@ -71,25 +71,16 @@ class TestSelfTrainerArtifacts:
         support_dataset_full: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(
             support_dataset_dir / "annotated-support-dataset.conllup"
         )
-        print("DEBUG: support_dataset_full")
-        for sentence in support_dataset_full:
-            print(sentence)
-            for relation in sentence.get_relations("relation"):
-                print(relation, relation.get_label("relation").score)
         assert len(support_dataset_full) == 3  # Three sentences
+
         support_dataset_selection: CoNLLUPlusDataset[Sentence] = CoNLLUPlusDataset(
             support_dataset_dir / "selected-support-dataset.conllup"
         )
-        print("DEBUG: support_dataset_selection")
-        for sentence in support_dataset_selection:
-            print(sentence)
         assert len(support_dataset_selection) == 3  # All sentences are selected
+
         support_dataset_encoded: CoNLLUPlusDataset[EncodedSentence] = CoNLLUPlusDataset(
             support_dataset_dir / "encoded-support-dataset.conllup"
         )
-        print("DEBUG: support_dataset_encoded")
-        for sentence in support_dataset_encoded:
-            print(sentence)
         assert len(support_dataset_encoded) == 6  # Two relations for each sentence
 
         # Test relation overview artifacts
@@ -112,7 +103,7 @@ class TestSelfTrainerArtifacts:
             base_path,
             max_epochs=2,
             self_training_iterations=1,
-            selection_strategy=PredictionConfidence(min_confidence=0.6, distinct_relations_by=None),
+            selection_strategy=PredictionConfidence(min_confidence=0.5, distinct_relations_by=None),
             main_evaluation_metric=("macro avg", "f1-score"),
             num_gpus=1 if torch.cuda.is_available() else 0,
         )
@@ -127,7 +118,7 @@ class TestSelfTrainerArtifacts:
             base_path,
             max_epochs=2,
             self_training_iterations=1,
-            selection_strategy=PredictionConfidence(min_confidence=0.6, distinct_relations_by=None),
+            selection_strategy=PredictionConfidence(min_confidence=0.5, distinct_relations_by=None),
             precomputed_annotated_support_datasets=[precomputed_dir / "annotated-support-dataset.conllup"],
             precomputed_relation_overviews=[precomputed_dir / "relation-overview.parquet"],
             main_evaluation_metric=("macro avg", "f1-score"),
