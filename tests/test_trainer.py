@@ -13,7 +13,7 @@ from selfrel.selection_strategies import PredictionConfidence
 from selfrel.trainer import SelfTrainer
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture()
 def self_trainer(resources_dir: Path) -> SelfTrainer:
     flair.set_seed(42)
 
