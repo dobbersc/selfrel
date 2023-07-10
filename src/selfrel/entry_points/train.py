@@ -226,26 +226,24 @@ def train(
     # Step 1: Create the training data and support dataset
     # The relation extractor is *not* trained end-to-end.
     # A corpus for training the relation extractor requires annotated entities and relations.
-    corpus: Corpus[Sentence] = _load_corpus(corpus)
+    loaded_corpus: Corpus[Sentence] = _load_corpus(corpus)
+
     if down_sample_train is not None:
-        corpus = corpus.downsample(
+        loaded_corpus = loaded_corpus.downsample(
             percentage=down_sample_train,
             downsample_train=True,
             downsample_dev=train_with_dev,
             downsample_test=False,
         )
     if evaluation_split in ["train", "dev"]:
-        corpus = Corpus(
-            train=corpus.train,
-            dev=corpus.dev,
-            test=getattr(corpus, evaluation_split),
+        loaded_corpus = Corpus(
+            train=loaded_corpus.train,
+            dev=loaded_corpus.dev,
+            test=getattr(loaded_corpus, evaluation_split),
             # Keep original corpus structure
-            name=corpus.name,
+            name=loaded_corpus.name,
             sample_missing_splits=False,
         )
-
-    for sentence in corpus.train:
-        print(sentence)
 
     support_dataset = (
         support_dataset
@@ -254,10 +252,10 @@ def train(
     )
 
     # Step 2: Make the label dictionary and infer entity-pair labels from the corpus
-    label_dictionary = corpus.make_label_dictionary("relation")
+    label_dictionary = loaded_corpus.make_label_dictionary("relation")
     entity_pair_labels: Optional[set[tuple[str, str]]] = (
         infer_entity_pair_labels(
-            (batch[0] for batch in DataLoader(corpus.train, batch_size=1)),
+            (batch[0] for batch in DataLoader(loaded_corpus.train, batch_size=1)),
             relation_label_type="relation",
             entity_label_types="ner",
         )
@@ -284,7 +282,7 @@ def train(
     )
 
     # Step 4: Initialize self-trainer and selection strategy
-    trainer: SelfTrainer = SelfTrainer(model=model, corpus=corpus, support_dataset=support_dataset)
+    trainer: SelfTrainer = SelfTrainer(model=model, corpus=loaded_corpus, support_dataset=support_dataset)
 
     strategy: SelectionStrategy = infer_selection_strategy(
         selection_strategy=selection_strategy,
