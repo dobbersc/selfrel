@@ -62,7 +62,7 @@ def call_train(args: argparse.Namespace) -> None:
 
     ray.init()
     train(
-        corpus_name=args.corpus,
+        corpus=args.corpus,
         support_dataset=args.support_dataset,
         base_path=args.base_path,
         down_sample_train=args.down_sample_train,
@@ -266,8 +266,11 @@ def add_train(subparsers) -> None:
 
     train.add_argument(
         "corpus",
-        choices=["conll04"],
-        help="The identifier of the gold-annotated corpus. Currently, only CoNLL04 is supported.",
+        help=(
+            "An identifier of the gold-annotated corpus "
+            "or a directory containing 'train.conllup', 'dev.conllup' and 'test.conllup' files. "
+            "As identifier, only 'conll04' is supported.",
+        ),
     )
     train.add_argument(
         "--support-dataset",

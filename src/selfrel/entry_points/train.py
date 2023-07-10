@@ -30,12 +30,19 @@ _CORPORA: Final[dict[str, Callable[[], Corpus[Sentence]]]] = {
 }
 
 
-def _load_corpus(corpus_name: str) -> Corpus[Sentence]:
-    try:
-        return _CORPORA[corpus_name]()
-    except KeyError as e:
-        msg = f"The corpus {corpus_name!r} is not supported"
-        raise ValueError(msg) from e
+def _load_corpus(corpus: Union[Corpus[Sentence], Path, str, Literal["conll04"]]) -> Corpus[Sentence]:
+    if isinstance(corpus, Corpus):
+        return corpus
+
+    if isinstance(corpus, str) and corpus == "conll04":
+        return _CORPORA[corpus]()
+
+    corpus_directory: Path = Path(corpus)
+    return Corpus(
+        train=CoNLLUPlusDataset(corpus_directory / "train.conllup"),
+        dev=CoNLLUPlusDataset(corpus_directory / "dev.conllup"),
+        test=CoNLLUPlusDataset(corpus_directory / "test.conllup"),
+    )
 
 
 def _init_wandb(project: str):  # type: ignore[no-untyped-def]
@@ -133,7 +140,7 @@ def infer_selection_strategy(
 
 
 def train(
-    corpus_name: Literal["conll04"],
+    corpus: Union[Corpus[Sentence], Path, str, Literal["conll04"]],
     support_dataset: Union[str, Path, CoNLLUPlusDataset[Sentence]],
     base_path: Optional[Union[str, Path]] = None,
     down_sample_train: Optional[float] = None,
@@ -219,7 +226,7 @@ def train(
     # Step 1: Create the training data and support dataset
     # The relation extractor is *not* trained end-to-end.
     # A corpus for training the relation extractor requires annotated entities and relations.
-    corpus: Corpus[Sentence] = _load_corpus(corpus_name)
+    corpus: Corpus[Sentence] = _load_corpus(corpus)
     if down_sample_train is not None:
         corpus = corpus.downsample(
             percentage=down_sample_train,
@@ -236,6 +243,9 @@ def train(
             name=corpus.name,
             sample_missing_splits=False,
         )
+
+    for sentence in corpus.train:
+        print(sentence)
 
     support_dataset = (
         support_dataset

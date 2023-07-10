@@ -129,7 +129,7 @@ class Train(TestingEntryPointParameters):
         "--wandb-project test_cli"
     )
     expected_call_arguments: ClassVar[dict[str, Any]] = {
-        "corpus_name": "conll04",
+        "corpus": "conll04",
         "support_dataset": Path("support-dataset.conllup"),
         "base_path": Path("base"),
         "down_sample_train": 0.1,
