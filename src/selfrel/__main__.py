@@ -296,12 +296,27 @@ def add_train(subparsers) -> None:
         default="bert-base-uncased",
         help="The huggingface identifier of the underlying transformer architecture.",
     )
-    train.add_argument("--max-epochs", nargs="+", type=int, default=10, help="The maximum number of epochs to train.")
     train.add_argument(
-        "--learning-rate", nargs="+", type=float, default=5e-5, help="The learning rate of the optimizer."
+        "--max-epochs",
+        nargs="+",
+        type=int,
+        default=10,
+        help="The maximum number of epochs to train.",
     )
-    train.add_argument("--batch-size", nargs="+", type=int, default=32, help="Size of mini-batches during training.")
-    # TODO: Further explain cross augmentation
+    train.add_argument(
+        "--learning-rate",
+        nargs="+",
+        type=float,
+        default=5e-5,
+        help="The learning rate of the optimizer.",
+    )
+    train.add_argument(
+        "--batch-size",
+        nargs="+",
+        type=int,
+        default=32,
+        help="Size of mini-batches during training.",
+    )
     train.add_argument(
         "--cross-augmentation",
         action=argparse.BooleanOptionalAction,
@@ -335,14 +350,27 @@ def add_train(subparsers) -> None:
             "For more information, see the encoding strategies defined in 'flair.models.relation_classifier_model'."
         ),
     )
-    train.add_argument("--zero-tag-value", default="no_relation", help="TODO")
+    train.add_argument(
+        "--zero-tag-value",
+        default="no_relation",
+        help="The zero-tag or out-tag value representing the 'no_relation' class",
+    )
     train.add_argument(
         "--self-training-iterations",
         type=int,
         default=1,
         help="The number of self-training iterations.",
     )
-    train.add_argument("--reinitialize", action=argparse.BooleanOptionalAction, default=True, help="TODO")
+    train.add_argument(
+        "--reinitialize",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help=(
+            "If set, the student model's weights will be reinitialized in each self-training iteration. "
+            "Otherwise, the student model's weights will be initialized "
+            "with the current iteration's teacher model's weights."
+        ),
+    )
     train.add_argument(
         "--selection-strategy",
         choices=["prediction-confidence", "occurrence", "entropy"],
@@ -352,12 +380,42 @@ def add_train(subparsers) -> None:
             "For more information see the selection strategies defined in 'selfrel.selection_strategies'."
         ),
     )
-    train.add_argument("--min-confidence", type=float, default=None, help="TODO")
-    train.add_argument("--min-occurrence", type=int, default=None, help="TODO")
-    train.add_argument("--max-occurrence", type=int, default=None, help="TODO")
-    train.add_argument("--distinct", choices=["sentence", "in-between-text"], default=None, help="TODO")
-    train.add_argument("--base", type=float, default=None, help="TODO")
-    train.add_argument("--max-entropy", type=float, default=None, help="TODO")
+    train.add_argument(
+        "--min-confidence",
+        type=float,
+        default=None,
+        help="The minimum confidence for a relation instance to be selected from the support dataset.",
+    )
+    train.add_argument(
+        "--min-occurrence",
+        type=int,
+        default=None,
+        help="TODO",
+    )
+    train.add_argument(
+        "--max-occurrence",
+        type=int,
+        default=None,
+        help="TODO",
+    )
+    train.add_argument(
+        "--distinct",
+        choices=["sentence", "in-between-text"],
+        default=None,
+        help="TODO",
+    )
+    train.add_argument(
+        "--base",
+        type=float,
+        default=None,
+        help="TODO",
+    )
+    train.add_argument(
+        "--max-entropy",
+        type=float,
+        default=None,
+        help="TODO",
+    )
     train.add_argument(
         "--distinct-relations-by",
         type=none_or_str,
