@@ -241,12 +241,14 @@ class Occurrence(SelectionStrategy):
     def __init__(
         self,
         min_occurrence: int = 2,
+        min_confidence: Optional[float] = None,
         distinct: Optional[Literal["sentence", "in-between-text"]] = None,
         distinct_relations_by: Optional[Literal["sentence", "in-between-text"]] = "sentence",
         top_k: Optional[int] = None,
         label_distribution: Optional[dict[str, float]] = None,
     ) -> None:
         self.min_occurrence = min_occurrence
+        self.min_confidence = min_confidence
         self.distinct = distinct
         self.distinct_relations_by = distinct_relations_by
         self.top_k = top_k
@@ -281,7 +283,10 @@ class Occurrence(SelectionStrategy):
         return relation_overview.assign(occurrence=occurrences)
 
     def select_rows(self, relation_overview: pd.DataFrame) -> pd.DataFrame:
-        selected: pd.DataFrame = relation_overview[relation_overview.occurrence >= self.min_occurrence]
+        selected: pd.DataFrame = relation_overview[
+            (relation_overview.occurrence >= self.min_occurrence)
+            & (relation_overview["confidence"] >= self.min_confidence if self.min_confidence is not None else True)
+        ]
         if self.distinct_relations_by is not None:
             selected = self._select_distinct_relation_rows(selected, self.distinct_relations_by)
         return self._select_top_rows(

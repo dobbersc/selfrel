@@ -83,6 +83,7 @@ def infer_selection_strategy(
     elif selection_strategy == "occurrence":
         strategy = (
             Occurrence(
+                min_confidence=min_confidence,
                 distinct=distinct,
                 distinct_relations_by=distinct_relations_by,
                 top_k=top_k,
@@ -91,6 +92,7 @@ def infer_selection_strategy(
             if min_occurrence is None
             else Occurrence(
                 min_occurrence=min_occurrence,
+                min_confidence=min_confidence,
                 distinct=distinct,
                 distinct_relations_by=distinct_relations_by,
                 top_k=top_k,
