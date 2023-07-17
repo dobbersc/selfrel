@@ -269,7 +269,7 @@ def add_train(subparsers) -> None:
         help=(
             "An identifier of the gold-annotated corpus "
             "or a directory containing 'train.conllup', 'dev.conllup' and 'test.conllup' files. "
-            "As identifier, only 'conll04' is supported.",
+            "As identifier, only 'conll04' is supported."
         ),
     )
     train.add_argument(
