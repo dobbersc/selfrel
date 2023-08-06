@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 import pandas as pd
 import seaborn as sns
-from flair.data import Corpus
+from flair.data import Corpus, Sentence
 from flair.datasets import RE_ENGLISH_CONLL04, DataLoader
 from flair.embeddings import TransformerDocumentEmbeddings
 from flair.models import RelationClassifier
@@ -15,7 +15,7 @@ from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
 from selfrel.utils.inspect_relations import infer_entity_pair_labels
 
 
-def plot_relationship_distribution(corpus: Corpus, out: Optional[Path] = None) -> None:
+def plot_relationship_distribution(corpus: Corpus[Sentence], out: Optional[Path] = None) -> None:
     # Prepare data
     entity_pair_labels: Optional[set[tuple[str, str]]] = infer_entity_pair_labels(
         (batch[0] for batch in DataLoader(corpus.train, batch_size=1)),
@@ -107,7 +107,7 @@ def main() -> None:
     if args.out is not None:
         args.out.mkdir(parents=True, exist_ok=True)
 
-    conll04: Corpus = RE_ENGLISH_CONLL04()
+    conll04: Corpus[Sentence] = RE_ENGLISH_CONLL04()
     plot_relationship_distribution(conll04, out=args.out)
 
 

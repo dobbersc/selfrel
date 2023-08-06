@@ -130,7 +130,7 @@ def buffered_map(
     buffer_size: int,
 ) -> Iterator[T]:
     """Buffered version of `ray.util.ActorPool`'s `map` function."""
-    value_buffer: Iterator[list[V]] = more_itertools.batched(values, n=buffer_size)
+    value_buffer: Iterator[tuple[V, ...]] = more_itertools.batched(values, n=buffer_size)
     for buffered_values in value_buffer:
         yield from actor_pool.map(fn, buffered_values)  # type: ignore[arg-type]
 
@@ -179,10 +179,10 @@ class PredictorPool(Generic[SentenceT]):
         """
         buffer_size = self._num_actors if buffer_size is None else buffer_size
 
-        def remote_predict(pipeline_actor: ActorHandle, sentences_: list[SentenceT]) -> list[SentenceT]:
+        def remote_predict(pipeline_actor: ActorHandle, sentences_: tuple[SentenceT, ...]) -> tuple[SentenceT, ...]:
             return pipeline_actor.predict.remote(sentences_, **kwargs)  # type: ignore[no-any-return]
 
-        sentence_batches: Iterator[list[SentenceT]] = more_itertools.batched(sentences, n=mini_batch_size)
+        sentence_batches: Iterator[tuple[SentenceT, ...]] = more_itertools.batched(sentences, n=mini_batch_size)
         for processed_sentences in buffered_map(
             actor_pool=self._pool, fn=remote_predict, values=sentence_batches, buffer_size=buffer_size
         ):

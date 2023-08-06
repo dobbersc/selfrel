@@ -7,19 +7,25 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import pandas as pd
 import seaborn as sns
-from flair.data import Corpus
+from flair.data import Corpus, Sentence
 from flair.datasets import RE_ENGLISH_CONLL04
 from matplotlib.figure import figaspect
 
 from selfrel.utils.argparse import RawTextArgumentDefaultsHelpFormatter
 
 
-def build_sentence_lengths_dataframe(corpus: Corpus) -> pd.DataFrame:
+def build_sentence_lengths_dataframe(corpus: Corpus[Sentence]) -> pd.DataFrame:
     assert corpus.train is not None
     assert corpus.dev is not None
     assert corpus.test is not None
+    sentence: Sentence  # noqa: F842
     return pd.DataFrame(
-        {"sentence_length": [len(sentence) for sentence in itertools.chain(corpus.train, corpus.dev, corpus.test)]}
+        {
+            "sentence_length": [
+                len(sentence)
+                for sentence in itertools.chain(corpus.train, corpus.dev, corpus.test)  # type: ignore[arg-type]
+            ]
+        }
     )
 
 
@@ -88,7 +94,7 @@ def main() -> None:
     if args.out is not None:
         args.out.mkdir(parents=True, exist_ok=True)
 
-    conll04: Corpus = RE_ENGLISH_CONLL04()
+    conll04: Corpus[Sentence] = RE_ENGLISH_CONLL04()
     plot_sentence_length_distribution(build_sentence_lengths_dataframe(conll04), args.out)
 
 
