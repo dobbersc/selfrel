@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mtick
+import matplotlib.ticker as mticker
 import pandas as pd
 import seaborn as sns
 from flair.data import Sentence
@@ -53,7 +53,7 @@ def plot_sentence_length_distribution(dataframe: pd.DataFrame, out: Optional[Pat
         ax=ax_hist,
     )
     ax_hist.set(xlabel="Sentence Length", ylabel="Percentage of Dataset")
-    ax_hist.yaxis.set_major_formatter(mtick.PercentFormatter(decimals=1))
+    ax_hist.yaxis.set_major_formatter(mticker.PercentFormatter(decimals=1))
     sns.despine(ax=ax_hist)
 
     plt.xlim(0)
@@ -95,7 +95,7 @@ def main() -> None:
         "--out",
         type=Path,
         default=None,
-        help="The output directory. Per default, not output files are generated.",
+        help="The output directory. Per default, no output files are generated.",
     )
     args: argparse.Namespace = parser.parse_args()
 

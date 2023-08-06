@@ -144,7 +144,7 @@ def plot_conll04_relation_candidates_distribution(
         ax=ax,
     )
 
-    ax.set(xlabel="Relation Candidate Occurrence", ylabel="Relation")
+    ax.set(xlabel="Relation Candidate Occurrence", ylabel="Relationship")
 
     ax.set_xscale("log", base=2)
     ax.set_xticks([1, 2, 8, 32, 128, 512])
@@ -176,7 +176,7 @@ def main() -> None:
         "--out",
         type=Path,
         default=None,
-        help="The output directory. Per default, not output files are generated.",
+        help="The output directory. Per default, no output files are generated.",
     )
     args: argparse.Namespace = parser.parse_args()
 
