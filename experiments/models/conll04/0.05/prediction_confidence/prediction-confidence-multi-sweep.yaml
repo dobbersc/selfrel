@@ -1,0 +1,69 @@
+project: selfrel-5
+name: self-training multi (down_sample_train=0.05 self_training_iterations=3 selection_strategy=prediction-confidence)
+description: >-
+  This sweep evaluates the best configuration from previous sweeps on multiple seeds
+  for the self-training algorithm (3 iterations)
+  and prediction confidence selection strategy on 5% training data of the CoNLL04 corpus.
+  Since we use precomputed annotated support datasets and relation overviews from the initial model with seed 8,
+  the model with seed 8 is the baseline to compare.
+
+method: grid
+metric:
+  name: "dev/macro avg/f1-score"
+  goal: maximize
+
+parameters:
+
+  corpus:
+    value: /glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/conll04/0.05
+
+  support_dataset:
+    value: /glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/cc-news-ner.conllup
+
+  max_epochs:
+    value: [ 20, 10 ]
+
+  batch_size:
+    value: [ 16, 32 ]
+
+  learning_rate:
+    value: [ 0.00004, 0.00005 ]
+
+  self_training_iterations:
+    value: 3
+
+  selection_strategy:
+    value: prediction-confidence
+
+  min_confidence:
+    value: 0.7
+
+  distinct_relations_by:
+    value: sentence
+
+  top_k:
+    value: 6000
+
+  label_distribution:
+    value:
+      Kill: 203
+      Live_In: 342
+      Located_In: 245
+      OrgBased_In: 241
+      Work_For: 242
+      no_relation: 4732
+
+  use_final_model_for_evaluation:
+    value: False
+
+  precomputed_annotated_support_datasets:
+    value: [ "/glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/precomputed/conll04/0.05/iteration-1/support-datasets/annotated-support-dataset.conllup" ]
+
+  precomputed_relation_overviews:
+    value: [ "/glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/precomputed/conll04/0.05/iteration-1/relation-overviews/scored-relation-overview.parquet" ]
+
+  num_actors:
+    value: 4
+
+  seed:
+    value: 7

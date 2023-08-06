@@ -1,0 +1,68 @@
+project: selfrel-10
+name: self-training (down_sample_train=0.10 self_training_iterations=1 selection_strategy=prediction-confidence seed=8)
+description: >-
+  Hyperparameter optimization with grid search for the self-training algorithm (1 iteration)
+  and prediction confidence selection strategy on 10% training data of the CoNLL04 corpus.
+
+method: grid
+metric:
+  name: "dev/macro avg/f1-score"
+  goal: maximize
+
+parameters:
+
+  corpus:
+    value: conll04
+
+  down_sample_train:
+    value: 0.10
+
+  support_dataset:
+    value: /glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/cc-news-ner.conllup
+
+  max_epochs:
+    value: [ 20, 10 ]
+
+  batch_size:
+    value: [ 8, 32 ]
+
+  learning_rate:
+    value: 0.00005
+
+  self_training_iterations:
+    value: 1
+
+  selection_strategy:
+    value: prediction-confidence
+
+  min_confidence:
+    values: [ 0.7, 0.8, 0.9 ]
+
+  distinct_relations_by:
+    values:
+      - sentence
+      - in-between-text
+
+  top_k:
+    values: [ 3000, 6000, 12000, 24000, 48000, 96000 ]
+
+  label_distribution:
+    value:
+      Kill: 203
+      Live_In: 342
+      Located_In: 245
+      OrgBased_In: 241
+      Work_For: 242
+      no_relation: 4732
+
+  use_final_model_for_evaluation:
+    value: False
+
+  precomputed_annotated_support_datasets:
+    value: [ "/glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/precomputed/conll04/0.10/iteration-1/support-datasets/annotated-support-dataset.conllup" ]
+
+  precomputed_relation_overviews:
+    value: [ "/glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/precomputed/conll04/0.10/iteration-1/relation-overviews/scored-relation-overview.parquet" ]
+
+  seed:
+    value: 8

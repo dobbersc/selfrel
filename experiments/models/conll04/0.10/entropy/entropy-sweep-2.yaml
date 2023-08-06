@@ -1,0 +1,78 @@
+project: selfrel-10
+name: self-training 2nd (down_sample_train=0.10 self_training_iterations=1 selection_strategy=entropy seed=8)
+description: >-
+  Hyperparameter optimization with grid search for the self-training algorithm (1 iteration)
+  and entropy selection strategy on 10% training data of the CoNLL04 corpus.
+
+method: grid
+metric:
+  name: "dev/macro avg/f1-score"
+  goal: maximize
+
+parameters:
+
+  corpus:
+    value: conll04
+
+  down_sample_train:
+    value: 0.10
+
+  support_dataset:
+    value: /glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/cc-news-ner.conllup
+
+  max_epochs:
+    value: [ 20, 10 ]
+
+  batch_size:
+    value: [ 8, 32 ]
+
+  learning_rate:
+    value: 0.00005
+
+  self_training_iterations:
+    value: 1
+
+  selection_strategy:
+    value: entropy
+
+  base:
+    value: 2
+
+  distinct:
+    value: in-between-text
+
+  max_entropy:
+    values: [ 0.4, 0.5, 0.6 ]
+
+  min_occurrence:
+    values: [ 5, 10, 20 ]
+
+  max_occurrence:
+    values: [ 25, 50, 100, 200, 400, 800 ]
+
+  distinct_relations_by:
+    value: sentence
+
+  top_k:
+    values: [ 6000, 12000, 24000 ]
+
+  label_distribution:
+    value:
+      Kill: 203
+      Live_In: 342
+      Located_In: 245
+      OrgBased_In: 241
+      Work_For: 242
+      no_relation: 4732
+
+  use_final_model_for_evaluation:
+    value: False
+
+  precomputed_annotated_support_datasets:
+    value: [ "/glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/precomputed/conll04/0.10/iteration-1/support-datasets/annotated-support-dataset.conllup" ]
+
+  precomputed_relation_overviews:
+    value: [ "/glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news/precomputed/conll04/0.10/iteration-1/relation-overviews/scored-relation-overview.parquet" ]
+
+  seed:
+    value: 8

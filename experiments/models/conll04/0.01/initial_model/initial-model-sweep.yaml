@@ -1,0 +1,39 @@
+project: selfrel-initial-model
+name: initial-model (down_sample_train=0.01 seed=42)
+description: >-
+  Hyperparameter optimization with grid search for the initial teacher model 
+  of the self-training algorithm on 1% training data of the CoNLL04 corpus.
+
+method: grid
+metric:
+  name: dev/macro avg/f1-score
+  goal: maximize
+
+parameters:
+
+  corpus:
+    value: conll04
+
+  support_dataset:
+    value: /glusterfs/dfs-gfs-dist/dobbersc-pub/cc-news-small/cc-news-ner.conllup
+
+  down_sample_train:
+    value: 0.01
+
+  self_training_iterations:
+    value: 0
+
+  max_epochs:
+    values: [ 5, 10, 20, 25, 30 ]
+
+  batch_size:
+    values: [ 1, 2, 4 ]
+
+  learning_rate:
+    values: [ 0.00001, 0.00002, 0.00003, 0.00004, 0.00005 ]
+
+  use_final_model_for_evaluation:
+    value: False
+
+  seed:
+    value: 42
