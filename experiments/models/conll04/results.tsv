@@ -1,0 +1,433 @@
+downsample	seed	iteration	class	precision	recall	f1_score	selection strategy
+# ---- 1% Training Data: Base Model (seed 42) ----
+0.01	42	0	Kill	0.3333	0.0213	0.04	NULL
+0.01	42	0	Live_In	0.3108	0.23	0.2644	NULL
+0.01	42	0	Located_In	0.4043	0.4043	0.4043	NULL
+0.01	42	0	OrgBased_In	0.8	0.1143	0.2	NULL
+0.01	42	0	Work_For	0.1356	0.1053	0.1185	NULL
+0.01	42	0	macro avg	0.3968	0.175	0.2054	NULL
+0.01	42	0	micro avg	0.3347	0.1943	0.2459	NULL
+# ---- 1% Training Data: Self-Training Model (prediction confidence)  ----
+# Seed: 42
+0.01	42	1	Kill	0.1132	0.1277	0.12	prediction confidence
+0.01	42	1	Live_In	0.1635	0.26	0.2008	prediction confidence
+0.01	42	1	Located_In	0.3543	0.4787	0.4072	prediction confidence
+0.01	42	1	OrgBased_In	0.65	0.1238	0.208	prediction confidence
+0.01	42	1	Work_For	0.1161	0.3421	0.1733	prediction confidence
+0.01	42	1	macro avg	0.2794	0.2665	0.2219	prediction confidence
+0.01	42	1	micro avg	0.199	0.2749	0.2308	prediction confidence
+# Seed: 2
+0.01	2	1	Kill	0.1765	0.2553	0.2087	prediction confidence
+0.01	2	1	Live_In	0.2	0.25	0.2222	prediction confidence
+0.01	2	1	Located_In	0.4286	0.4468	0.4375	prediction confidence
+0.01	2	1	OrgBased_In	0.4815	0.1238	0.197	prediction confidence
+0.01	2	1	Work_For	0.1104	0.2368	0.1506	prediction confidence
+0.01	2	1	macro avg	0.2794	0.2626	0.2432	prediction confidence
+0.01	2	1	micro avg	0.2287	0.2607	0.2436	prediction confidence
+# Seed: 7
+# 	Iteration: 1
+0.01	7	1	Kill	0.1327	0.2766	0.1793	prediction confidence
+0.01	7	1	Live_In	0.2232	0.25	0.2358	prediction confidence
+0.01	7	1	Located_In	0.3182	0.4468	0.3717	prediction confidence
+0.01	7	1	OrgBased_In	0.6842	0.1238	0.2097	prediction confidence
+0.01	7	1	Work_For	0.0804	0.2105	0.1164	prediction confidence
+0.01	7	1	macro avg	0.2877	0.2615	0.2226	prediction confidence
+0.01	7	1	micro avg	0.1946	0.2583	0.222	prediction confidence
+# 	Iteration: 2
+0.01	7	2	Kill	0.097	0.2766	0.1436	prediction confidence
+0.01	7	2	Live_In	0.155	0.31	0.2067	prediction confidence
+0.01	7	2	Located_In	0.4022	0.3936	0.3978	prediction confidence
+0.01	7	2	OrgBased_In	0.5714	0.1905	0.2857	prediction confidence
+0.01	7	2	Work_For	0.0947	0.1184	0.1053	prediction confidence
+0.01	7	2	macro avg	0.2641	0.2578	0.2278	prediction confidence
+0.01	7	2	micro avg	0.1978	0.2607	0.2249	prediction confidence
+# 	Iteration 3:
+0.01	7	3	Kill	0.0963	0.2766	0.1429	prediction confidence
+0.01	7	3	Live_In	0.1688	0.26	0.2047	prediction confidence
+0.01	7	3	Located_In	0.2886	0.4574	0.3539	prediction confidence
+0.01	7	3	OrgBased_In	0.5882	0.0952	0.1639	prediction confidence
+0.01	7	3	Work_For	0.1083	0.1711	0.1327	prediction confidence
+0.01	7	3	macro avg	0.2501	0.2521	0.1996	prediction confidence
+0.01	7	3	micro avg	0.1826	0.2488	0.2106	prediction confidence
+# Seed: 13
+0.01	13	1	Kill	0.1262	0.2766	0.1733	prediction confidence
+0.01	13	1	Live_In	0.1739	0.28	0.2146	prediction confidence
+0.01	13	1	Located_In	0.2172	0.5106	0.3048	prediction confidence
+0.01	13	1	OrgBased_In	0.8214	0.219	0.3459	prediction confidence
+0.01	13	1	Work_For	0.1048	0.1711	0.13	prediction confidence
+0.01	13	1	macro avg	0.2887	0.2915	0.2337	prediction confidence
+0.01	13	1	micro avg	0.1962	0.2962	0.2361	prediction confidence
+# ---- 1% Training Data: Self-Training Model (entropy)  ----
+# Seed: 42
+0.01	42	1	Kill	0.3333	0.0851	0.1356	entropy
+0.01	42	1	Live_In	0.2967	0.27	0.2827	entropy
+0.01	42	1	Located_In	0.3636	0.4681	0.4093	entropy
+0.01	42	1	OrgBased_In	0.8182	0.0857	0.1552	entropy
+0.01	42	1	Work_For	0.4211	0.1053	0.1684	entropy
+0.01	42	1	macro avg	0.4466	0.2028	0.2302	entropy
+0.01	42	1	micro avg	0.3622	0.218	0.2722	entropy
+# Seed: 2
+0.01	2	1	Kill	0.1429	0.0426	0.0656	entropy
+0.01	2	1	Live_In	0.2177	0.27	0.2411	entropy
+0.01	2	1	Located_In	0.4105	0.4149	0.4127	entropy
+0.01	2	1	OrgBased_In	0.875	0.0667	0.1239	entropy
+0.01	2	1	Work_For	0.6	0.0395	0.0741	entropy
+0.01	2	1	macro avg	0.4492	0.1667	0.1835	entropy
+0.01	2	1	micro avg	0.3171	0.1848	0.2335	entropy
+# Seed: 7
+# 	Iteration: 1
+0.01	7	1	Kill	0.0714	0.0213	0.0328	entropy
+0.01	7	1	Live_In	0.2857	0.24	0.2609	entropy
+0.01	7	1	Located_In	0.4824	0.4362	0.4581	entropy
+0.01	7	1	OrgBased_In	1	0.0095	0.0189	entropy
+0.01	7	1	Work_For	0.5	0.0132	0.0256	entropy
+0.01	7	1	macro avg	0.4679	0.144	0.1593	entropy
+0.01	7	1	micro avg	0.3656	0.1611	0.2237	entropy
+#	Iteration: 2
+0.01	7	2	Kill	0.0000	0.0000	0.0000	entropy
+0.01	7	2	Live_In	0.5278	0.1900	0.2794	entropy
+0.01	7	2	Located_In	0.7250	0.3085	0.4328	entropy
+0.01	7	2	OrgBased_In	0.0000	0.0000	0.0000	entropy
+0.01	7	2	Work_For	0.4286	0.0789	0.1333	entropy
+0.01	7	2	macro avg	0.3363	0.1155	0.1691	entropy
+0.01	7	2	micro avg	0.6000	0.1280	0.2109	entropy
+#	Iteration: 3
+0.01	7	3	Kill	0.4783	0.2340	0.3143	entropy
+0.01	7	3	Live_In	0.5833	0.1400	0.2258	entropy
+0.01	7	3	Located_In	0.8889	0.2553	0.3967	entropy
+0.01	7	3	OrgBased_In	1.0000	0.0286	0.0556	entropy
+0.01	7	3	Work_For	0.6000	0.0789	0.1395	entropy
+0.01	7	3	macro avg	0.7101	0.1474	0.2264	entropy
+0.01	7	3	micro avg	0.6667	0.1374	0.2279	entropy
+# Seed: 13
+0.01	13	1	Kill	0.0909	0.0213	0.0345	entropy
+0.01	13	1	Live_In	0.3049	0.25	0.2747	entropy
+0.01	13	1	Located_In	0.3889	0.4468	0.4158	entropy
+0.01	13	1	OrgBased_In	0.875	0.0667	0.1239	entropy
+0.01	13	1	Work_For	0.5294	0.1184	0.1935	entropy
+0.01	13	1	macro avg	0.4378	0.1806	0.2085	entropy
+0.01	13	1	micro avg	0.3717	0.1991	0.2593	entropy
+# ---- 5% Training Data: Base Model (seed 8) ----
+0.05	8	0	Kill	0.8519	0.4894	0.6216	NULL
+0.05	8	0	Live_In	0.5227	0.69	0.5948	NULL
+0.05	8	0	Located_In	0.6471	0.4681	0.5432	NULL
+0.05	8	0	OrgBased_In	0.8684	0.3143	0.4615	NULL
+0.05	8	0	Work_For	0.5385	0.8289	0.6528	NULL
+0.05	8	0	macro avg	0.6857	0.5581	0.5748	NULL
+0.05	8	0	micro avg	0.6073	0.5498	0.5771	NULL
+# ---- 5% Training Data: Self-Training Model (prediction confidence)  ----
+# Seed: 8
+0.05	8	1	Kill	0.5658	0.9149	0.6992	prediction confidence
+0.05	8	1	Live_In	0.4343	0.76	0.5527	prediction confidence
+0.05	8	1	Located_In	0.6049	0.5213	0.56	prediction confidence
+0.05	8	1	OrgBased_In	0.8205	0.3048	0.4444	prediction confidence
+0.05	8	1	Work_For	0.5238	0.8684	0.6535	prediction confidence
+0.05	8	1	macro avg	0.5899	0.6739	0.582	prediction confidence
+0.05	8	1	micro avg	0.5352	0.6303	0.5789	prediction confidence
+# Seed: 2
+0.05	2	1	Kill	0.6066	0.7872	0.6852	prediction confidence
+0.05	2	1	Live_In	0.3556	0.8500	0.5015	prediction confidence
+0.05	2	1	Located_In	0.5094	0.5745	0.5400	prediction confidence
+0.05	2	1	OrgBased_In	0.8485	0.2667	0.4058	prediction confidence
+0.05	2	1	Work_For	0.5537	0.8816	0.6802	prediction confidence
+0.05	2	1	macro avg	0.5748	0.6720	0.5625	prediction confidence
+0.05	2	1	micro avg	0.4839	0.6422	0.5519	prediction confidence
+# Seed: 7
+# 	Iteration: 1
+0.05	7	1	Kill	0.5068	0.7872	0.6167	prediction confidence
+0.05	7	1	Live_In	0.4389	0.79	0.5643	prediction confidence
+0.05	7	1	Located_In	0.5667	0.5426	0.5543	prediction confidence
+0.05	7	1	OrgBased_In	0.8421	0.3048	0.4476	prediction confidence
+0.05	7	1	Work_For	0.5965	0.8947	0.7158	prediction confidence
+0.05	7	1	macro avg	0.5902	0.6639	0.5797	prediction confidence
+0.05	7	1	micro avg	0.5394	0.6327	0.5823	prediction confidence
+#	Iteration: 2
+0.05	7	2	Kill	0.5077	0.7021	0.5893	prediction confidence
+0.05	7	2	Live_In	0.4691	0.76	0.5802	prediction confidence
+0.05	7	2	Located_In	0.5243	0.5745	0.5482	prediction confidence
+0.05	7	2	OrgBased_In	0.8611	0.2952	0.4397	prediction confidence
+0.05	7	2	Work_For	0.5037	0.8947	0.6445	prediction confidence
+0.05	7	2	macro avg	0.5732	0.6453	0.5604	prediction confidence
+0.05	7	2	micro avg	0.523	0.6209	0.5677	prediction confidence
+# 	Iteration: 3
+0.05	7	3	Kill	0.5625	0.9574	0.7087	prediction confidence
+0.05	7	3	Live_In	0.407	0.81	0.5418	prediction confidence
+0.05	7	3	Located_In	0.4013	0.6489	0.4959	prediction confidence
+0.05	7	3	OrgBased_In	0.8611	0.2952	0.4397	prediction confidence
+0.05	7	3	Work_For	0.5484	0.8947	0.68	prediction confidence
+0.05	7	3	macro avg	0.5561	0.7213	0.5732	prediction confidence
+0.05	7	3	micro avg	0.4839	0.6777	0.5647	prediction confidence
+# Seed: 13
+0.05	13	1	Kill	0.5682	0.5319	0.5495	prediction confidence
+0.05	13	1	Live_In	0.3333	0.9000	0.4865	prediction confidence
+0.05	13	1	Located_In	0.7188	0.4894	0.5823	prediction confidence
+0.05	13	1	OrgBased_In	0.9000	0.3429	0.4966	prediction confidence
+0.05	13	1	Work_For	0.5649	0.9737	0.7150	prediction confidence
+0.05	13	1	macro avg	0.6170	0.6476	0.5659	prediction confidence
+0.05	13	1	micro avg	0.4936	0.6422	0.5582	prediction confidence
+# ---- 5% Training Data: Self-Training Model (entropy)  ----
+# Seed: 8
+0.05	8	1	Kill	0.7556	0.7234	0.7391	entropy
+0.05	8	1	Live_In	0.4847	0.79	0.6008	entropy
+0.05	8	1	Located_In	0.6818	0.4787	0.5625	entropy
+0.05	8	1	OrgBased_In	0.8182	0.3429	0.4832	entropy
+0.05	8	1	Work_For	0.5678	0.8816	0.6907	entropy
+0.05	8	1	macro avg	0.6616	0.6433	0.6153	entropy
+0.05	8	1	micro avg	0.5986	0.6185	0.6084	entropy
+# Seed: 2
+0.05	2	1	Kill	0.6735	0.7021	0.6875	entropy
+0.05	2	1	Live_In	0.4095	0.86	0.5548	entropy
+0.05	2	1	Located_In	0.6711	0.5426	0.6	entropy
+0.05	2	1	OrgBased_In	0.7872	0.3524	0.4868	entropy
+0.05	2	1	Work_For	0.5217	0.9474	0.6729	entropy
+0.05	2	1	macro avg	0.6126	0.6809	0.6004	entropy
+0.05	2	1	micro avg	0.5365	0.6611	0.5924	entropy
+# Seed: 7
+#	Iteration: 1
+0.05	7	1	Kill	0.7308	0.8085	0.7677	entropy
+0.05	7	1	Live_In	0.5188	0.69	0.5923	entropy
+0.05	7	1	Located_In	0.6761	0.5106	0.5818	entropy
+0.05	7	1	OrgBased_In	0.8444	0.3619	0.5067	entropy
+0.05	7	1	Work_For	0.5965	0.8947	0.7158	entropy
+0.05	7	1	macro avg	0.6733	0.6532	0.6328	entropy
+0.05	7	1	micro avg	0.6289	0.6185	0.6237	entropy
+#	Iteration: 2
+0.05	7	2	Kill	0.766	0.766	0.766	entropy
+0.05	7	2	Live_In	0.4195	0.73	0.5328	entropy
+0.05	7	2	Located_In	0.875	0.1489	0.2545	entropy
+0.05	7	2	OrgBased_In	0.8621	0.2381	0.3731	entropy
+0.05	7	2	Work_For	0.4966	0.9737	0.6578	entropy
+0.05	7	2	macro avg	0.6838	0.5713	0.5169	entropy
+0.05	7	2	micro avg	0.5349	0.5261	0.5305	entropy
+#	Iteration: 3
+0.05	7	3	Kill	0.7742	0.5106	0.6154	entropy
+0.05	7	3	Live_In	0.3889	0.7	0.5	entropy
+0.05	7	3	Located_In	0.9286	0.1383	0.2407	entropy
+0.05	7	3	OrgBased_In	0.8148	0.2095	0.3333	entropy
+0.05	7	3	Work_For	0.5071	0.9342	0.6574	entropy
+0.05	7	3	macro avg	0.6827	0.4985	0.4694	entropy
+0.05	7	3	micro avg	0.5102	0.4739	0.4914	entropy
+# Seed: 13
+0.05	13	1	Kill	0.7105	0.5745	0.6353	entropy
+0.05	13	1	Live_In	0.48	0.72	0.576	entropy
+0.05	13	1	Located_In	0.7097	0.4681	0.5641	entropy
+0.05	13	1	OrgBased_In	0.8409	0.3524	0.4966	entropy
+0.05	13	1	Work_For	0.5469	0.9211	0.6863	entropy
+0.05	13	1	macro avg	0.6576	0.6072	0.5917	entropy
+0.05	13	1	micro avg	0.5924	0.5924	0.5924	entropy
+# ---- 10% Training Data: Base Model (seed 8) ----
+0.10	8	0	Kill	0.7885	0.8723	0.8283	NULL
+0.10	8	0	Live_In	0.497	0.82	0.6189	NULL
+0.10	8	0	Located_In	0.8	0.5532	0.6541	NULL
+0.10	8	0	OrgBased_In	0.7528	0.6381	0.6907	NULL
+0.10	8	0	Work_For	0.75	0.8684	0.8049	NULL
+0.10	8	0	macro avg	0.7176	0.7504	0.7194	NULL
+0.10	8	0	micro avg	0.671	0.7299	0.6992	NULL
+# ---- 10% Training Data: Self-Training Model (prediction confidence)  ----
+# Seed: 8
+0.10	8	1	Kill	0.6538	0.7234	0.6869	prediction confidence
+0.10	8	1	Live_In	0.4965	0.7	0.5809	prediction confidence
+0.10	8	1	Located_In	0.75	0.5426	0.6296	prediction confidence
+0.10	8	1	OrgBased_In	0.5592	0.8095	0.6615	prediction confidence
+0.10	8	1	Work_For	0.7473	0.8947	0.8144	prediction confidence
+0.10	8	1	macro avg	0.6414	0.734	0.6747	prediction confidence
+0.10	8	1	micro avg	0.6111	0.7299	0.6652	prediction confidence
+# Seed: 2
+0.10	2	1	Kill	0.6667	0.7234	0.6939	prediction confidence
+0.10	2	1	Live_In	0.4709	0.81	0.5956	prediction confidence
+0.10	2	1	Located_In	0.7164	0.5106	0.5963	prediction confidence
+0.10	2	1	OrgBased_In	0.4972	0.8381	0.6241	prediction confidence
+0.10	2	1	Work_For	0.7326	0.8289	0.7778	prediction confidence
+0.10	2	1	macro avg	0.6167	0.7422	0.6575	prediction confidence
+0.10	2	1	micro avg	0.5678	0.7441	0.6441	prediction confidence
+# Seed: 7
+#	Iteration: 1
+0.10	7	1	Kill	0.6552	0.8085	0.7238	prediction confidence
+0.10	7	1	Live_In	0.4041	0.78	0.5324	prediction confidence
+0.10	7	1	Located_In	0.7797	0.4894	0.6013	prediction confidence
+0.10	7	1	OrgBased_In	0.5982	0.6381	0.6175	prediction confidence
+0.10	7	1	Work_For	0.6562	0.8289	0.7326	prediction confidence
+0.10	7	1	macro avg	0.6187	0.709	0.6415	prediction confidence
+0.10	7	1	micro avg	0.5637	0.6919	0.6213	prediction confidence
+#	Iteration: 2
+0.10	7	2	Kill	0.4857	0.7234	0.5812	prediction confidence
+0.10	7	2	Live_In	0.454	0.79	0.5766	prediction confidence
+0.10	7	2	Located_In	0.5	0.5638	0.53	prediction confidence
+0.10	7	2	OrgBased_In	0.5029	0.8381	0.6286	prediction confidence
+0.10	7	2	Work_For	0.7386	0.8553	0.7927	prediction confidence
+0.10	7	2	macro avg	0.5362	0.7541	0.6218	prediction confidence
+0.10	7	2	micro avg	0.5204	0.7559	0.6164	prediction confidence
+#	Iteration: 3
+0.10	7	3	Kill	0.5312	0.7234	0.6126	prediction confidence
+0.10	7	3	Live_In	0.381	0.96	0.5455	prediction confidence
+0.10	7	3	Located_In	0.287	0.6596	0.4	prediction confidence
+0.10	7	3	OrgBased_In	0.4596	0.8667	0.6007	prediction confidence
+0.10	7	3	Work_For	0.5246	0.8421	0.6465	prediction confidence
+0.10	7	3	macro avg	0.4367	0.8104	0.561	prediction confidence
+0.10	7	3	micro avg	0.4073	0.8223	0.5447	prediction confidence
+# Seed: 13
+0.10	13	1	Kill	0.5417	0.8298	0.6555	prediction confidence
+0.10	13	1	Live_In	0.42	0.84	0.56	prediction confidence
+0.10	13	1	Located_In	0.549	0.5957	0.5714	prediction confidence
+0.10	13	1	OrgBased_In	0.4235	0.7905	0.5515	prediction confidence
+0.10	13	1	Work_For	0.6535	0.8684	0.7458	prediction confidence
+0.10	13	1	macro avg	0.5175	0.7849	0.6168	prediction confidence
+0.10	13	1	micro avg	0.4888	0.7773	0.6002	prediction confidence
+# ---- 10% Training Data: Self-Training Model (entropy)  ----
+# Seed: 8
+0.10	8	1	Kill	0.8	0.8511	0.8247	entropy
+0.10	8	1	Live_In	0.5	0.72	0.5902	entropy
+0.10	8	1	Located_In	0.8103	0.5	0.6184	entropy
+0.10	8	1	OrgBased_In	0.8046	0.6667	0.7292	entropy
+0.10	8	1	Work_For	0.7053	0.8816	0.7836	entropy
+0.10	8	1	macro avg	0.724	0.7239	0.7092	entropy
+0.10	8	1	micro avg	0.682	0.7014	0.6916	entropy
+# Seed: 2
+0.10	2	1	Kill	0.7778	0.7447	0.7609	entropy
+0.10	2	1	Live_In	0.4184	0.82	0.5541	entropy
+0.10	2	1	Located_In	0.8095	0.5426	0.6497	entropy
+0.10	2	1	OrgBased_In	0.6429	0.6857	0.6636	entropy
+0.10	2	1	Work_For	0.6699	0.9079	0.7709	entropy
+0.10	2	1	macro avg	0.6637	0.7402	0.6798	entropy
+0.10	2	1	micro avg	0.5954	0.7322	0.6567	entropy
+# Seed: 7
+#	Iteration: 1
+0.10	7	1	Kill	0.6897	0.8511	0.7619	entropy
+0.10	7	1	Live_In	0.4483	0.78	0.5693	entropy
+0.10	7	1	Located_In	0.7887	0.5957	0.6788	entropy
+0.10	7	1	OrgBased_In	0.7753	0.6571	0.7113	entropy
+0.10	7	1	Work_For	0.6869	0.8947	0.7771	entropy
+0.10	7	1	macro avg	0.6778	0.7557	0.6997	entropy
+0.10	7	1	micro avg	0.6334	0.737	0.6813	entropy
+#	Iteration: 2
+0.10	7	2	Kill	0.6667	0.766	0.7129	entropy
+0.10	7	2	Live_In	0.3493	0.73	0.4725	entropy
+0.10	7	2	Located_In	0.7317	0.3191	0.4444	entropy
+0.10	7	2	OrgBased_In	0.8611	0.2952	0.4397	entropy
+0.10	7	2	Work_For	0.5478	0.8289	0.6597	entropy
+0.10	7	2	macro avg	0.6313	0.5879	0.5458	entropy
+0.10	7	2	micro avg	0.5121	0.5521	0.5314	entropy
+#	Iteration: 3
+0.10	7	3	Kill	0.8056	0.617	0.6988	entropy
+0.10	7	3	Live_In	0.3234	0.76	0.4537	entropy
+0.10	7	3	Located_In	0.6667	0.0213	0.0412	entropy
+0.10	7	3	OrgBased_In	0.9231	0.2286	0.3664	entropy
+0.10	7	3	Work_For	0.5093	0.7237	0.5978	entropy
+0.10	7	3	macro avg	0.6456	0.4701	0.4316	entropy
+0.10	7	3	micro avg	0.4559	0.4408	0.4482	entropy
+# Seed: 13
+0.10	13	1	Kill	0.8444	0.8085	0.8261	entropy
+0.10	13	1	Live_In	0.4491	0.75	0.5618	entropy
+0.10	13	1	Located_In	0.7727	0.5426	0.6375	entropy
+0.10	13	1	OrgBased_In	0.7419	0.6571	0.697	entropy
+0.10	13	1	Work_For	0.7083	0.8947	0.7907	entropy
+0.10	13	1	macro avg	0.7033	0.7306	0.7026	entropy
+0.10	13	1	micro avg	0.6445	0.7133	0.6772	entropy
+# ---- 100% Training Data: Base Model ----
+1.00	8	0	Kill	0.898	0.9362	0.9167	NULL
+1.00	8	0	Live_In	0.7315	0.79	0.7596	NULL
+1.00	8	0	Located_In	0.8533	0.6809	0.7574	NULL
+1.00	8	0	OrgBased_In	0.7895	0.7143	0.75	NULL
+1.00	8	0	Work_For	0.8846	0.9079	0.8961	NULL
+1.00	8	0	macro avg	0.8314	0.8058	0.816	NULL
+1.00	8	0	micro avg	0.8173	0.7844	0.8005	NULL
+# ---- 100% Training Data: Self-Training Model (prediction confidence)  ----
+# Seed: 8
+1.00	8	1	Kill	0.9167	0.9362	0.9263	prediction confidence
+1.00	8	1	Live_In	0.8119	0.82	0.8159	prediction confidence
+1.00	8	1	Located_In	0.8133	0.6489	0.7219	prediction confidence
+1.00	8	1	OrgBased_In	0.8488	0.6952	0.7644	prediction confidence
+1.00	8	1	Work_For	0.8642	0.9211	0.8917	prediction confidence
+1.00	8	1	macro avg	0.851	0.8043	0.824	prediction confidence
+1.00	8	1	micro avg	0.844	0.782	0.8118	prediction confidence
+# Seed: 2
+1.00	2	1	Kill	0.9167	0.9362	0.9263	prediction confidence
+1.00	2	1	Live_In	0.7672	0.89	0.8241	prediction confidence
+1.00	2	1	Located_In	0.8182	0.6702	0.7368	prediction confidence
+1.00	2	1	OrgBased_In	0.8961	0.6571	0.7582	prediction confidence
+1.00	2	1	Work_For	0.8846	0.9079	0.8961	prediction confidence
+1.00	2	1	macro avg	0.8566	0.8123	0.8283	prediction confidence
+1.00	2	1	micro avg	0.8434	0.7915	0.8166	prediction confidence
+# Seed: 7
+#	Iteration: 1
+1.00	7	1	Kill	0.9362	0.9362	0.9362	prediction confidence
+1.00	7	1	Live_In	0.7355	0.89	0.8054	prediction confidence
+1.00	7	1	Located_In	0.7419	0.734	0.738	prediction confidence
+1.00	7	1	OrgBased_In	0.781	0.781	0.781	prediction confidence
+1.00	7	1	Work_For	0.8889	0.9474	0.9172	prediction confidence
+1.00	7	1	macro avg	0.8167	0.8577	0.8355	prediction confidence
+1.00	7	1	micro avg	0.7964	0.8436	0.8193	prediction confidence
+#	Iteration 2:
+1.00	7	2	Kill	0.8776	0.9149	0.8958	prediction confidence
+1.00	7	2	Live_In	0.8125	0.78	0.7959	prediction confidence
+1.00	7	2	Located_In	0.8023	0.734	0.7667	prediction confidence
+1.00	7	2	OrgBased_In	0.8675	0.6857	0.766	prediction confidence
+1.00	7	2	Work_For	0.9403	0.8289	0.8811	prediction confidence
+1.00	7	2	macro avg	0.86	0.7887	0.8211	prediction confidence
+1.00	7	2	micro avg	0.853	0.7701	0.8095	prediction confidence
+#	Iteration 3:
+1.00	7	3	Kill	0.898	0.9362	0.9167	prediction confidence
+1.00	7	3	Live_In	0.7961	0.82	0.8079	prediction confidence
+1.00	7	3	Located_In	0.7444	0.7128	0.7283	prediction confidence
+1.00	7	3	OrgBased_In	0.8	0.6857	0.7385	prediction confidence
+1.00	7	3	Work_For	0.9324	0.9079	0.92	prediction confidence
+1.00	7	3	macro avg	0.8342	0.8125	0.8223	prediction confidence
+1.00	7	3	micro avg	0.8227	0.7915	0.8068	prediction confidence
+# Seed: 13
+1.00	13	1	Kill	0.913	0.8936	0.9032	prediction confidence
+1.00	13	1	Live_In	0.78	0.78	0.78	prediction confidence
+1.00	13	1	Located_In	0.8592	0.6489	0.7394	prediction confidence
+1.00	13	1	OrgBased_In	0.8929	0.7143	0.7937	prediction confidence
+1.00	13	1	Work_For	0.8816	0.8816	0.8816	prediction confidence
+1.00	13	1	macro avg	0.8653	0.7837	0.8196	prediction confidence
+1.00	13	1	micro avg	0.8568	0.7654	0.8085	prediction confidence
+# ---- 100% Training Data: Self-Training Model (entropy)  ----
+# Seed: 8
+1.00	8	1	Kill	0.9111	0.8723	0.8913	entropy
+1.00	8	1	Live_In	0.713	0.77	0.7404	entropy
+1.00	8	1	Located_In	0.9153	0.5745	0.7059	entropy
+1.00	8	1	OrgBased_In	0.7732	0.7143	0.7426	entropy
+1.00	8	1	Work_For	0.8118	0.9079	0.8571	entropy
+1.00	8	1	macro avg	0.8249	0.7678	0.7875	entropy
+1.00	8	1	micro avg	0.802	0.7488	0.7745	entropy
+# Seed: 2
+1.00	2	1	Kill	0.9167	0.9362	0.9263	entropy
+1.00	2	1	Live_In	0.7615	0.83	0.7943	entropy
+1.00	2	1	Located_In	0.8514	0.6702	0.75	entropy
+1.00	2	1	OrgBased_In	0.7957	0.7048	0.7475	entropy
+1.00	2	1	Work_For	0.8333	0.8553	0.8442	entropy
+1.00	2	1	macro avg	0.8317	0.7993	0.8124	entropy
+1.00	2	1	micro avg	0.8184	0.7796	0.7985	entropy
+# Seed: 7
+#	Iteration 1:
+1.00	7	1	Kill	0.9362	0.9362	0.9362	entropy
+1.00	7	1	Live_In	0.8	0.84	0.8195	entropy
+1.00	7	1	Located_In	0.8	0.7234	0.7598	entropy
+1.00	7	1	OrgBased_In	0.8276	0.6857	0.75	entropy
+1.00	7	1	Work_For	0.88	0.8684	0.8742	entropy
+1.00	7	1	macro avg	0.8488	0.8107	0.8279	entropy
+1.00	7	1	micro avg	0.8371	0.7915	0.8136	entropy
+#	Iteration 2:
+1.00	7	2	Kill	0.875	0.8936	0.8842	entropy
+1.00	7	2	Live_In	0.802	0.81	0.806	entropy
+1.00	7	2	Located_In	0.7556	0.7234	0.7391	entropy
+1.00	7	2	OrgBased_In	0.8261	0.7238	0.7716	entropy
+1.00	7	2	Work_For	0.766	0.9474	0.8471	entropy
+1.00	7	2	macro avg	0.8049	0.8196	0.8096	entropy
+1.00	7	2	micro avg	0.7976	0.8033	0.8005	entropy
+#	Iteration 3:
+1.00	7	3	Kill	0.9333	0.8936	0.913	entropy
+1.00	7	3	Live_In	0.8222	0.74	0.7789	entropy
+1.00	7	3	Located_In	0.8551	0.6277	0.7239	entropy
+1.00	7	3	OrgBased_In	0.7426	0.7143	0.7282	entropy
+1.00	7	3	Work_For	0.8554	0.9342	0.8931	entropy
+1.00	7	3	macro avg	0.8417	0.782	0.8074	entropy
+1.00	7	3	micro avg	0.8273	0.7607	0.7926	entropy
+# Seed: 13
+1.00	13	1	Kill	0.9333	0.8936	0.913	entropy
+1.00	13	1	Live_In	0.7257	0.82	0.77	entropy
+1.00	13	1	Located_In	0.95	0.6064	0.7403	entropy
+1.00	13	1	OrgBased_In	0.7742	0.6857	0.7273	entropy
+1.00	13	1	Work_For	0.8816	0.8816	0.8816	entropy
+1.00	13	1	macro avg	0.853	0.7775	0.8064	entropy
+1.00	13	1	micro avg	0.8269	0.7583	0.7911	entropy
