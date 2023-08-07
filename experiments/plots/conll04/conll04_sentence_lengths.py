@@ -18,10 +18,9 @@ def build_sentence_lengths_dataframe(corpus: Corpus[Sentence]) -> pd.DataFrame:
     assert corpus.train is not None
     assert corpus.dev is not None
     assert corpus.test is not None
-    sentence: Sentence  # noqa: F842
     return pd.DataFrame(
         {
-            "sentence_length": [
+            "sentence_length": [  # type: ignore[var-annotated]
                 len(sentence)
                 for sentence in itertools.chain(corpus.train, corpus.dev, corpus.test)  # type: ignore[arg-type]
             ]
